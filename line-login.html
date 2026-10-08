@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMART SAFETY - เข้าสู่ระบบด้วย LINE</title>
+<!--
+  หน้าปลายทาง LIFF (LIFF Endpoint URL) ของ SMART SAFETY V.3
+  ทำไมต้องมีหน้านี้: หน้าเว็บของ Google Apps Script (/exec) ถูกแสดงใน iframe บนโดเมน googleusercontent.com
+  ส่วน liff.init() ทำงานได้เฉพาะบนหน้าที่ URL ตรงกับ Endpoint URL ของ LIFF เท่านั้น จึงต้องวางหน้านี้บนโฮสต์ระดับบนสุด
+  (เช่น GitHub Pages / Netlify / Firebase Hosting) แล้วตั้งเป็น Endpoint URL ของ LIFF
+  ขั้นตอน: liff.init → (ถ้ายังไม่ล็อกอิน) liff.login → liff.getIDToken() → ส่งไป lineHandoff (เซิร์ฟเวอร์ตรวจกับ LINE)
+          → ได้รหัสใช้ครั้งเดียว (อายุ 3 นาที) → กลับไปหน้าแอป /exec?lh=รหัส&li=login|link
+  ไม่มีความลับใด ๆ ในไฟล์นี้ (ไม่ใช้ Channel Secret)
+-->
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js" charset="utf-8"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0f172a; color: #e2e8f0; font-family: 'Sarabun', sans-serif; }
+  .card { width: min(92vw, 420px); background: rgba(30, 41, 59, .85); border: 1px solid rgba(255, 255, 255, .08); border-top: 4px solid #06C755; border-radius: 24px; padding: 28px 24px; text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, .4); }
+  h1 { font-size: 20px; margin: 8px 0 4px; color: #fff; }
+  p { font-size: 14px; color: #94a3b8; margin: 6px 0; line-height: 1.6; }
+  .spin { width: 42px; height: 42px; margin: 10px auto; border-radius: 50%; border: 4px solid rgba(6, 199, 85, .25); border-top-color: #06C755; animation: s 1s linear infinite; }
+  @keyframes s { to { transform: rotate(360deg); } }
+  .btn { display: inline-block; margin-top: 14px; padding: 12px 22px; border-radius: 14px; border: 0; font: inherit; font-weight: 700; color: #fff; background: #06C755; text-decoration: none; cursor: pointer; }
+  .btn.alt { background: #334155; }
+  .err { color: #fda4af; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div style="font-weight:800;letter-spacing:.5px;color:#fff">SMART <span style="color:#0ea5e9">SAFETY</span></div>
+  <h1 id="title">กำลังเข้าสู่ระบบด้วย LINE</h1>
+  <div id="spin" class="spin"></div>
+  <p id="msg">กรุณารอสักครู่...</p>
+  <div id="actions" class="hidden">
+    <button class="btn" onclick="location.reload()">ลองใหม่</button>
+    <a class="btn alt" id="back" href="#">กลับหน้าระบบ</a>
+  </div>
+</div>
+<script>
+  // ===== ตั้งค่า (ต้องตรงกับ Code.gs) =====
+  const LIFF_ID = '2011913143-ODRxiNua';
+  const APP_URL = 'https://script.google.com/macros/s/AKfycbwH8PjktorVLFiQaReI4A-9jAA7yncqzVDThBx4tR2NrdHotyu7kqMb7HXBE-6Yqdar/exec';   // URL ของเว็บแอป (/exec) — ใช้รับ ID token และเป็นหน้าที่จะกลับไป
+  // ========================================
+  const $ = id => document.getElementById(id);
+  document.getElementById('back').href = APP_URL;
+  function fail(text) {
+    $('spin').classList.add('hidden'); $('title').textContent = 'เข้าสู่ระบบด้วย LINE ไม่สำเร็จ';
+    $('msg').textContent = text; $('msg').className = 'err'; $('actions').classList.remove('hidden');
+  }
+  function intentFromUrl() {
+    const q = new URLSearchParams(location.search);
+    const li = q.get('li') || sessionStorage.getItem('ss_line_intent') || 'login';
+    return li === 'link' ? 'link' : 'login';
+  }
+  async function main() {
+    if (!window.liff) return fail('โหลดชุดคำสั่ง LINE ไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ต');
+    try { await liff.init({ liffId: LIFF_ID }); }
+    catch (e) { return fail('เริ่มต้น LINE ไม่ได้ (' + (e && e.message || e) + ') — ตรวจสอบว่า Endpoint URL ของ LIFF ตรงกับหน้านี้'); }
+    // เปิดผ่าน https://liff.line.me/... ครั้งแรก URL จะมี liff.state แล้ว SDK พาไปหน้าเดิมพร้อม ?li=… เอง — รอรอบนั้น (กันการส่งซ้ำ)
+    if (new URLSearchParams(location.search).has('liff.state')) return;
+    const intent = intentFromUrl();
+    if (!liff.isLoggedIn()) {
+      sessionStorage.setItem('ss_line_intent', intent);   // กันพารามิเตอร์หายระหว่างไปหน้าล็อกอินของ LINE
+      $('msg').textContent = 'กำลังไปหน้าอนุญาตของ LINE...';
+      return liff.login({ redirectUri: location.origin + location.pathname + '?li=' + intent });
+    }
+    sessionStorage.removeItem('ss_line_intent');
+    const idToken = liff.getIDToken();
+    if (!idToken) return fail('ไม่ได้รับข้อมูลยืนยันตัวตนจาก LINE — ตรวจสอบว่า LIFF เปิด scope "openid" แล้ว');
+    $('msg').textContent = 'กำลังยืนยันตัวตนกับระบบ...';
+    let res;
+    try {
+      const r = await fetch(APP_URL + '?action=lineHandoff', { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ __envelope: 2, token: null, payload: { idToken: idToken, intent: intent } }) });
+      res = JSON.parse(await r.text());
+    } catch (e) { return fail('เชื่อมต่อระบบไม่ได้ กรุณาลองใหม่'); }
+    if (!res || res.status !== 'success' || !res.data || !res.data.code) {
+      if (res && res.code === 'LINE_TOKEN_INVALID') { try { liff.logout(); } catch (e) {} }
+      return fail((res && res.message) || 'ยืนยันตัวตนไม่สำเร็จ');
+    }
+    $('msg').textContent = 'สำเร็จ กำลังกลับเข้าสู่ระบบ...';
+    location.replace(APP_URL + '?lh=' + encodeURIComponent(res.data.code) + '&li=' + encodeURIComponent(res.data.intent || intent));
+  }
+  main();
+</script>
+</body>
+</html>
