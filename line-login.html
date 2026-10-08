@@ -55,31 +55,52 @@
     const li = q.get('li') || sessionStorage.getItem('ss_line_intent') || 'login';
     return li === 'link' ? 'link' : 'login';
   }
+  const THIS_PAGE = location.origin + location.pathname;
+  const ENDPOINT_HELP = 'ผู้ดูแลระบบต้องตั้ง Endpoint URL ของ LIFF (LINE Developers Console → LIFF) เป็น ' + THIS_PAGE;
+  // SDK แจ้งเตือนทาง console เมื่อหน้านี้ไม่ใช่ Endpoint URL ของ LIFF — ดักไว้เพื่อแจ้งเป็นภาษาไทยแทนการพาไปหน้า 400 ของ LINE
+  let endpointMismatch = '';
+  const origWarn = console.warn;
+  console.warn = function () { try { const t = Array.prototype.join.call(arguments, ' '); if (/not related to the endpoint URL/i.test(t)) endpointMismatch = t; } catch (e) {} return origWarn.apply(console, arguments); };
   async function main() {
     if (!window.liff) return fail('โหลดชุดคำสั่ง LINE ไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ต');
     try { await liff.init({ liffId: LIFF_ID }); }
-    catch (e) { return fail('เริ่มต้น LINE ไม่ได้ (' + (e && e.message || e) + ') — ตรวจสอบว่า Endpoint URL ของ LIFF ตรงกับหน้านี้'); }
+    catch (e) { return fail('เริ่มต้น LINE ไม่ได้ (' + (e && e.message || e) + ') — ' + ENDPOINT_HELP); }
     // เปิดผ่าน https://liff.line.me/... ครั้งแรก URL จะมี liff.state แล้ว SDK พาไปหน้าเดิมพร้อม ?li=… เอง — รอรอบนั้น (กันการส่งซ้ำ)
-    if (new URLSearchParams(location.search).has('liff.state')) return;
+    // ถ้า 4 วินาทีแล้ว SDK ยังไม่พาไป ให้ทำต่อเองจากค่าใน liff.state (กันค้างที่หน้ารอ)
+    const q0 = new URLSearchParams(location.search);
+    if (q0.has('liff.state') && !window.__ssStateFallback) {
+      window.__ssStateFallback = true;
+      return setTimeout(() => {
+        const st = new URLSearchParams(String(q0.get('liff.state') || '').replace(/^[^?]*\??/, ''));
+        if (st.get('li')) sessionStorage.setItem('ss_line_intent', st.get('li'));
+        continueLogin();
+      }, 4000);
+    }
+    continueLogin();
+  }
+  async function continueLogin() {
     const intent = intentFromUrl();
     if (!liff.isLoggedIn()) {
+      if (endpointMismatch) return fail('การตั้งค่า LIFF ไม่ถูกต้อง: หน้านี้ไม่ใช่ Endpoint URL ของ LIFF — ' + ENDPOINT_HELP);
       sessionStorage.setItem('ss_line_intent', intent);   // กันพารามิเตอร์หายระหว่างไปหน้าล็อกอินของ LINE
       $('msg').textContent = 'กำลังไปหน้าอนุญาตของ LINE...';
-      return liff.login({ redirectUri: location.origin + location.pathname + '?li=' + intent });
+      return liff.login({ redirectUri: THIS_PAGE + '?li=' + intent });
     }
     sessionStorage.removeItem('ss_line_intent');
     const idToken = liff.getIDToken();
     if (!idToken) return fail('ไม่ได้รับข้อมูลยืนยันตัวตนจาก LINE — ตรวจสอบว่า LIFF เปิด scope "openid" แล้ว');
     $('msg').textContent = 'กำลังยืนยันตัวตนกับระบบ...';
-    let res;
+    let res, txt = '';
     try {
+      // simple request (text/plain, ไม่มี header พิเศษ) → ไม่มี preflight; Apps Script ตอบ 302 ไป googleusercontent แล้ว fetch ตามไปอ่านผลเอง
       const r = await fetch(APP_URL + '?action=lineHandoff', { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ __envelope: 2, token: null, payload: { idToken: idToken, intent: intent } }) });
-      res = JSON.parse(await r.text());
-    } catch (e) { return fail('เชื่อมต่อระบบไม่ได้ กรุณาลองใหม่'); }
+      txt = await r.text();
+    } catch (e) { return fail('เชื่อมต่อระบบไม่ได้ (' + (e && e.message || e) + ') กรุณาตรวจสอบอินเทอร์เน็ตแล้วกด "ลองใหม่"'); }
+    try { res = JSON.parse(txt); } catch (e) { return fail('ระบบตอบกลับไม่ถูกต้อง (อาจกำลังปรับปรุง) กรุณากด "ลองใหม่" ภายหลัง หากยังไม่ได้ให้แจ้งผู้ดูแลระบบ'); }
     if (!res || res.status !== 'success' || !res.data || !res.data.code) {
       if (res && res.code === 'LINE_TOKEN_INVALID') { try { liff.logout(); } catch (e) {} }
-      return fail((res && res.message) || 'ยืนยันตัวตนไม่สำเร็จ');
+      return fail(((res && res.message) || 'ยืนยันตัวตนไม่สำเร็จ') + (res && res.code ? ' [' + res.code + ']' : ''));
     }
     $('msg').textContent = 'สำเร็จ กำลังกลับเข้าสู่ระบบ...';
     location.replace(APP_URL + '?lh=' + encodeURIComponent(res.data.code) + '&li=' + encodeURIComponent(res.data.intent || intent));
