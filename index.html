@@ -13,6 +13,14 @@
           → ได้รหัสใช้ครั้งเดียว (อายุ 3 นาที) → กลับไปหน้าแอป /exec?lh=รหัส&li=login|link
   ไม่มีความลับใด ๆ ในไฟล์นี้ (ไม่ใช้ Channel Secret)
 -->
+<script>
+  // ต้องอยู่ก่อนโหลด SDK: SDK แจ้งเตือนทาง console เมื่อหน้านี้ไม่ใช่ Endpoint URL ของ LIFF — ดักไว้เพื่อแจ้งเป็นภาษาไทยแทนการพาไปหน้า 400 ของ LINE
+  var endpointMismatch = '';
+  (function () {
+    var hook = function (orig) { return function () { try { var t = Array.prototype.join.call(arguments, ' '); if (/not related to the endpoint URL/i.test(t)) endpointMismatch = t; } catch (e) {} return orig.apply(console, arguments); }; };
+    console.warn = hook(console.warn); console.log = hook(console.log);
+  })();
+</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js" charset="utf-8"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -57,10 +65,6 @@
   }
   const THIS_PAGE = location.origin + location.pathname;
   const ENDPOINT_HELP = 'ผู้ดูแลระบบต้องตั้ง Endpoint URL ของ LIFF (LINE Developers Console → LIFF) เป็น ' + THIS_PAGE;
-  // SDK แจ้งเตือนทาง console เมื่อหน้านี้ไม่ใช่ Endpoint URL ของ LIFF — ดักไว้เพื่อแจ้งเป็นภาษาไทยแทนการพาไปหน้า 400 ของ LINE
-  let endpointMismatch = '';
-  const origWarn = console.warn;
-  console.warn = function () { try { const t = Array.prototype.join.call(arguments, ' '); if (/not related to the endpoint URL/i.test(t)) endpointMismatch = t; } catch (e) {} return origWarn.apply(console, arguments); };
   async function main() {
     if (!window.liff) return fail('โหลดชุดคำสั่ง LINE ไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ต');
     try { await liff.init({ liffId: LIFF_ID }); }
