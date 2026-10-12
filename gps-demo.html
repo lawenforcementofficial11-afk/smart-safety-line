@@ -1,0 +1,44 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ตัวอย่าง: แก้ GPS ปุ่มเดียว</title>
+<style>
+body{margin:0;font-family:system-ui,"Noto Sans Thai",sans-serif;background:#0f172a;color:#fff;display:flex;min-height:100vh;align-items:center;justify-content:center}
+.c{width:min(440px,92vw);text-align:center;padding:24px}
+.tag{display:inline-block;background:#f59e0b;color:#000;font-weight:700;border-radius:999px;padding:4px 14px;font-size:14px;margin-bottom:18px}
+.ic{font-size:72px;line-height:1}
+h1{font-size:28px;margin:12px 0 8px}
+p{font-size:20px;color:#cbd5e1;margin:0 0 24px;line-height:1.5}
+.btn{display:block;width:100%;border:0;border-radius:22px;padding:24px 10px;font-size:26px;font-weight:800;color:#fff;background:#16a34a;box-shadow:0 6px 0 #14532d;margin-bottom:16px}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #14532d}
+.sec{background:#334155;box-shadow:0 6px 0 #1e293b;font-size:20px;padding:18px}
+.ok{color:#4ade80}.hide{display:none}
+ol{text-align:left;font-size:20px;line-height:1.7;color:#e2e8f0;padding-left:28px}
+</style></head><body><div class="c">
+<div class="tag">หน้าตัวอย่าง ไม่ใช่ระบบจริง</div>
+<div id="s-need">
+  <div class="ic">📍</div><h1>ยังไม่ได้เปิดตำแหน่ง</h1>
+  <p>กดปุ่มสีเขียวด้านล่าง<br>แล้วกด <b>"อนุญาต"</b></p>
+  <button class="btn" onclick="fix()">👉 กดตรงนี้เพื่อแก้ไข</button>
+</div>
+<div id="s-wait" class="hide"><div class="ic">⏳</div><h1>กำลังหาตำแหน่ง...</h1><p>รอสักครู่</p></div>
+<div id="s-ok" class="hide"><div class="ic">✅</div><h1 class="ok">ใช้งานได้แล้ว</h1><p id="pos"></p>
+  <button class="btn" onclick="alert('(ตัวอย่าง) บันทึกเข้าจุดเรียบร้อย')">เข้าจุด</button></div>
+<div id="s-help" class="hide"><div class="ic">🙋</div><h1>ขอให้หัวหน้าชุดช่วย</h1>
+  <ol><li>เปิด <b>การตั้งค่า</b> ของมือถือ</li><li>หา <b>ตำแหน่ง</b> แล้วเปิด</li><li>กลับมากดปุ่มเขียวอีกครั้ง</li></ol>
+  <button class="btn" onclick="fix()">ลองอีกครั้ง</button>
+  <button class="btn sec" onclick="copyLink()">📋 คัดลอกลิงก์ไปเปิดที่อื่น</button></div>
+</div><script>
+var inLine=/Line\//i.test(navigator.userAgent);
+function show(id){['s-need','s-wait','s-ok','s-help'].forEach(function(x){document.getElementById(x).classList.toggle('hide',x!==id)})}
+function fix(){
+  if(inLine&&location.search.indexOf('openExternalBrowser')<0){
+    location.href=location.href+(location.search?'&':'?')+'openExternalBrowser=1';return;
+  }
+  if(!navigator.geolocation){show('s-help');return}
+  show('s-wait');
+  navigator.geolocation.getCurrentPosition(function(p){
+    document.getElementById('pos').textContent='พิกัด '+p.coords.latitude.toFixed(5)+', '+p.coords.longitude.toFixed(5)+' (แม่นยำ ±'+Math.round(p.coords.accuracy)+' ม.)';show('s-ok');
+  },function(){show('s-help')},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+}
+function copyLink(){var u=location.href.split('?')[0];
+  (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(function(){alert('คัดลอกแล้ว นำไปวางในเบราว์เซอร์ได้เลย')},function(){prompt('คัดลอกลิงก์นี้',u)})}
+</script></body></html>
