@@ -1,0 +1,11 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>เปิดสิทธิ์ตำแหน่ง</title>
+<style>body{margin:0;font-family:sans-serif;background:#0f172a;color:#fff;text-align:center;padding:24px}h1{font-size:26px}button{width:100%;font-size:26px;padding:26px;border:0;border-radius:18px;margin:14px 0;font-weight:bold}#go{background:#16a34a;color:#fff}#back{background:#2563eb;color:#fff;display:none}#msg{font-size:22px;line-height:1.6}ol{text-align:left;font-size:20px;line-height:1.7;background:#1e293b;padding:16px 16px 16px 40px;border-radius:14px;display:none}</style></head><body>
+<h1>📍 เปิดสิทธิ์ตำแหน่ง</h1><div id="msg">กดปุ่มเขียว แล้วกด "อนุญาต"</div>
+<button id="go">กดตรงนี้</button><button id="back">กลับไปใช้งาน</button>
+<ol id="help"><li>เปิด <b>การตั้งค่า</b> ของโทรศัพท์</li><li>แอป › <b>LINE</b> › สิทธิ์ › <b>ตำแหน่ง</b> › <b>อนุญาตขณะใช้แอป</b></li><li>กลับมาหน้านี้ กดปุ่มเขียวอีกครั้ง</li></ol>
+<script>var m=document.getElementById('msg');
+document.getElementById('go').onclick=function(){m.textContent='กำลังตรวจสอบ...';
+if(!navigator.geolocation){fail();return}
+navigator.geolocation.getCurrentPosition(function(){m.innerHTML='✅ <b>พร้อมใช้งานแล้ว</b>';document.getElementById('help').style.display='none';document.getElementById('back').style.display='block'},fail,{enableHighAccuracy:true,timeout:15000})};
+function fail(){m.innerHTML='❌ ยังไม่ได้สิทธิ์<br>ทำตาม 3 ขั้นด้านล่าง';document.getElementById('help').style.display='block'}
+document.getElementById('back').onclick=function(){history.length>1?history.back():window.close()};</script></body></html>
