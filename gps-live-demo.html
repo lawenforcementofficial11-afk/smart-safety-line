@@ -1,0 +1,16 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ตัวอย่าง: แก้ GPS ในระบบ</title>
+<style>body{margin:0;font-family:sans-serif;background:#0f172a;color:#fff;padding:20px}.tag{background:#f59e0b;color:#000;padding:4px 10px;border-radius:8px;font-size:14px}h1{font-size:22px}.b{width:100%;font-size:24px;padding:24px;border:0;border-radius:16px;margin:10px 0;font-weight:bold;color:#fff}#ck{background:#2563eb}#ok{font-size:22px;text-align:center;margin-top:16px}
+#m{display:none;position:fixed;inset:0;background:#0f172aee;padding:24px;text-align:center;overflow:auto}#m h2{font-size:24px}#fix{background:#16a34a;font-size:28px;padding:30px}#sim{background:#475569;font-size:16px;padding:12px}details{text-align:left;background:#1e293b;border-radius:12px;padding:12px;font-size:18px;line-height:1.7}#err{display:none;color:#fca5a5;font-size:20px}</style></head><body>
+<span class="tag">ตัวอย่าง - ไม่บันทึกข้อมูลจริง</span><h1>SMART SAFETY</h1>
+<button class="b" id="ck">📍 เช็คอินจุดตรวจ</button><button class="b" id="sim">ทดลอง: จำลองว่า GPS ใช้ไม่ได้</button><div id="ok"></div>
+<div id="m"><h2>⚠️ ยังเปิดตำแหน่งไม่ได้</h2><p style="font-size:20px">กดปุ่มเขียว แล้วกด "อนุญาต"</p>
+<button class="b" id="fix">📍 กดเปิดสิทธิ์ตำแหน่ง</button><div id="err">❌ ยังไม่ได้ ทำตามขั้นด้านล่าง</div>
+<details id="d"><summary><b>วิธีแก้ (กดดู)</b></summary><ol><li>ปัดจอบนลง เปิด <b>ตำแหน่ง</b></li><li>การตั้งค่า › แอป › <b>LINE</b> › สิทธิ์ › ตำแหน่ง › <b>อนุญาตขณะใช้แอป</b></li><li>กลับมากดปุ่มเขียวอีกครั้ง</li></ol></details>
+<button class="b" style="background:#475569;font-size:18px;padding:14px" onclick="m.style.display='none'">ปิด</button></div>
+<script>var m=document.getElementById('m'),ok=document.getElementById('ok');
+function done(){m.style.display='none';ok.innerHTML='✅ <b>เช็คอินสำเร็จ</b> (ตัวอย่าง)'}
+function show(){ok.textContent='';document.getElementById('err').style.display='none';m.style.display='block'}
+function gps(s,f){if(!navigator.geolocation)return f();navigator.geolocation.getCurrentPosition(s,f,{enableHighAccuracy:true,timeout:15000})}
+document.getElementById('ck').onclick=function(){ok.textContent='กำลังหาตำแหน่ง...';gps(done,show)};
+document.getElementById('sim').onclick=show;
+document.getElementById('fix').onclick=function(){this.textContent='กำลังตรวจสอบ...';var b=this;gps(function(){b.textContent='📍 กดเปิดสิทธิ์ตำแหน่ง';done()},function(){b.textContent='📍 กดเปิดสิทธิ์ตำแหน่ง';document.getElementById('err').style.display='block';document.getElementById('d').open=true})};</script></body></html>
