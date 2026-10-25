@@ -1,0 +1,99 @@
+<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SMART SAFETY - ตัวอย่างระบบ 3 บทบาท</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0f172a;color:#e2e8f0;font-family:system-ui,sans-serif;font-size:18px}
+.ban{background:#f59e0b;color:#000;text-align:center;font-weight:700;padding:6px;position:sticky;top:0;z-index:1000}
+.top{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#1e293b}
+.wrap{max-width:640px;margin:auto;padding:12px}
+button{font-size:20px;border:0;border-radius:14px;padding:16px;margin:6px 0;width:100%;color:#fff;background:#334155;cursor:pointer}
+.b1{background:#2563eb}.b2{background:#16a34a}.b3{background:#dc2626}.b4{background:#7c3aed}.sm{width:auto;padding:8px 12px;font-size:16px;margin:2px}
+.card{background:#1e293b;border-radius:14px;padding:12px;margin:10px 0}.meet{border:3px solid #f59e0b}
+input,select,textarea{font-size:18px;width:100%;padding:10px;border-radius:10px;border:1px solid #475569;background:#0f172a;color:#fff;margin:4px 0}
+.map{height:340px;border-radius:14px;margin:8px 0}.tabs{display:flex;flex-wrap:wrap;gap:4px}.tabs button{flex:1;font-size:16px;padding:10px;width:auto}
+.tabs .on{background:#2563eb}.row{display:flex;gap:6px}.kpi{flex:1;text-align:center;background:#1e293b;border-radius:12px;padding:10px}.kpi b{font-size:32px;display:block}
+small{color:#94a3b8}.tag{background:#475569;border-radius:8px;padding:2px 6px;font-size:14px;margin:2px}
+</style></head><body>
+<div class="ban">⚠️ ตัวอย่าง - ไม่บันทึกข้อมูลจริง</div>
+<div class="top"><b id="who">SMART SAFETY เทศกิจเมืองพัทยา</b><button class="sm b3" id="out" onclick="logout()" style="display:none">⇄ สลับบทบาท</button></div>
+<div class="wrap" id="app"></div>
+<script>
+const C=[12.9276,100.8771],K='ssdemo1',$=id=>document.getElementById(id);
+const ZONES=['พัทยา','นาเกลือ','จอมเทียน','กระเบนธง'],SH=['เช้า','บ่าย','ดึก'];
+function today(h,m){const d=new Date();d.setHours(h,m,0,0);return d.getTime()}
+function seed(){return{
+officers:[[1001,'สมชาย ใจดี',0,0,'อา',1,1],[1002,'สมศรี มีสุข',0,1,'จ',0,0],[1003,'ประยุทธ แข็งแรง',1,0,'อ',1,0],[1004,'วิชัย รักงาน',1,2,'พ',0,1],[1005,'มานพ ตั้งใจ',2,0,'พฤ',0,0],[1006,'สุดา ใจงาม',2,1,'ศ',1,1],[1007,'บุญมี ศรีสุข',3,0,'ส',0,0],[1008,'อนันต์ ปลอดภัย',3,2,'อา',1,0]]
+ .map(o=>({id:o[0],name:o[1],zone:ZONES[o[2]],shift:SH[o[3]],off:o[4],freePin:!!o[5],manualPin:!!o[6]})),
+cps:[['ชายหาดพัทยากลาง',12.9330,100.8800],['วอล์กกิ้งสตรีท',12.9270,100.8720],['ท่าเรือแหลมบาลีฮาย',12.9230,100.8680],['ตลาดนาเกลือ',12.9640,100.8990],['หาดจอมเทียน',12.8890,100.8700],['ตลาดกระเบนธง',12.9050,100.8850]].map((c,i)=>({id:i+1,name:c[0],lat:c[1],lng:c[2]})),
+checks:[{oid:1001,cp:1,lat:12.9331,lng:100.8802,t:today(8,10),type:'checkin'},{oid:1001,lat:12.9300,lng:100.8770,t:today(9,0),type:'pin'},{oid:1001,cp:2,lat:12.9271,lng:100.8722,t:today(9,40),type:'checkin'},{oid:1003,cp:4,lat:12.9641,lng:100.8991,t:today(8,30),type:'checkin'},{oid:1003,lat:12.9600,lng:100.8950,t:today(10,5),type:'pin'},{oid:1005,cp:5,lat:12.8891,lng:100.8701,t:today(8,45),type:'checkin'},{oid:1007,cp:6,lat:12.9051,lng:100.8851,t:today(9,15),type:'checkin'}],
+tasks:[{id:1,oid:1001,title:'ตรวจแผงลอยรุกล้ำทางเท้า',detail:'ถนนเลียบชายหาด ช่วงซอย 6-8',lat:12.9350,lng:100.8810,status:'ใหม่',t:today(7,30)}],
+meets:[{id:1,title:'ประชุมประจำสัปดาห์',when:'2026-10-27T09:00',place:'ห้องประชุมเทศกิจ ชั้น 2',target:'all',val:'',ack:[1003,1005],t:today(7,0)}],
+regs:[{id:'1009',name:'ชาตรี ขยัน',zone:'พัทยา'},{id:'0000000',name:'นิพนธ์ ลืมรหัส',zone:'จอมเทียน'},{id:'1010',name:'กาญจนา สดใส',zone:'นาเกลือ'}]}}
+let D=JSON.parse(localStorage.getItem(K)||'null')||seed(),S={role:null,me:null,tab:0},maps=[];
+const save=()=>localStorage.setItem(K,JSON.stringify(D)),off=id=>D.officers.find(o=>o.id==id),hm=t=>new Date(t).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+function reset(){if(confirm('รีเซ็ตข้อมูลตัวอย่างทั้งหมด?')){localStorage.removeItem(K);D=seed();save();render()}}
+function logout(){S={role:null,me:null,tab:0};render()}
+function mkMap(id,z){const m=L.map(id).setView(C,z||13);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(m);maps.push(m);return m}
+function cpLayer(m){D.cps.forEach(c=>L.circleMarker([c.lat,c.lng],{radius:9,color:'#f59e0b'}).addTo(m).bindPopup('จุดตรวจ: '+c.name))}
+function isToday(t){return new Date(t).toDateString()==new Date().toDateString()}
+function render(){maps.forEach(m=>m.remove());maps=[];$('out').style.display=S.role?'block':'none';
+$('who').textContent=S.role?({boss:'👮 ผู้บังคับบัญชา',admin:'🛠️ แอดมิน',off:'🚶 '+(S.me&&off(S.me).name)})[S.role]:'SMART SAFETY เทศกิจเมืองพัทยา';
+({null:login,boss:boss,admin:admin,off:offPage})[S.role]()}
+function login(){$('app').innerHTML=`<h2>เลือกบทบาทเพื่อทดลอง</h2>
+<button class="b1" onclick="bossLogin()">👮 ผู้บังคับบัญชา</button>
+<button class="b4" onclick="S.role='admin';render()">🛠️ แอดมิน <small style="color:#ddd">(ตัวอย่าง ไม่ต้องใส่รหัส)</small></button>
+<button class="b2" onclick="pickOff()">🚶 สายตรวจ</button><hr><button class="b3" onclick="reset()">♻️ รีเซ็ตข้อมูลตัวอย่าง</button>`}
+function bossLogin(){$('app').innerHTML=`<h2>ผู้บังคับบัญชา</h2><input id="pw" type="password" placeholder="รหัสผ่าน"><button class="b1" onclick="if($('pw').value=='admin1111'){S.role='boss';render()}else alert('รหัสไม่ถูกต้อง')">เข้าสู่ระบบ</button><button onclick="render()">← กลับ</button>`}
+function pickOff(){$('app').innerHTML='<h2>เลือกเจ้าหน้าที่ (ตัวอย่าง)</h2>'+D.officers.map(o=>`<button onclick="S.role='off';S.me=${o.id};render()">${o.name}<br><small>${o.zone} · เวร${o.shift}${o.freePin?' · 📍อิสระ':''}${o.manualPin?' · 🗺️เลือกเอง':''}</small></button>`).join('')+'<button onclick="render()">← กลับ</button>'}
+function tabs(names){return '<div class="tabs">'+names.map((n,i)=>`<button class="${S.tab==i?'on':''}" onclick="S.tab=${i};render()">${n}</button>`).join('')+'</div>'}
+/* ---- BOSS ---- */
+let F={zone:'',shift:''};
+function filt(){return D.officers.filter(o=>(!F.zone||o.zone==F.zone)&&(!F.shift||o.shift==F.shift))}
+function filters(){return `<div class="row"><select onchange="F.zone=this.value;render()"><option value="">ทุกโซน</option>${ZONES.map(z=>`<option ${F.zone==z?'selected':''}>${z}</option>`)}</select><select onchange="F.shift=this.value;render()"><option value="">ทุกเวร</option>${SH.map(z=>`<option ${F.shift==z?'selected':''}>${z}</option>`)}</select></div>`}
+const COL=['#ef4444','#22c55e','#3b82f6','#eab308','#a855f7','#06b6d4','#f97316','#ec4899'];
+function boss(){const t=S.tab,a=$('app');a.innerHTML=tabs(['📊 ภาพรวม','🗺️ แผนที่','📋 รายงาน','📝 มอบหมายงาน','📢 แจ้งประชุม']);
+if(t==0){const os=filt(),ids=os.map(o=>o.id),ch=D.checks.filter(c=>isToday(c.t)&&ids.includes(c.oid)),on=new Set(ch.map(c=>c.oid)),cov=new Set(ch.filter(c=>c.cp).map(c=>c.cp));
+a.innerHTML+=filters()+`<div class="row"><div class="kpi"><b>${on.size}</b>ปฏิบัติงาน</div><div class="kpi"><b>${os.length-on.size}</b>ยังไม่ลงเวลา</div><div class="kpi"><b>${cov.size}/${D.cps.length}</b>จุดตรวจ</div></div>`+os.map(o=>`<div class="card">${on.has(o.id)?'🟢':'🔴'} ${o.name} <small>${o.zone} · เวร${o.shift} · หยุด ${o.off}</small></div>`).join('')}
+if(t==1){a.innerHTML+=filters()+'<div id="m" class="map" style="height:460px"></div><small>🟠 จุดตรวจ · เส้นสี = เส้นทางของแต่ละคนเรียงตามเวลา</small>';const m=mkMap('m');cpLayer(m);
+filt().forEach((o,i)=>{const p=D.checks.filter(c=>c.oid==o.id&&isToday(c.t)).sort((x,y)=>x.t-y.t);if(!p.length)return;const col=COL[i%8];
+L.polyline(p.map(c=>[c.lat,c.lng]),{color:col,weight:4}).addTo(m);p.forEach((c,j)=>L.circleMarker([c.lat,c.lng],{radius:6,color:col,fillOpacity:1}).addTo(m).bindPopup(`${o.name}<br>${j+1}. ${c.type=='pin'?'📍ปักหมุด':'✅เช็คอิน'} ${hm(c.t)}${c.sim?' (จำลอง)':''}`))})}
+if(t==2){a.innerHTML+=filters()+D.checks.filter(c=>filt().some(o=>o.id==c.oid)).sort((x,y)=>y.t-x.t).map(c=>`<div class="card">${c.type=='pin'?'📍 ปักหมุด':'✅ เช็คอิน'} · ${off(c.oid).name}<br><small>${new Date(c.t).toLocaleString('th-TH')} · ${c.cp?D.cps.find(p=>p.id==c.cp)?.name||'':c.lat.toFixed(5)+','+c.lng.toFixed(5)}${c.sim?' · จำลอง':''}${c.manual?' · เลือกบนแผนที่':''}</small></div>`).join('')}
+if(t==3){a.innerHTML+=`<div class="card"><select id="to">${D.officers.map(o=>`<option value="${o.id}">${o.name} (${o.zone})</option>`)}</select><input id="tt" placeholder="หัวข้องาน"><textarea id="td" placeholder="รายละเอียด"></textarea><small>แตะแผนที่เพื่อระบุสถานที่ (ไม่บังคับ)</small><div id="m" class="map"></div><button class="b1" onclick="addTask()">📝 มอบหมายงาน</button></div>`+D.tasks.slice().reverse().map(k=>`<div class="card"><b>${k.title}</b> → ${off(k.oid).name}<br><small>${k.detail} · สถานะ: ${k.status}</small></div>`).join('');
+const m=mkMap('m');cpLayer(m);window._tl=null;let mk;m.on('click',e=>{_tl=e.latlng;mk?mk.setLatLng(e.latlng):mk=L.marker(e.latlng).addTo(m)})}
+if(t==4){a.innerHTML+=`<div class="card"><input id="mt" placeholder="หัวข้อประชุม"><input id="mw" type="datetime-local"><input id="mp" placeholder="สถานที่"><select id="mg" onchange="$('mv').innerHTML=this.value=='zone'?ZONES.map(z=>'<option>'+z+'</option>').join(''):this.value=='shift'?SH.map(z=>'<option>'+z+'</option>').join(''):''"><option value="all">ทุกคน</option><option value="zone">ตามโซน</option><option value="shift">ตามเวร</option></select><select id="mv"></select><button class="b1" onclick="addMeet()">📢 แจ้งประชุม</button></div>`+D.meets.slice().reverse().map(x=>{const tg=D.officers.filter(o=>mTarget(x,o));return `<div class="card meet"><b>${x.title}</b><br><small>${new Date(x.when).toLocaleString('th-TH')} · ${x.place} · ${x.target=='all'?'ทุกคน':(x.target=='zone'?'โซน ':'เวร')+x.val}</small><br>✅ รับทราบ ${x.ack.filter(i=>tg.some(o=>o.id==i)).length}/${tg.length}<br>${tg.map(o=>`<span class="tag">${x.ack.includes(o.id)?'✅':'⏳'} ${o.name}</span>`).join('')}</div>`}).join('')}}
+function addTask(){const tt=$('tt').value.trim();if(!tt)return alert('ใส่หัวข้องาน');D.tasks.push({id:Date.now(),oid:+$('to').value,title:tt,detail:$('td').value,lat:_tl&&_tl.lat,lng:_tl&&_tl.lng,status:'ใหม่',t:Date.now()});save();alert('มอบหมายแล้ว');render()}
+function mTarget(x,o){return x.target=='all'||(x.target=='zone'&&o.zone==x.val)||(x.target=='shift'&&o.shift==x.val)}
+function addMeet(){if(!$('mt').value||!$('mw').value)return alert('ใส่หัวข้อและวันเวลา');D.meets.push({id:Date.now(),title:$('mt').value,when:$('mw').value,place:$('mp').value,target:$('mg').value,val:$('mv').value,ack:[],t:Date.now()});save();render()}
+/* ---- ADMIN ---- */
+function admin(){const t=S.tab,a=$('app');a.innerHTML=tabs(['👥 เจ้าหน้าที่','📍 จุดตรวจ','🆕 อนุมัติสมัคร'])+'<button class="b3 sm" onclick="reset()">♻️ รีเซ็ตข้อมูลตัวอย่าง</button>';
+if(t==0)a.innerHTML+=D.officers.map(o=>`<div class="card"><b>${o.name}</b> <small>#${o.id}</small>
+<label><input type="checkbox" style="width:28px;height:28px" ${o.freePin?'checked':''} onchange="upd(${o.id},'freePin',this.checked)"> ปักหมุดได้อิสระ</label><br>
+<label><input type="checkbox" style="width:28px;height:28px" ${o.manualPin?'checked':''} onchange="upd(${o.id},'manualPin',this.checked)"> เลือกตำแหน่งบนแผนที่เองได้</label>
+<div class="row"><select onchange="upd(${o.id},'zone',this.value)">${ZONES.map(z=>`<option ${o.zone==z?'selected':''}>${z}</option>`)}</select><select onchange="upd(${o.id},'shift',this.value)">${SH.map(z=>`<option ${o.shift==z?'selected':''}>${z}</option>`)}</select><select onchange="upd(${o.id},'off',this.value)">${['จ','อ','พ','พฤ','ศ','ส','อา'].map(z=>`<option ${o.off==z?'selected':''}>${z}</option>`)}</select></div><small>โซน · เวร · วันหยุด</small></div>`).join('');
+if(t==1){a.innerHTML+='<small>แตะแผนที่เพื่อเพิ่มจุดตรวจ</small><div id="m" class="map"></div>'+D.cps.map(c=>`<div class="card">📍 ${c.name} <button class="b3 sm" onclick="if(confirm('ลบจุดนี้?')){D.cps=D.cps.filter(p=>p.id!=${c.id});save();render()}">ลบ</button></div>`).join('');
+const m=mkMap('m');cpLayer(m);m.on('click',e=>{const n=prompt('ชื่อจุดตรวจใหม่');if(n){D.cps.push({id:Date.now(),name:n,lat:e.latlng.lat,lng:e.latlng.lng});save();render()}})}
+if(t==2)a.innerHTML+=(D.regs.length?'':'<p>ไม่มีรายการรออนุมัติ</p>')+D.regs.map((r,i)=>`<div class="card"><b>${r.name}</b> · ${r.zone}<br>รหัส: ${r.id} ${r.id=='0000000'?'<span class="tag" style="background:#dc2626">รอแก้รหัส</span>':''}
+${r.id=='0000000'?`<button class="sm" onclick="const v=prompt('รหัสใหม่');if(v){D.regs[${i}].id=v;save();render()}">✏️ แก้รหัส</button>`:`<button class="b2 sm" onclick="approve(${i})">✅ อนุมัติ</button>`}<button class="b3 sm" onclick="D.regs.splice(${i},1);save();render()">ปฏิเสธ</button></div>`).join('')}
+function upd(id,k,v){off(id)[k]=v;save()}
+function approve(i){const r=D.regs.splice(i,1)[0];D.officers.push({id:+r.id||r.id,name:r.name,zone:r.zone,shift:'เช้า',off:'อา',freePin:false,manualPin:false});save();render()}
+/* ---- OFFICER ---- */
+function getPos(near,cb){const sim=()=>{const b=near||{lat:C[0],lng:C[1]};cb(b.lat+(Math.random()-.5)*.0006,b.lng+(Math.random()-.5)*.0006,true)};
+if(!navigator.geolocation)return sim();navigator.geolocation.getCurrentPosition(p=>cb(p.coords.latitude,p.coords.longitude,false),sim,{timeout:6000,enableHighAccuracy:true})}
+function offPage(){const o=off(S.me),a=$('app');if(S.pick)return manual();
+const ms=D.meets.filter(x=>mTarget(x,o)),ts=D.tasks.filter(k=>k.oid==o.id&&k.status!='เสร็จแล้ว');
+a.innerHTML=ms.map(x=>`<div class="card meet">📢 <b>${x.title}</b><br>🕘 ${new Date(x.when).toLocaleString('th-TH')}<br>📍 ${x.place}${x.ack.includes(o.id)?'<p>✅ รับทราบแล้ว</p>':`<button class="b2" onclick="D.meets.find(m=>m.id==${x.id}).ack.push(${o.id});save();render()">👍 รับทราบ</button>`}</div>`).join('')
++ts.map(k=>`<div class="card">📝 <b>${k.title}</b><br>${k.detail}${k.lat?`<br><a style="color:#60a5fa" target="_blank" href="https://www.google.com/maps?q=${k.lat},${k.lng}">ดูตำแหน่ง</a>`:''}<br><small>สถานะ: ${k.status}</small>${k.status=='ใหม่'?`<button class="b1" onclick="tk(${k.id},'รับงานแล้ว')">รับงาน</button>`:`<button class="b2" onclick="tk(${k.id},'เสร็จแล้ว')">✅ เสร็จแล้ว</button>`}</div>`).join('')
++`<div class="card"><b>✅ เช็คอินจุดตรวจ</b><select id="cp">${D.cps.map(c=>`<option value="${c.id}">${c.name}</option>`)}</select><button class="b1" onclick="checkin()">✅ เช็คอิน</button></div>`
++(o.freePin?'<button class="b2" style="font-size:26px;padding:24px" onclick="freePin()">📍 ปักหมุดตรงนี้</button>':'')
++(o.manualPin?'<button class="b4" style="font-size:24px;padding:22px" onclick="S.pick=1;render()">🗺️ เลือกตำแหน่งบนแผนที่</button>':'')
++'<h3>วันนี้ของฉัน</h3><div id="m" class="map"></div>'+D.checks.filter(c=>c.oid==o.id&&isToday(c.t)).sort((x,y)=>y.t-x.t).map(c=>`<div class="card">${c.type=='pin'?'📍':'✅'} ${hm(c.t)} ${c.cp?D.cps.find(p=>p.id==c.cp)?.name||'':''}${c.sim?' <span class="tag">จำลอง</span>':''}</div>`).join('');
+const m=mkMap('m');cpLayer(m);const p=D.checks.filter(c=>c.oid==o.id&&isToday(c.t)).sort((x,y)=>x.t-y.t).map(c=>[c.lat,c.lng]);if(p.length){L.polyline(p,{color:'#22c55e'}).addTo(m);p.forEach(x=>L.circleMarker(x,{radius:6,color:'#22c55e'}).addTo(m))}}
+function tk(id,s){D.tasks.find(k=>k.id==id).status=s;save();render()}
+function rec(x){D.checks.push(Object.assign({oid:S.me,t:Date.now()},x));save();render()}
+function checkin(){const cp=D.cps.find(c=>c.id==$('cp').value);getPos(cp,(lat,lng,sim)=>{rec({cp:cp.id,lat,lng,sim,type:'checkin'});alert('เช็คอินสำเร็จ '+(sim?'(จำลองตำแหน่ง)':''))})}
+function freePin(){getPos(null,(lat,lng,sim)=>{rec({lat,lng,sim,type:'pin'});alert('ปักหมุดแล้ว '+hm(Date.now())+(sim?' (จำลอง)':''))})}
+function manual(){$('app').innerHTML='<h3>แตะหรือลากหมุดไปยังตำแหน่ง</h3><div id="m" class="map" style="height:60vh"></div><button class="b2" onclick="S.pick=0;rec({lat:_mk.getLatLng().lat,lng:_mk.getLatLng().lng,type:\'pin\',manual:true});alert(\'บันทึกตำแหน่งแล้ว\')">✅ ยืนยันตำแหน่งนี้</button><button onclick="S.pick=0;render()">ยกเลิก</button>';
+const m=mkMap('m',15);cpLayer(m);window._mk=L.marker(C,{draggable:true}).addTo(m);m.on('click',e=>_mk.setLatLng(e.latlng))}
+render();
+</script></body></html>
