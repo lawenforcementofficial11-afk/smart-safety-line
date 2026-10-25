@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SMART SAFETY - ศูนย์สั่งการ</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Sarabun', 'sans-serif'] },
+                    colors: { 
+                        brand: { 900: '#020617', 800: '#0f172a', 700: '#1e293b' },
+                        accent: { 600: '#0284c7', 500: '#0ea5e9', 400: '#38bdf8' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: linear-gradient(135deg, #020617, #0f172a, #1e3a8a); background-attachment: fixed; min-height: 100vh; color: #f8fafc; font-family: 'Sarabun', sans-serif; }
+        .glass-panel { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); }
+        .glass-input { background: rgba(2, 6, 23, 0.6); border: 1px solid rgba(255, 255, 255, 0.15); color: white; transition: all 0.3s ease; }
+        .glass-input:focus { outline: none; background: rgba(2, 6, 23, 0.9); border-color: #0ea5e9; box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.3); }
+        .glass-input option { background: #0f172a; color: white; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(14, 165, 233, 0.4); border-radius: 4px; }
+        .touch-pan-x { -webkit-overflow-scrolling: touch; }
+        @media (max-width: 768px) { input, select, textarea { font-size: 16px !important; } }
+        .tab-btn { border-bottom: 3px solid transparent; }
+        .tab-btn.active { background: rgba(255, 255, 255, 0.05); border-bottom: 3px solid #0ea5e9; color: #38bdf8; font-weight: 700; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .gps-radar { position: relative; width: 24px; height: 24px; }
+        .gps-radar::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 12px; height: 12px; background-color: #ef4444; border: 2px solid white; border-radius: 50%; z-index: 2; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .gps-radar::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; border: 2px solid #ef4444; border-radius: 50%; animation: radar 1.5s infinite ease-out; z-index: 1; }
+        @keyframes radar { 0% { width: 12px; height: 12px; opacity: 1; } 100% { width: 40px; height: 40px; opacity: 0; } }
+        /* V.3 */
+        .officer-pin { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 9999px; font-size: 11px; font-weight: 800; color: #fff; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.6); }
+        .route-pin { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 9999px; font-size: 11px; font-weight: 800; color: #0f172a; background: #22d3ee; border: 2px solid #fff; }
+        .leaflet-popup-content { font-family: 'Sarabun', sans-serif; font-size: 13px; }
+        .chart-box { position: relative; height: 260px; }
+        .big-action { min-height: 84px; }
+        /* ตราหน่วยงาน: ไม่เปลี่ยนสีตรา ใส่เพียงแสงเรืองสีฟ้าให้กลมกลืนกับหัวเว็บ */
+        #monthly-table th { white-space: normal; line-height: 1.25; vertical-align: bottom; padding: .6rem .5rem; }
+        #monthly-table td { padding: .6rem .5rem; }
+        #brand-logo { filter: drop-shadow(0 0 5px rgba(56, 189, 248, .35)) drop-shadow(0 2px 3px rgba(0, 0, 0, .45)); }
+        #monthly-report-container.pdf-mode { background: #0f172a; }
+        img[data-img-ref] { background: #1e293b; }
+            .th-date-wrap { position: relative; display: inline-block; }
+        .th-date-wrap > input { color: transparent !important; cursor: pointer; }
+        .th-date-wrap > input::-webkit-datetime-edit { color: transparent; }
+        .th-date-wrap > input::-webkit-calendar-picker-indicator { filter: invert(1); opacity: .8; cursor: pointer; }
+        .th-date-wrap > .th-date-label { position: absolute; left: .8rem; right: 2.2rem; top: 50%; transform: translateY(-50%); pointer-events: none; font-weight: 700; font-size: .875rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+<style>.nb{display:inline-block;background:#f97316;color:#fff;font-size:11px;font-weight:800;padding:1px 7px;border-radius:9999px;margin-left:6px;vertical-align:middle}.btnx{min-height:56px;font-size:18px;font-weight:800;border-radius:14px;padding:10px 16px}.mapb{height:300px;border-radius:16px}</style>
+</head>
+<body class="p-2 md:p-6 flex flex-col items-center overflow-x-hidden">
+<div class="w-full max-w-7xl bg-yellow-300 text-black font-black text-center text-lg rounded-2xl p-3 mb-3">⚠️ ตัวอย่างหน้าตาระบบจริง - ไม่บันทึกข้อมูลจริง <span class="text-sm font-bold">(ป้าย <span class="nb">ใหม่</span> = ส่วนที่จะเพิ่ม)</span></div>
+<div class="w-full max-w-7xl glass-panel rounded-2xl p-3 mb-3 flex flex-wrap gap-2 items-center"><b class="mr-2">สลับบทบาท (เดโม):</b>
+<button class="btnx bg-slate-700" onclick="setRole('public')">ประชาชน</button>
+<select id="offSel" class="glass-input btnx" onchange="setRole('officer',this.value)"><option value="">สายตรวจ ▾</option></select>
+<button class="btnx bg-purple-700" onclick="setRole('admin')">แอดมิน</button>
+<button class="btnx bg-amber-600" onclick="cmdLogin()">ผู้บังคับบัญชา<span class="nb">ใหม่</span></button></div>
+<div id="app-header" class="w-full max-w-7xl glass-panel rounded-3xl p-6 md:p-8 mb-6 relative border-t-4 border-t-accent-500">
+<div class="absolute top-3 right-3 flex items-center gap-2 bg-black/50 px-4 py-2 rounded-full text-xs font-bold border border-white/10"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span><span>โหมดตัวอย่าง (ออฟไลน์)</span></div>
+<h1 class="text-3xl md:text-5xl font-black mb-2 text-white">SMART SAFETY</h1><p class="text-slate-300">ศูนย์สั่งการ เทศกิจเมืองพัทยา</p>
+<div class="mt-4 bg-black/40 inline-block px-4 py-3 rounded-lg font-bold border border-white/10" id="pill"></div></div>
+<div id="tabs" class="w-full max-w-7xl glass-panel rounded-2xl p-2 mb-6 flex flex-wrap gap-1"></div>
+<div id="main" class="w-full max-w-7xl"></div>
+<script>
+const ZONES=['พัทยา','นาเกลือ','จอมเทียน','กระเบนธง'],SHIFTS=['เช้า','บ่าย','ดึก'],C=[12.9236,100.8825];
+const LS=k=>JSON.parse(localStorage.getItem('ssd_'+k)||'null'),SV=(k,v)=>localStorage.setItem('ssd_'+k,JSON.stringify(v));
+if(!LS('off'))SV('off',[{id:'1001',n:'สมชาย ใจดี',z:'พัทยา',s:'เช้า',free:true,man:false},{id:'1002',n:'สมหญิง รักงาน',z:'นาเกลือ',s:'บ่าย',free:false,man:true},{id:'1003',n:'ประยุทธ มั่นคง',z:'จอมเทียน',s:'ดึก',free:false,man:false}]);
+if(!LS('reg'))SV('reg',[{id:'1004',n:'วิชัย ขยัน',z:'กระเบนธง',s:'เช้า',d:'อาทิตย์'},{id:'0000000',n:'มานี มีสุข',z:'พัทยา',s:'บ่าย',d:'จันทร์'}]);
+if(!LS('inc'))SV('inc',[{id:1,t:'รถจอดขวางทางเท้า ถ.เลียบหาด',z:'พัทยา',to:'',lat:12.93,lng:100.877},{id:2,t:'แผงลอยรุกล้ำ ซ.บัวขาว',z:'พัทยา',to:'',lat:12.927,lng:100.889}]);
+if(!LS('meet'))SV('meet',[]);if(!LS('pins'))SV('pins',[]);
+let role='public',me=null,maps=[];
+const TABS=[['tab-login','เข้าสู่ระบบ','public'],['tab-officer','ลงเวลา / จุดตรวจ','officer'],['tab-mytasks','งานของฉัน','officer'],['tab-livemap','แผนที่สด','admin commander'],['tab-incident','รายงานพิกัดเหตุ','public admin commander'],['tab-feed','ตรวจสอบรายงาน','admin commander'],['tab-check-status','ตรวจเช็คกำลังพล (ขาด/มา)','admin commander'],['tab-report','สถิติ & รายงาน','admin commander'],['tab-admin','ระบบผู้บังคับบัญชา','admin'],['tab-command','สั่งการ / แจ้งประชุม','commander',1]];
+const NEWTAB={'tab-livemap':1,'tab-feed':1,'tab-check-status':1,'tab-report':1,'tab-incident':1};
+function cmdLogin(){const p=prompt('รหัสผ่านผู้บังคับบัญชา (เดโม: admin1111)');if(p==='admin1111')setRole('commander');else if(p!==null)alert('รหัสไม่ถูกต้อง')}
+function setRole(r,id){role=r;me=r==='officer'?LS('off').find(o=>o.id===id):null;if(r==='officer'&&!me)return;
+pill.innerHTML={public:'ผู้ใช้ทั่วไป',officer:'สายตรวจ: '+(me&&me.n),admin:'แอดมิน',commander:'ผู้บังคับบัญชา <span class="nb">ใหม่</span>'}[r];
+const t=TABS.filter(x=>x[2].split(' ').includes(r));tabs.innerHTML=t.map(x=>`<button class="tab-btn flex-1 py-3 px-2 rounded-xl font-bold text-slate-300" data-t="${x[0]}" onclick="show('${x[0]}')">${x[1]}${x[3]||(r==='commander'&&NEWTAB[x[0]])?'<span class="nb">ใหม่</span>':''}${r==='commander'&&x[0]!=='tab-command'?' <small class="text-slate-400">(ดูอย่างเดียว)</small>':''}</button>`).join('');show(t[0][0])}
+const P=(h,new_)=>`<div class="glass-panel rounded-3xl p-5 md:p-7 mb-5">${h}</div>`,H=(t,n)=>`<h2 class="text-xl md:text-2xl font-black mb-4">${t}${n?'<span class="nb">ใหม่</span>':''}</h2>`;
+function mkMap(id,cb){const m=L.map(id).setView(C,13);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(m);maps.push(m);cb&&cb(m);return m}
+function show(t){maps.forEach(m=>m.remove());maps=[];document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.t===t));main.innerHTML=(V[t]||(()=>P(H('(ส่วนเดิมของระบบ)')+'<p class="text-slate-400">เนื้อหาเหมือนระบบจริง ไม่มีการเปลี่ยนแปลง</p>')))();(A[t]||(()=>{}))()}
+const ro=()=>role==='commander';
+const meets=()=>LS('meet').filter(m=>!me||m.to==='ทั้งหมด'||m.to===me.z||m.to===me.s);
+const V={
+'tab-login':()=>P(H('เข้าสู่ระบบ')+'<p class="text-slate-300">เลือกบทบาทจากแถบ "สลับบทบาท" ด้านบน</p>'),
+'tab-officer':()=>meets().map(m=>{const ok=m.ack.includes(me.id);return P(`${H('📢 แจ้งประชุม',1)}<p class="text-lg"><b>${m.t}</b><br>${m.when} · ถึง: ${m.to}</p><button class="btnx w-full mt-3 ${ok?'bg-slate-600':'bg-emerald-600 text-2xl'}" style="min-height:84px" ${ok?'disabled':''} onclick="ack(${m.id})">${ok?'✔ รับทราบแล้ว':'✅ รับทราบ'}</button>`)}).join('')
++P(H('ลงเวลา / จุดตรวจ')+'<p class="text-slate-400 mb-3">(ปุ่มเช็คอินจุดตรวจเดิมของระบบ)</p><div id="gpsL" class="font-bold mb-3"></div>'
++(me.free?`<button class="btnx w-full bg-green-600 text-2xl" style="min-height:90px" onclick="pin('gps')">📍 ปักหมุดตรงนี้ <span class="nb">ใหม่</span></button>`:'')
++(me.man?`<button class="btnx w-full bg-sky-600 text-2xl mt-3" style="min-height:90px" onclick="manual()">🗺️ เลือกตำแหน่งบนแผนที่ <span class="nb">ใหม่</span></button><div id="mp" class="hidden mt-3"><div id="mmap" class="mapb"></div><p class="text-slate-300 my-2">แตะแผนที่หรือลากหมุดไปยังตำแหน่ง</p><button class="btnx w-full bg-emerald-600" onclick="pin('map')">✔ ยืนยันตำแหน่งนี้</button></div>`:'')
++(!me.free&&!me.man?'<p class="text-slate-400">แอดมินยังไม่เปิดสิทธิ์ปักหมุดอิสระให้คุณ</p>':'')),
+'tab-mytasks':()=>P(H('งานของฉัน')+(LS('inc').filter(i=>i.to===me.id).map(i=>`<div class="bg-black/30 rounded-xl p-4 mb-2 text-lg">🚨 ${i.t} <span class="nb">มอบหมายโดยผู้บังคับบัญชา</span></div>`).join('')||'<p class="text-slate-400">ยังไม่มีงานที่ได้รับมอบหมาย</p>')),
+'tab-livemap':()=>P(H('แผนที่สด')+'<div id="lmap" class="mapb" style="height:420px"></div>'),
+'tab-incident':()=>P(H('รายงานพิกัดเหตุ')+LS('inc').map(i=>`<div class="bg-black/30 rounded-xl p-4 mb-3"><b>${i.t}</b> · เขต${i.z}
+${ro()?`<div class="mt-2"><label class="text-sm text-slate-400">หัวหน้างานมอบหมายให้: <span class="nb">ใหม่ ย้ายมาจากแอดมิน</span></label><select class="glass-input btnx w-full" onchange="assign(${i.id},this.value)"><option value="">-- เลือกสายตรวจ --</option>${LS('off').map(o=>`<option value="${o.id}" ${o.id===i.to?'selected':''}>${o.n} (${o.z}/${o.s})</option>`).join('')}</select></div>`:(role==='admin'?'<p class="text-xs text-slate-500 mt-1">(การมอบหมายย้ายไปให้ผู้บังคับบัญชาแล้ว)</p>':'')}</div>`).join('')),
+'tab-command':()=>P(H('มอบหมายงาน',1)+'<p class="text-slate-300 mb-3">ไปที่แท็บ "รายงานพิกัดเหตุ" → เลือกในช่อง "หัวหน้างานมอบหมายให้:" ใต้แต่ละเหตุ</p><button class="btnx bg-rose-600" onclick="show(\'tab-incident\')">ไปมอบหมายงาน →</button>')
++P(H('แจ้งประชุม',1)+`<input id="mt" class="glass-input btnx w-full mb-2" placeholder="หัวข้อ เช่น ประชุมก่อนเข้าเวร"><input id="mw" class="glass-input btnx w-full mb-2" placeholder="วัน/เวลา/สถานที่"><select id="mto" class="glass-input btnx w-full mb-3"><option>ทั้งหมด</option><optgroup label="ตามเขต">${ZONES.map(z=>`<option>${z}</option>`)}</optgroup><optgroup label="ตามกะ">${SHIFTS.map(z=>`<option>${z}</option>`)}</optgroup></select><button class="btnx w-full bg-rose-600" onclick="sendMeet()">📢 ส่งแจ้งประชุม</button>
+<div class="mt-4">${LS('meet').map(m=>{const tot=LS('off').filter(o=>m.to==='ทั้งหมด'||o.z===m.to||o.s===m.to).length;return`<div class="bg-black/30 rounded-xl p-3 mb-2">${m.t} · ${m.when} · ถึง ${m.to} — <b class="text-emerald-400">รับทราบ ${m.ack.length}/${tot}</b></div>`}).join('')}</div>`),
+'tab-admin':()=>P(H('อนุมัติลงทะเบียน',1)+(LS('reg').map((r,k)=>`<div class="bg-black/30 rounded-xl p-3 mb-2 flex flex-wrap gap-2 items-center"><b>${r.n}</b> เขต${r.z} · กะ${r.s} · หยุด${r.d} · รหัส <input class="glass-input rounded px-2 py-1 w-28" value="${r.id}" onchange="regId(${k},this.value)"> ${r.id==='0000000'?'<span class="bg-red-600 text-xs px-2 rounded-full">รอแก้รหัส</span>':''}<button class="btnx bg-emerald-600 ml-auto" onclick="approve(${k})">อนุมัติ</button></div>`).join('')||'<p class="text-slate-400">ไม่มีคำขอค้าง</p>')+(LS('reg').length?'<button class="btnx bg-emerald-700 mt-2" onclick="approveAll()">✔ อนุมัติทั้งหมดที่แสดง</button>':''))
++P(H('รายชื่อสายตรวจ')+LS('off').map((o,k)=>`<div class="bg-black/30 rounded-xl p-3 mb-2 flex flex-wrap gap-4 items-center"><b>${o.id} ${o.n}</b> <span class="text-slate-400">${o.z}/${o.s}</span><label class="text-lg"><input type="checkbox" class="w-6 h-6 align-middle" ${o.free?'checked':''} onchange="flag(${k},'free',this.checked)"> ปักหมุดได้อิสระ <span class="nb">ใหม่</span></label><label class="text-lg"><input type="checkbox" class="w-6 h-6 align-middle" ${o.man?'checked':''} onchange="flag(${k},'man',this.checked)"> เลือกตำแหน่งบนแผนที่เองได้ <span class="nb">ใหม่</span></label></div>`).join(''))
++P(H('จุดตรวจ (วงกลม/เส้น), บันทึก, ตั้งค่า ฯลฯ')+'<p class="text-slate-400">ส่วนเดิมของแอดมินคงไว้ทั้งหมด ยกเว้น "หัวหน้างานมอบหมายให้:" ที่ย้ายไปให้ผู้บังคับบัญชา</p>'),
+'tab-check-status':()=>P(H('ตรวจเช็คกำลังพล (ขาด/มา)')+LS('off').map(o=>`<div class="bg-black/30 rounded-xl p-3 mb-2">${o.n} · ${o.z}/${o.s}</div>`).join(''))};
+const A={'tab-livemap':()=>mkMap('lmap',m=>{LS('pins').forEach(p=>L.marker([p.lat,p.lng]).addTo(m).bindPopup(p.n+' '+p.src));LS('inc').forEach(i=>L.circleMarker([i.lat,i.lng],{color:'#f43f5e'}).addTo(m).bindPopup(i.t))}),
+'tab-officer':()=>{if(!window.gpsL)return;gpsL.textContent='กำลังหาตำแหน่ง GPS...';const f=()=>{window.cur={lat:C[0]+Math.random()*.01,lng:C[1]+Math.random()*.01,sim:1};gpsL.innerHTML='📡 ตำแหน่ง: <span class="bg-yellow-500 text-black px-2 rounded">จำลอง</span>'};navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>{cur={lat:p.coords.latitude,lng:p.coords.longitude};gpsL.textContent='📡 GPS จริง ±'+Math.round(p.coords.accuracy)+' ม.'},f,{timeout:5000}):f()}};
+function manual(){mp.classList.remove('hidden');if(maps.length)return;const s=window.cur?[cur.lat,cur.lng]:C;mkMap('mmap',m=>{m.setView(s,16);window.mk=L.marker(s,{draggable:true}).addTo(m);m.on('click',e=>mk.setLatLng(e.latlng))})}
+function pin(src){const p=src==='map'?mk.getLatLng():window.cur;if(!p)return alert('ยังไม่มีตำแหน่ง');const a=LS('pins');a.push({n:me.n,lat:p.lat,lng:p.lng,src:src==='map'?'(เลือกบนแผนที่)':(p.sim?'(GPS จำลอง)':'(GPS)')});SV('pins',a);alert('บันทึกหมุดแล้ว (เดโม) ดูได้ที่แท็บแผนที่สด')}
+function ack(id){const a=LS('meet');a.find(m=>m.id===id).ack.push(me.id);SV('meet',a);show('tab-officer')}
+function sendMeet(){if(!mt.value)return alert('ใส่หัวข้อ');const a=LS('meet');a.unshift({id:Date.now(),t:mt.value,when:mw.value||'-',to:mto.value,ack:[]});SV('meet',a);show('tab-command')}
+function assign(id,v){const a=LS('inc');a.find(i=>i.id===id).to=v;SV('inc',a)}
+function flag(k,f,v){const a=LS('off');a[k][f]=v;SV('off',a)}
+function regId(k,v){const a=LS('reg');a[k].id=v;SV('reg',a);show('tab-admin')}
+function approve(k){const a=LS('reg');if(a[k].id==='0000000')return alert('กรุณาแก้รหัสก่อน');const o=LS('off');o.push({...a[k],free:false,man:false});SV('off',o);a.splice(k,1);SV('reg',a);fill();show('tab-admin')}
+function approveAll(){const a=LS('reg'),o=LS('off'),keep=a.filter(r=>r.id==='0000000');a.filter(r=>r.id!=='0000000').forEach(r=>o.push({...r,free:false,man:false}));SV('off',o);SV('reg',keep);if(keep.length)alert('ข้าม '+keep.length+' รายการที่ยังรอแก้รหัส');fill();show('tab-admin')}
+function fill(){offSel.innerHTML='<option value="">สายตรวจ ▾</option>'+LS('off').map(o=>`<option value="${o.id}">${o.n}${o.free?' 📍':''}${o.man?' 🗺️':''}</option>`).join('')}
+fill();setRole('public');
+</script>
+<p class="text-xs text-slate-500 mt-6"><button onclick="localStorage.clear();location.reload()">รีเซ็ตข้อมูลตัวอย่าง</button></p>
+</body></html>
