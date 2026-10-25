@@ -69,7 +69,7 @@
 <body class="p-2 md:p-6 flex flex-col items-center overflow-x-hidden"><div id="demo-banner" style="position:sticky;top:0;z-index:20000;background:#facc15;color:#111;font-weight:800;text-align:center;padding:10px 8px;font-size:18px;font-family:Sarabun,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.4)">ตัวอย่าง - ไม่บันทึกข้อมูลจริง
 <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px">
 <button onclick="demoRole('admin')" style="background:#7c3aed;color:#fff;border-radius:12px;padding:10px 18px;font-size:17px">🛡️ แอดมิน</button>
-<button onclick="demoRole('commander')" style="background:#d97706;color:#fff;border-radius:12px;padding:10px 18px;font-size:17px">⭐ ผู้บังคับบัญชา (admin1111 / PIN 1111)</button>
+<button onclick="demoRole('commander')" style="background:#d97706;color:#fff;border-radius:12px;padding:10px 18px;font-size:17px">⭐ ผู้บังคับบัญชา (รหัส 1111)</button>
 <button onclick="demoRole('officer')" style="background:#059669;color:#fff;border-radius:12px;padding:10px 18px;font-size:17px">👮 สายตรวจ (มีสิทธิ์หมุด)</button>
 <button onclick="demoRole('public')" style="background:#334155;color:#fff;border-radius:12px;padding:10px 18px;font-size:17px">↩ หน้าเข้าสู่ระบบ</button>
 </div></div>
@@ -1300,11 +1300,11 @@
                 title: 'เข้าสู่ระบบผู้บังคับบัญชา', ...SWAL_DARK,
                 html: `<p class="text-sm text-slate-300 mb-3">${esc(reasonText || 'เลือกชื่อ แล้วใส่รหัสผ่านของท่าน')}</p>
                     <select id="cmdl-id" class="swal2-select" style="display:flex;width:100%;margin:0 0 12px;font-size:18px;padding:10px;color:#fff;background:#1e293b">${list.map(c => `<option value="${esc(c.id)}" ${c.id === last ? 'selected' : ''}>${esc((c.position ? c.position + ' ' : '') + c.name)}</option>`).join('') || '<option value="">(ยังไม่มีผู้บังคับบัญชา)</option>'}</select>
-                    <input id="cmdl-pw" type="password" inputmode="numeric" maxlength="9" class="swal2-input" style="width:100%;margin:0 0 10px;font-size:32px;letter-spacing:.4em;text-align:center;height:64px" placeholder="รหัส" autocomplete="current-password">
+                    <input id="cmdl-pw" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" class="swal2-input" style="width:100%;margin:0 0 10px;font-size:32px;letter-spacing:.4em;text-align:center;height:64px" placeholder="รหัส" autocomplete="current-password">
                     <div id="cmdl-pad" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${['1','2','3','4','5','6','7','8','9','ล้าง','0','⌫'].map(k => `<button type="button" data-k="${k}" style="height:64px;border-radius:14px;font-size:${k.length > 1 ? 20 : 30}px;font-weight:800;color:#fff;background:${k === 'ล้าง' ? '#9f1239' : k === '⌫' ? '#475569' : '#1e293b'};border:1px solid rgba(255,255,255,.15)">${k}</button>`).join('')}</div>`,
                 showCancelButton: true, confirmButtonText: 'เข้าสู่ระบบ', cancelButtonText: 'ยกเลิก', confirmButtonColor: '#d97706',
                 showLoaderOnConfirm: true, allowOutsideClick: () => !Swal.isLoading(),
-                didOpen: () => { const pw = document.getElementById('cmdl-pw'); document.getElementById('cmdl-pad').addEventListener('click', e => { const k = e.target.closest('[data-k]'); if (!k) return; const v = k.dataset.k; pw.value = v === 'ล้าง' ? '' : v === '⌫' ? pw.value.slice(0, -1) : (pw.value + v).slice(0, 9); }); },
+                didOpen: () => { const pw = document.getElementById('cmdl-pw'); document.getElementById('cmdl-pad').addEventListener('click', e => { const k = e.target.closest('[data-k]'); if (!k) return; const v = k.dataset.k; pw.value = v === 'ล้าง' ? '' : v === '⌫' ? pw.value.slice(0, -1) : (pw.value + v).slice(0, 8); }); },
                 preConfirm: async () => {
                     const id = document.getElementById('cmdl-id').value, pwd = document.getElementById('cmdl-pw').value;
                     if (!id || !pwd) { Swal.showValidationMessage('กรุณาเลือกชื่อและใส่รหัสผ่าน'); return false; }
@@ -3992,7 +3992,7 @@ function countSlotStatus(slots, acc) {
     logs: [{ date: N.date, time: '08:20', no: '101', name: 'นายสมชาย ใจดี', type: 'เข้าเวร', lat: '12.9236', lng: '100.8825', ts: iso(300), dutyDate: N.date, accuracy: 10, distance: 5, inRadius: true }],
     leave: [], announcements: [], urgentExits: [], schedule: [],
     notes: [{ id: 'n1', ts: iso(90), dutyDate: N.date, no: '102', name: 'นางสาวมาลี ทองคำ', checkpoint: 'ตลาดนาเกลือ', reason: 'ได้รับคำสั่งผู้บังคับบัญชา', note: 'ไปช่วยงานจราจร', photoRef: '', lat: 12.95, lng: 100.89, mapLink: '' }],
-    commanders: [{ id: 'c1', name: 'ผบ.ทดสอบ', position: 'ผู้บังคับบัญชา (ทดสอบ)', active: true, pw: 'admin1111' }, { id: 'c3', name: 'ผบ.ทดสอบ (PIN)', position: 'ผู้บังคับบัญชา (ทดสอบ)', active: true, pw: '1111' }, { id: 'c2', name: 'สมศักดิ์ รักษ์เมือง', position: 'หัวหน้าฝ่าย', active: true, pw: '123456' }],
+    commanders: [{ id: 'c1', name: 'ผบ.ทดสอบ', position: 'ผู้บังคับบัญชา (ทดสอบ)', active: true, pw: '1111' }, { id: 'c2', name: 'สมศักดิ์ รักษ์เมือง', position: 'หัวหน้าฝ่าย', active: true, pw: '123456' }],
     pins: [{ id: 'p1', ts: iso(25), dutyDate: N.date, no: '101', name: 'นายสมชาย ใจดี', kind: 'free', lat: 12.9318, lng: 100.8812, accuracy: 8, note: '' }]
   };
   const ROLES = {
@@ -4035,7 +4035,7 @@ function countSlotStatus(slots, acc) {
       case 'driveCheck': return ok({ data: { ok: true } });
       case 'login': return p.password ? ok({ data: issue('admin', 'admin', 'แอดมิน') }) : no('รหัสผ่านไม่ถูกต้อง', 'LOGIN_FAILED');
       case 'commanderList': return ok({ data: DB.commanders.filter(c => c.active).map(pubCmd) });
-      case 'commanderLogin': { const c = DB.commanders.find(x => x.id === p.id && x.active); return c && c.pw === p.password ? ok({ data: issue('commander', c.id, (c.position + ' ' + c.name).trim()) }) : no('ชื่อหรือรหัสผ่านไม่ถูกต้อง (ตัวอย่าง: ผบ.ทดสอบ / admin1111 หรือ ผบ.ทดสอบ (PIN) / 1111)', 'LOGIN_FAILED'); }
+      case 'commanderLogin': { const c = DB.commanders.find(x => x.id === p.id && x.active); return c && c.pw === p.password ? ok({ data: issue('commander', c.id, (c.position + ' ' + c.name).trim()) }) : no('ชื่อหรือรหัสผ่านไม่ถูกต้อง (ตัวอย่าง: ผบ.ทดสอบ / 1111)', 'LOGIN_FAILED'); }
       case 'listCommanders': return ok({ data: DB.commanders.map(pubCmd) });
       case 'saveCommander': { if (!p.name) return no('กรุณาระบุชื่อผู้บังคับบัญชา', 'BAD_REQUEST'); let c = p.id ? DB.commanders.find(x => x.id === p.id) : null;
         if (!c) { if (!p.password) return no('กรุณาตั้งรหัสผ่าน', 'BAD_REQUEST'); c = { id: 'c' + Date.now() }; DB.commanders.push(c); }
