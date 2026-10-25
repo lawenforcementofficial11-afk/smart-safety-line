@@ -4002,6 +4002,7 @@ function countSlotStatus(slots, acc) {
     getLiveMap: 'admin commander', getRoute: 'admin commander', getStats: 'admin commander', getMonthlyReport: 'admin commander', getDailyStatus: 'admin commander',
     savePin: 'officer', officerLogout: 'officer', officerCheckIn: 'officer', slotCheck: 'officer', submitCheckpointNote: 'officer', patrolCheckOut: 'officer', patrolUrgentExit: 'officer', officerUpdateTask: 'officer', getMyAnnouncements: 'officer', ackAnnouncement: 'officer'
   };   // อื่น ๆ = admin เท่านั้น (จุดตรวจ/กำลังพล/ตั้งค่า/ลบรายงาน/วันลา/PIN/LINE)
+  const LINE_INFO = { enabled: true, liffId: '2011913143-ODRxiNua', liffUrl: 'https:\/\/liff.line.me/2011913143-ODRxiNua', mode: 'line_pin' };
   const tok = (r, sub) => 'demo.' + r + '.' + (sub || '');
   const roleOf = t => (t || '').startsWith('demo.') ? t.split('.')[1] : null;
   const cmdOf = t => DB.commanders.find(c => c.id === String(t || '').split('.')[2]);
@@ -4031,7 +4032,7 @@ function countSlotStatus(slots, acc) {
       if (!need.split(' ').includes(role)) return no('สิทธิ์ไม่เพียงพอสำหรับคำสั่งนี้ (ตัวอย่างการตรวจสิทธิ์ฝั่งเซิร์ฟเวอร์)');
     }
     switch (action) {
-      case 'ping': return ok({ message: 'pong' });
+      case 'ping': return ok({ message: 'pong', version: 'DEMO', line: LINE_INFO, uiTexts: {} });
       case 'driveCheck': return ok({ data: { ok: true } });
       case 'login': return p.password ? ok({ data: issue('admin', 'admin', 'แอดมิน') }) : no('รหัสผ่านไม่ถูกต้อง', 'LOGIN_FAILED');
       case 'commanderList': return ok({ data: DB.commanders.filter(c => c.active).map(pubCmd) });
