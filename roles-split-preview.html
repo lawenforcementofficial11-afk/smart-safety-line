@@ -4002,7 +4002,7 @@ function countSlotStatus(slots, acc) {
     getLiveMap: 'admin commander', getRoute: 'admin commander', getStats: 'admin commander', getMonthlyReport: 'admin commander', getDailyStatus: 'admin commander',
     savePin: 'officer', officerLogout: 'officer', officerCheckIn: 'officer', slotCheck: 'officer', submitCheckpointNote: 'officer', patrolCheckOut: 'officer', patrolUrgentExit: 'officer', officerUpdateTask: 'officer', getMyAnnouncements: 'officer', ackAnnouncement: 'officer'
   };   // อื่น ๆ = admin เท่านั้น (จุดตรวจ/กำลังพล/ตั้งค่า/ลบรายงาน/วันลา/PIN/LINE)
-  const LINE_INFO = { enabled: true, liffId: '2011913143-ODRxiNua', liffUrl: 'https:\/\/liff.line.me/2011913143-ODRxiNua', mode: 'line_pin' };
+  const LINE_INFO = { enabled: true, liffId: '2011913143-ODRxiNua', liffUrl: 'https:\/\/liff.line.me/2011913143-ODRxiNua', mode: 'line_required' };
   const tok = (r, sub) => 'demo.' + r + '.' + (sub || '');
   const roleOf = t => (t || '').startsWith('demo.') ? t.split('.')[1] : null;
   const cmdOf = t => DB.commanders.find(c => c.id === String(t || '').split('.')[2]);
