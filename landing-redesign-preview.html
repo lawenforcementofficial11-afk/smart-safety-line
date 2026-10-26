@@ -79,6 +79,29 @@
         #app-header .grid > div:hover { border-color: rgba(125,211,252,.35); transform: translateY(-1px); }
         #app-header .grid > div > div:first-child { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 14px; flex-shrink: 0; box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset; }
         #app-header .grid p.text-\[10px\] { font-size: .8rem; letter-spacing: .02em; color: #a5b4c8; text-transform: none; font-weight: 600; }
+        .ts-tile { position: relative; overflow: hidden; display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 18px; background: linear-gradient(145deg, rgba(15,23,42,.75), rgba(2,6,23,.55)); border: 1px solid rgba(255,255,255,.10); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 30px -12px rgba(0,0,0,.6); --c: #34d399; --cs: rgba(52,211,153,.18); }
+        .ts-tile::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--c); opacity: .9; }
+        .ts-tile::after { content: ""; position: absolute; right: -40px; top: -40px; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, var(--cs), transparent 70%); pointer-events: none; }
+        .ts-emerald { --c: #34d399; --cs: rgba(52,211,153,.22); } .ts-rose { --c: #fb7185; --cs: rgba(251,113,133,.22); } .ts-sky { --c: #38bdf8; --cs: rgba(56,189,248,.22); }
+        .ts-ring { --p: 0; flex: none; width: 64px; height: 64px; border-radius: 50%; background: conic-gradient(var(--c) calc(var(--p) * 1%), rgba(255,255,255,.08) 0); display: grid; place-items: center; transition: --p .8s; }
+        .ts-ring-in, .ts-icon { width: 50px; height: 50px; border-radius: 50%; background: #0b1324; display: grid; place-items: center; color: var(--c); font-size: 20px; }
+        .ts-icon { flex: none; width: 64px; height: 64px; background: var(--cs); font-size: 24px; border-radius: 18px; }
+        .ts-body { min-width: 0; flex: 1; }
+        .ts-label { font-size: 15px; font-weight: 700; color: #cbd5e1; line-height: 1.25; }
+        .ts-num { margin-top: 2px; color: #fff; font-weight: 900; line-height: 1.05; white-space: nowrap; }
+        .ts-v { font-size: 38px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; display: inline-block; min-width: 1ch; }
+        .ts-of { font-size: 22px; color: #94a3b8; font-weight: 800; }
+        .ts-unit { font-size: 16px; color: #cbd5e1; font-weight: 700; }
+        .ts-sub { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+        .ts-bar { margin-top: 8px; height: 8px; border-radius: 9px; background: rgba(255,255,255,.08); overflow: hidden; }
+        .ts-bar > span { display: block; height: 100%; border-radius: 9px; background: linear-gradient(90deg, var(--c), #fff8); transition: width .8s ease; }
+        .ts-skel { color: transparent !important; background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.16), rgba(255,255,255,.06)); background-size: 200% 100%; animation: tsShimmer 1.3s infinite linear; border-radius: 10px; min-width: 2.2ch; }
+        @keyframes tsShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .ts-live-dot { width: 10px; height: 10px; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 0 rgba(52,211,153,.7); animation: tsPulse 2s infinite; display: inline-block; }
+        .ts-err .ts-live-dot { background: #f59e0b; animation: none; }
+        @keyframes tsPulse { 0% { box-shadow: 0 0 0 0 rgba(52,211,153,.6); } 70% { box-shadow: 0 0 0 10px rgba(52,211,153,0); } 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); } }
+        @media (min-width: 640px) and (max-width: 1023px) { .ts-tile { flex-direction: column; text-align: center; } .ts-v { font-size: 32px; } }
+        @media (prefers-reduced-motion: reduce) { .ts-skel, .ts-live-dot { animation: none; } }
         #header-school, #header-teacher, #header-class { font-size: 1.08rem; line-height: 1.35; }
         #app-header .border-t { border-color: rgba(255,255,255,.08); }
         #session-pill, #app-header button { min-height: 52px; border-radius: 16px; font-size: 1rem; transition: transform .15s ease, background-color .2s ease, box-shadow .2s ease; }
@@ -101,6 +124,55 @@
         #line-login-note { font-size: .85rem; color: #b6c2d4; }
         #login-btn { min-height: 60px; border-radius: 18px; background: linear-gradient(180deg, #0ea5e9, #0284c7); box-shadow: 0 12px 28px -12px rgba(14,165,233,.8); }
         @media (prefers-reduced-motion: no-preference) { #app-header, #main-tabs, #tab-login .glass-panel { animation: lrRise .55s cubic-bezier(.2,.7,.2,1) both; } #main-tabs { animation-delay: .08s; } #tab-login .glass-panel { animation-delay: .16s; } @keyframes lrRise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } } }
+        body { background: radial-gradient(1100px 520px at 50% -8%, rgba(56,189,248,.28), transparent 62%), radial-gradient(800px 480px at 100% 100%, rgba(250,204,21,.16), transparent 60%), linear-gradient(170deg, #f5f9ff 0%, #e8f1ff 55%, #dde9fb 100%) !important; background-attachment: fixed !important; color: #0f172a; }
+        #app-header, #main-tabs, #tab-login .glass-panel { background: linear-gradient(180deg, #ffffff, #f7faff) !important; border: 1px solid #d6e3f5 !important; box-shadow: 0 1px 0 #fff inset, 0 18px 44px -18px rgba(30,64,175,.28), 0 2px 6px rgba(15,23,42,.05) !important; backdrop-filter: none; }
+        #app-header::before { height: 5px; background: linear-gradient(90deg, #1d4ed8, #0ea5e9 55%, #f59e0b) !important; }
+        #app-header::after { background-image: linear-gradient(rgba(29,78,216,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(29,78,216,.05) 1px, transparent 1px) !important; }
+        #app-header > #status-badge { background: #ffffff !important; border: 1px solid #cfe0f5 !important; color: #0f172a; box-shadow: 0 4px 14px -6px rgba(30,64,175,.35); }
+        #status-dot { box-shadow: 0 0 0 4px rgba(16,185,129,.12), 0 0 10px currentColor; }
+        #app-header h1 { text-shadow: none; }
+        #header-system-name { background: linear-gradient(180deg, #0b2a6b, #1e3a8a) !important; -webkit-background-clip: text !important; background-clip: text !important; color: transparent !important; }
+        #header-system-name .text-accent-500 { background: linear-gradient(180deg, #0ea5e9, #1d4ed8) !important; -webkit-background-clip: text !important; background-clip: text !important; }
+        #brand-logo { filter: drop-shadow(0 3px 6px rgba(30,64,175,.25)); }
+        #app-header .border-t { border-color: #e2ebf7 !important; }
+        #app-header .text-white, #app-header .text-slate-200, #app-header .text-slate-300 { color: #0f172a !important; }
+        #app-header .text-slate-400 { color: #475569 !important; }
+        #session-pill { background: #f1f6fd !important; border: 1px dashed #9fb6d6 !important; color: #1e293b !important; }
+        #session-pill i { color: #64748b !important; }
+        #app-header button { background: #ffffff !important; color: #0f2a5c !important; border: 1.5px solid #c9daf2 !important; box-shadow: 0 6px 16px -10px rgba(30,64,175,.45) !important; font-weight: 700 !important; }
+        #app-header button:hover { background: #eef5ff !important; border-color: #60a5fa !important; }
+        #app-header button i { color: #1d4ed8 !important; }
+        #app-header #meeting-btn { background: linear-gradient(180deg, #f43f5e, #e11d48) !important; color: #fff !important; border-color: #e11d48 !important; }
+        #app-header #meeting-btn i { color: #fff !important; }
+        #main-tabs .tab-btn { background: #f3f7fd !important; border: 1px solid #dbe6f5 !important; color: #1e3a5f !important; font-weight: 800; }
+        #main-tabs .tab-btn:hover { background: #e9f2ff !important; }
+        #main-tabs .tab-btn.active { background: linear-gradient(180deg, #2563eb, #1d4ed8) !important; border-color: #1d4ed8 !important; color: #ffffff !important; box-shadow: 0 10px 22px -10px rgba(29,78,216,.75), 0 0 0 3px rgba(250,204,21,.35) !important; }
+        #main-tabs .tab-btn.active i { color: #fde68a !important; }
+        #tab-login .glass-panel .text-white, #tab-login h2 { color: #0f172a !important; }
+        #tab-login .glass-panel .text-slate-300, #tab-login .glass-panel .text-slate-400, #officer-login-sub, #line-login-note { color: #475569 !important; }
+        #tab-login .glass-input { background: #f8fbff !important; color: #0f172a !important; border: 1.5px solid #c9daf2 !important; }
+        #tab-login .glass-panel .border-white\/10, #tab-login .glass-panel .border-slate-700 { border-color: #e2ebf7 !important; }
+        #line-login-btn { position: relative; overflow: hidden; color: #fff !important; }
+        #line-login-btn::after { content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.45), transparent); transform: skewX(-18deg); pointer-events: none; }
+        .ts-tile { background: linear-gradient(160deg, #ffffff, #f4f8ff) !important; border: 1px solid #d9e5f5 !important; box-shadow: 0 10px 26px -16px rgba(30,64,175,.45), 0 1px 0 #fff inset !important; }
+        .ts-emerald { --c: #059669; --cs: rgba(16,185,129,.16); } .ts-rose { --c: #e11d48; --cs: rgba(244,63,94,.14); } .ts-sky { --c: #1d4ed8; --cs: rgba(37,99,235,.14); }
+        .ts-ring { background: conic-gradient(var(--c) calc(var(--p) * 1%), #e5edf8 0) !important; }
+        .ts-ring-in { background: #ffffff !important; box-shadow: 0 1px 4px rgba(15,23,42,.08) inset; }
+        .ts-label { color: #334155 !important; } .ts-num { color: #0b1f44 !important; } .ts-of { color: #64748b !important; } .ts-unit { color: #334155 !important; } .ts-sub { color: #64748b !important; }
+        .ts-bar { background: #e5edf8 !important; } .ts-bar > span { background: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c) 55%, #fff)) !important; }
+        .ts-skel { background: linear-gradient(90deg, #e8eef8, #f7faff, #e8eef8) !important; background-size: 200% 100% !important; }
+        #today-stats p.text-slate-200 { color: #0f172a !important; } #ts-updated { color: #475569 !important; }
+        @media (prefers-reduced-motion: no-preference) {
+            #line-login-btn::after { animation: lrShine 3.8s ease-in-out infinite 1.2s; }
+            .ts-tile { transition: transform .2s ease, box-shadow .2s ease; }
+            #today-stats:not(.ts-err) .ts-tile { animation: tsGlow 4s ease-in-out infinite; }
+            #today-stats:not(.ts-err) .ts-tile:nth-child(2) { animation-delay: 1.3s; } #today-stats:not(.ts-err) .ts-tile:nth-child(3) { animation-delay: 2.6s; }
+            #status-dot.bg-emerald-500, #status-dot.bg-green-500, #status-dot.bg-emerald-400 { animation: tsPulse 2s infinite; }
+        }
+        #tab-login #line-login-btn, #tab-login #line-login-btn.text-white { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,.18); }
+        @media (min-width: 768px) { #today-stats { margin-top: 2.6rem; } }
+        @keyframes lrShine { 0%, 70% { left: -60%; } 100% { left: 130%; } }
+        @keyframes tsGlow { 0%, 100% { box-shadow: 0 10px 26px -16px rgba(30,64,175,.45); } 50% { box-shadow: 0 10px 30px -12px var(--cs), 0 0 0 3px var(--cs); } }
 #demo-banner button{display:none!important}</style>
 </head>
 <body class="p-2 md:p-6 flex flex-col items-center overflow-x-hidden"><div id="demo-banner" style="position:sticky;top:0;z-index:20000;background:#facc15;color:#111;font-weight:800;text-align:center;padding:4px 8px;font-size:13px;font-family:Sarabun,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.4)">ตัวอย่างดีไซน์ใหม่ (DEMO) - ไม่บันทึกข้อมูลจริง
@@ -120,20 +192,39 @@
             <div class="text-center md:text-left">
                 <h1 class="flex items-center gap-2 md:gap-3 text-3xl md:text-5xl font-black mb-2 tracking-tight text-white drop-shadow-lg"><span id="header-system-name" class="whitespace-nowrap">SMART <span class="text-accent-500">SAFETY</span></span><!-- ตราหน่วยงาน: ตั้งค่าที่ const BRAND_LOGO ในสคริปต์ --><img id="brand-logo" alt="ตราหน่วยงาน" class="hidden shrink-0 h-10 w-10 md:h-[60px] md:w-[60px] object-contain"></h1>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm font-medium text-slate-200 w-full md:w-auto">
-                <div class="bg-black/30 border border-white/10 rounded-xl p-3 flex items-center shadow-inner">
-                    <div class="bg-blue-500/20 p-2 rounded-lg mr-3"><i class="fa-solid fa-building-shield text-blue-400 text-xl"></i></div>
-                    <div><p class="text-[10px] text-slate-400 uppercase">เมือง / พื้นที่</p><p id="header-school" class="font-bold text-white text-base">...</p></div>
+            <!-- สถานะวันนี้ (สด) แทน เมือง/ผู้บังคับบัญชา/สายตรวจ -->
+            <section id="today-stats" class="w-full md:w-auto md:min-w-[560px]" aria-live="polite" aria-label="สถานะวันนี้">
+                <div class="flex items-center justify-between mb-2 px-1">
+                    <p class="text-sm font-bold text-slate-200 flex items-center"><span class="ts-live-dot mr-2"></span>สถานะวันนี้</p>
+                    <p id="ts-updated" class="text-xs md:text-sm text-slate-400 font-semibold">กำลังโหลด...</p>
                 </div>
-                <div class="bg-black/30 border border-white/10 rounded-xl p-3 flex items-center shadow-inner">
-                    <div class="bg-amber-500/20 p-2 rounded-lg mr-3"><i class="fa-solid fa-star text-amber-400 text-xl"></i></div>
-                    <div><p class="text-[10px] text-slate-400 uppercase">ผู้บังคับบัญชา</p><p id="header-teacher" class="font-bold text-white text-base">...</p></div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="ts-tile ts-emerald" id="ts-duty">
+                        <div class="ts-ring" style="--p:0"><div class="ts-ring-in"><i class="fa-solid fa-user-shield"></i></div></div>
+                        <div class="ts-body">
+                            <p class="ts-label">สายตรวจเข้าเวรแล้ว</p>
+                            <p class="ts-num"><span class="ts-v ts-skel">--</span><span class="ts-of"></span> <span class="ts-unit">คน</span></p>
+                            <div class="ts-bar"><span style="width:0%"></span></div>
+                        </div>
+                    </div>
+                    <div class="ts-tile ts-rose" id="ts-inc">
+                        <div class="ts-icon"><i class="fa-solid fa-bell"></i></div>
+                        <div class="ts-body">
+                            <p class="ts-label">เหตุที่แจ้งวันนี้</p>
+                            <p class="ts-num"><span class="ts-v ts-skel">--</span> <span class="ts-unit">เหตุ</span></p>
+                            <p class="ts-sub">นับตั้งแต่ 00:00 น.</p>
+                        </div>
+                    </div>
+                    <div class="ts-tile ts-sky" id="ts-cp">
+                        <div class="ts-ring" style="--p:0"><div class="ts-ring-in"><i class="fa-solid fa-location-dot"></i></div></div>
+                        <div class="ts-body">
+                            <p class="ts-label">จุดตรวจเช็คอินแล้ว</p>
+                            <p class="ts-num"><span class="ts-v ts-skel">--</span><span class="ts-of"></span> <span class="ts-unit">จุด</span></p>
+                            <div class="ts-bar"><span style="width:0%"></span></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-black/30 border border-white/10 rounded-xl p-3 flex items-center shadow-inner">
-                    <div class="bg-purple-500/20 p-2 rounded-lg mr-3"><i class="fa-solid fa-map-location-dot text-purple-400 text-xl"></i></div>
-                    <div><p class="text-[10px] text-slate-400 uppercase">สายตรวจ</p><p id="header-class" class="font-bold text-white text-base">...</p></div>
-                </div>
-            </div>
+            </section>
         </div>
         <div class="mt-6 flex flex-col sm:flex-row flex-wrap justify-center md:justify-start items-stretch sm:items-center gap-3 border-t border-white/10 pt-5">
             <div id="session-pill" class="w-full sm:w-auto justify-center bg-black/40 text-sm px-4 py-3 rounded-lg font-bold border border-white/10 flex items-center text-slate-200"><i class="fa-solid fa-user-lock mr-2 text-slate-400"></i><span id="session-text">ยังไม่ได้เข้าสู่ระบบ</span></div>
@@ -1574,6 +1665,7 @@
             updateRoleUI();
             switchTab(DEFAULT_TAB[currentRole()], null, true);
             startLiveClock();
+            startTodayStats();
             if (session) { loadData(); if (currentRole() === 'officer') startGpsWatch(); }
             else testConnectionSilently();
             readLineHandoff();
@@ -1622,6 +1714,30 @@
             });
         }
         setInterval(() => document.querySelectorAll('.th-date-wrap > input').forEach(i => i._thUpd && i._thUpd()), 800);
+        function tsSet(id, v, tot) {
+            const t = document.getElementById(id); if (!t) return;
+            const ve = t.querySelector('.ts-v'), of = t.querySelector('.ts-of'), ring = t.querySelector('.ts-ring'), bar = t.querySelector('.ts-bar > span');
+            ve.classList.remove('ts-skel'); ve.textContent = (v === null || v === undefined) ? '--' : String(v);
+            if (of) of.textContent = (tot === null || tot === undefined) ? '' : '/' + tot;
+            const pct = (tot > 0 && v !== null && v !== undefined) ? Math.max(0, Math.min(100, Math.round(v / tot * 100))) : 0;
+            if (ring) ring.style.setProperty('--p', pct);
+            if (bar) bar.style.width = pct + '%';
+        }
+        let tsLastOk = null;
+        async function refreshTodayStats() {
+            const box = document.getElementById('today-stats'), up = document.getElementById('ts-updated'); if (!box) return;
+            const r = await callAPI('todayStats');
+            if (r && r.status === 'success' && r.data) {
+                const d = r.data; box.classList.remove('ts-err');
+                tsSet('ts-duty', d.onDuty, d.expected); tsSet('ts-inc', d.incidents); tsSet('ts-cp', d.checkpointsDone, d.checkpointsTotal);
+                tsLastOk = d.time || bkkNowParts().time; up.textContent = 'อัปเดตล่าสุด ' + tsLastOk + ' น.';
+            } else {
+                box.classList.add('ts-err');
+                if (!tsLastOk) ['ts-duty', 'ts-inc', 'ts-cp'].forEach(id => tsSet(id, null, null));
+                up.textContent = tsLastOk ? ('ยังเชื่อมต่อไม่ได้ · ข้อมูลเมื่อ ' + tsLastOk + ' น.') : 'ยังโหลดข้อมูลไม่ได้ · จะลองใหม่อัตโนมัติ';
+            }
+        }
+        function startTodayStats() { refreshTodayStats(); setInterval(() => { if (!document.hidden) refreshTodayStats(); }, 60000); document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshTodayStats(); }); }
         async function testConnectionSilently() { const r = await callAPI('ping'); setStatus(r && r.status === 'success' ? 'online' : 'offline'); if (r && r.line) setLineInfo(r.line); if (r && r.uiTexts) setUiTexts(r.uiTexts); return r; }
         function startLiveClock() {
             setInterval(() => {
@@ -1663,9 +1779,7 @@
         function updateUI() {
             const st = appData.settings || {};
             document.getElementById('header-system-name').innerHTML = brandHtml(st.sysName);
-            document.getElementById('header-school').innerText = st.school || '-';
-            document.getElementById('header-teacher').innerText = st.teacher || '-';
-            document.getElementById('header-class').innerText = st.className || '-';
+            [['header-school', st.school], ['header-teacher', st.teacher], ['header-class', st.className]].forEach(([id, v]) => { const el = document.getElementById(id); if (el) el.innerText = v || '-'; });
             const role = currentRole();
             if (role === 'officer') { renderOfficerPanel(); renderMyTasks(); renderAnnouncements(); }
             renderAdminAnnouncements();
@@ -4033,7 +4147,7 @@ function countSlotStatus(slots, acc) {
     pins: [{ id: 'p1', ts: iso(25), dutyDate: N.date, no: '101', name: 'นายสมชาย ใจดี', kind: 'free', lat: 12.9318, lng: 100.8812, accuracy: 8, note: '' }]
   };
   const ROLES = {
-    commanderLogin: 'public', commanderList: 'public', login: 'public', officerLogin: 'public', ping: 'public', driveCheck: 'public', lineHandoff: 'public',
+    commanderLogin: 'public', commanderList: 'public', login: 'public', officerLogin: 'public', ping: 'public', todayStats: 'public', driveCheck: 'public', lineHandoff: 'public',
     saveIncident: 'commander', assignIncident: 'commander', updateIncidentStatus: 'commander', createAnnouncement: 'commander', cancelAnnouncement: 'commander',
     getData: 'officer admin commander', getImage: 'officer admin commander', listAnnouncements: 'commander admin', listCheckpointNotes: 'commander admin',
     getLiveMap: 'admin commander', getRoute: 'admin commander', getStats: 'admin commander', getMonthlyReport: 'admin commander', getDailyStatus: 'admin commander',
@@ -4069,6 +4183,7 @@ function countSlotStatus(slots, acc) {
       if (!need.split(' ').includes(role)) return no('สิทธิ์ไม่เพียงพอสำหรับคำสั่งนี้ (ตัวอย่างการตรวจสิทธิ์ฝั่งเซิร์ฟเวอร์)');
     }
     switch (action) {
+      case 'todayStats': return ok({ data: { date: '2026-10-26', time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Bangkok' }), onDuty: 12, expected: 15, incidents: 3, checkpointsDone: 8, checkpointsTotal: 10 } });
       case 'ping': return ok({ message: 'pong', version: 'DEMO', line: LINE_INFO, uiTexts: {} });
       case 'driveCheck': return ok({ data: { ok: true } });
       case 'login': return p.password ? ok({ data: issue('admin', 'admin', 'แอดมิน') }) : no('รหัสผ่านไม่ถูกต้อง', 'LOGIN_FAILED');
