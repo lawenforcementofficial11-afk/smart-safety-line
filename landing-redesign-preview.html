@@ -172,6 +172,36 @@
             #main-tabs .tab-btn.active { animation: tabGlow 3s ease-in-out infinite; }
         }
         body > footer, body > .footer-text, #app-footer { color: rgba(255,255,255,.85) !important; }
+        @media (max-width: 639px) {
+            #app-header { padding: 2.9rem .8rem .9rem !important; margin-bottom: .8rem !important; border-radius: 22px; }
+            #app-header > #status-badge { top: .55rem !important; right: .55rem !important; padding: .3rem .7rem; font-size: .75rem; }
+            #app-header h1 { font-size: 1.8rem !important; margin-bottom: .2rem !important; }
+            #app-header h1 #brand-logo { height: 2.1rem !important; width: 2.1rem !important; }
+            #app-header > div:nth-child(2) { gap: .6rem !important; margin-top: 0 !important; }
+            #today-stats .grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: .45rem !important; }
+            #today-stats > div:first-child { margin-bottom: .35rem !important; }
+            #today-stats > div:first-child p { font-size: .8rem !important; }
+            .ts-tile { flex-direction: column; align-items: center; text-align: center; gap: .3rem; padding: .6rem .35rem .55rem; border-radius: 14px; }
+            .ts-tile::before { inset: 0 0 auto 0; width: auto; height: 3px; }
+            .ts-tile::after { display: none; }
+            .ts-ring, .ts-icon { width: 40px; height: 40px; }
+            .ts-icon { border-radius: 12px; font-size: 17px; }
+            .ts-ring-in { width: 31px; height: 31px; font-size: 14px; }
+            .ts-body { width: 100%; }
+            .ts-label { font-size: 12px; line-height: 1.2; min-height: 2.4em; display: flex; align-items: center; justify-content: center; }
+            .ts-num { margin-top: 1px; }
+            .ts-v { font-size: 26px; } .ts-of { font-size: 15px; } .ts-unit { font-size: 12px; }
+            .ts-sub { display: none; }
+            .ts-bar { height: 5px; margin: 5px 6px 0; }
+            #app-header .mt-6.border-t { margin-top: .8rem !important; padding-top: .8rem !important; gap: .5rem !important; flex-direction: row !important; flex-wrap: wrap; }
+            #session-pill, #app-header button { min-height: 46px !important; padding: .5rem .7rem !important; font-size: .9rem !important; border-radius: 13px !important; flex: 1 1 45%; width: auto !important; }
+            #main-tabs { margin-bottom: .8rem !important; padding: .3rem !important; gap: .3rem !important; border-radius: 18px; }
+            #main-tabs .tab-btn { min-height: 54px !important; font-size: .85rem !important; gap: .15rem; border-radius: 13px; padding: .3rem .2rem !important; }
+            #main-tabs .tab-btn i { font-size: 1.05rem; }
+            #tab-login .glass-panel { padding: 1rem !important; border-radius: 22px; }
+            #tab-login h2 { font-size: 1.25rem; }
+            #line-login-btn { min-height: 54px; font-size: 1.1rem; }
+        }
         @keyframes lrShine { 0%, 70% { left: -60%; } 100% { left: 130%; } }
         @keyframes tsGlow { 0%, 100% { box-shadow: 0 12px 28px -14px rgba(8,30,80,.6); } 50% { box-shadow: 0 12px 30px -10px var(--cs), 0 0 0 3px var(--cs); } }
         @keyframes tabGlow { 0%, 100% { box-shadow: 0 0 0 3px rgba(254,240,138,.45), 0 10px 24px -8px rgba(245,158,11,.7); } 50% { box-shadow: 0 0 0 5px rgba(254,240,138,.7), 0 10px 28px -6px rgba(245,158,11,.9); } }
