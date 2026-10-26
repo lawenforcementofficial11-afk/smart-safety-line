@@ -198,6 +198,20 @@
         @keyframes ledBlink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
         @keyframes badgeRingG { 0% { box-shadow: 0 0 0 0 rgba(34,197,94,.65), 0 6px 18px -6px rgba(34,197,94,.8); } 100% { box-shadow: 0 0 0 12px rgba(34,197,94,0), 0 6px 18px -6px rgba(34,197,94,.8); } }
         @keyframes badgeRingR { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,.7), 0 6px 18px -6px rgba(239,68,68,.85); } 100% { box-shadow: 0 0 0 12px rgba(239,68,68,0), 0 6px 18px -6px rgba(239,68,68,.85); } }
+        #app-header h1 { position: relative; isolation: isolate; --glow: 34,211,238; --glow2: 250,204,21; }
+        body.head-2 #app-header h1 { --glow: 250,204,21; --glow2: 255,255,255; }
+        body.head-3 #app-header h1 { --glow: 94,234,212; --glow2: 52,211,153; }
+        #app-header h1::before, #app-header h1::after { content: ""; position: absolute; left: 50%; top: 50%; width: 112%; height: 150%; border-radius: 999px; transform: translate(-50%, -50%) scale(.85); pointer-events: none; z-index: -1; opacity: 0; }
+        #app-header h1::before { background: radial-gradient(closest-side, rgba(var(--glow), .35), rgba(var(--glow), .12) 60%, transparent); opacity: .55; }
+        #app-header h1::after { border: 2px solid rgba(var(--glow2), .7); box-shadow: 0 0 14px rgba(var(--glow), .6), inset 0 0 10px rgba(var(--glow), .35); }
+        @media (prefers-reduced-motion: no-preference) {
+            #app-header h1 { animation: titleGlow 2.4s ease-in-out infinite; }
+            #app-header h1::before { animation: haloPulse 2.4s ease-in-out infinite; }
+            #app-header h1::after { animation: ringOut 2.4s ease-out infinite; }
+        }
+        @keyframes titleGlow { 0%, 100% { filter: drop-shadow(0 2px 0 rgba(0,0,0,.25)) drop-shadow(0 0 6px rgba(var(--glow), .25)); } 50% { filter: drop-shadow(0 2px 0 rgba(0,0,0,.25)) drop-shadow(0 0 16px rgba(var(--glow), .85)) drop-shadow(0 0 4px rgba(var(--glow2), .6)); } }
+        @keyframes haloPulse { 0%, 100% { opacity: .35; transform: translate(-50%, -50%) scale(.9); } 50% { opacity: .9; transform: translate(-50%, -50%) scale(1.05); } }
+        @keyframes ringOut { 0% { opacity: .9; transform: translate(-50%, -50%) scale(.8); } 80% { opacity: 0; transform: translate(-50%, -50%) scale(1.35); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.35); } }
         @keyframes goldChase { to { --ang: 360deg; } }
         @keyframes lrShine { 0%, 70% { left: -60%; } 100% { left: 130%; } }
         @keyframes tsGlow { 0%, 100% { box-shadow: 0 12px 28px -14px rgba(2,8,30,.8); } 50% { box-shadow: 0 12px 30px -10px var(--cs), 0 0 0 2px var(--cs); } }
