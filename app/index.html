@@ -6,38 +6,83 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SMART SAFETY"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>SMART SAFETY</title>
-<style>html,body{margin:0;min-height:100%;background:#0f172a;color:#fff;font-family:system-ui,"Noto Sans Thai",sans-serif}
-.s{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;text-align:center;box-sizing:border-box}
-img{width:132px;border-radius:30px}h1{font-size:28px;margin:16px 0 6px}p{color:#cbd5e1;font-size:19px;line-height:1.55;margin:8px 0}
-.b{display:block;width:min(380px,92vw);border:0;border-radius:20px;padding:20px;font-size:23px;font-weight:800;color:#fff;background:#16a34a;margin:14px auto 0;text-decoration:none;box-sizing:border-box}
-.g{background:#2563eb}.box{background:#1e293b;border:1px solid #334155;border-radius:18px;padding:14px 18px;margin-top:16px;max-width:380px}
-.hide{display:none}</style></head><body>
-<div id="home" class="s"><img src="icon-512.png?v=3" alt="SMART SAFETY"><h1>SMART SAFETY</h1><p>ระบบสายตรวจ เทศกิจเมืองพัทยา</p>
-<div id="inst" class="hide"><button class="b" id="ib">📲 ติดตั้งลงหน้าจอ</button></div>
-<div id="ios" class="hide box"><p>iPhone (Safari): กดปุ่ม <b>แชร์</b> ⬆️ ด้านล่าง<br>แล้วเลือก <b>"เพิ่มไปยังหน้าจอโฮม"</b></p></div>
-<div id="iosother" class="hide box"><p>กรุณาเปิดลิงก์นี้ใน <b>Safari</b> เพื่อติดตั้ง</p></div>
-<div id="line" class="hide box"><p>ตอนนี้เปิดอยู่ในแอป LINE ซึ่งติดตั้งไม่ได้<br>กดปุ่มด้านล่างเพื่อเปิดใน Chrome แล้วติดตั้ง</p><a class="b" id="chrome" href="#">เปิดใน Chrome</a><a class="b g" id="ext" href="#" style="font-size:19px">เปิดในเบราว์เซอร์อื่น</a></div>
-<div id="steps" class="hide box" style="text-align:left"><p style="text-align:center"><b>วิธีติดตั้ง (ถ้าไม่มีหน้าต่างติดตั้งขึ้นมา)</b></p>
-<p><b>Chrome:</b><br>1) กดปุ่ม <b style="font-size:24px">⋮</b> มุมขวาบน<br>2) เลือก <b>"ติดตั้งแอป"</b> หรือ <b>"เพิ่มลงในหน้าจอหลัก"</b><br>3) กด <b>"ติดตั้ง"</b></p>
-<p><b>Samsung Internet:</b><br>1) กดปุ่ม <b style="font-size:24px">≡</b> ด้านล่างขวา<br>2) เลือก <b>"เพิ่มหน้าไปที่"</b> → <b>"หน้าจอหลัก"</b></p>
-<p>ติดตั้งแล้ว เปิดจากไอคอน <b>SMART SAFETY</b> บนหน้าจอ</p></div>
+<style>html,body{margin:0;min-height:100%;background:#0f172a;color:#fff;font-family:system-ui,"Noto Sans Thai","Sarabun",sans-serif}
+.s{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:22px 16px 40px;text-align:center;box-sizing:border-box}
+img{width:110px;border-radius:26px}h1{font-size:28px;margin:12px 0 4px}p{color:#e2e8f0;font-size:20px;line-height:1.6;margin:8px 0}
+.b{display:block;width:min(420px,94vw);border:0;border-radius:20px;padding:20px 14px;font-size:24px;font-weight:800;color:#fff;background:#16a34a;margin:14px auto 0;text-decoration:none;box-sizing:border-box;font-family:inherit;cursor:pointer}
+.box .b{width:100%}.b{text-align:center}.g{background:#2563eb}.o{background:#ea580c}.gr{background:#475569;font-size:20px}
+.box{background:#1e293b;border:2px solid #334155;border-radius:18px;padding:14px 18px;margin-top:16px;width:min(420px,94vw);box-sizing:border-box;text-align:left}
+.box h2{font-size:23px;margin:4px 0 8px;text-align:center;color:#facc15}
+ol{font-size:21px;line-height:1.7;padding-left:28px;margin:6px 0}li{margin:6px 0}
+.warn{border-color:#f59e0b;background:#422006}.warn h2{color:#fbbf24}
+.k{display:inline-block;background:#fff;color:#0f172a;border-radius:8px;padding:0 8px;font-weight:800}
+.tag{font-size:16px;color:#94a3b8;margin-top:6px}.hide{display:none}</style></head><body>
+<div class="s"><img src="icon-512.png?v=3" alt="SMART SAFETY"><h1>SMART SAFETY</h1><p>ระบบสายตรวจ เทศกิจเมืองพัทยา</p>
+<a class="b g" id="go" href="#">▶ เปิดใช้งานเลย (ไม่ต้องติดตั้ง)</a>
+<div class="tag" id="bname"></div>
+
+<div id="v-chrome" class="hide box"><h2>เพิ่มลงหน้าจอหลัก (Chrome)</h2><ol>
+<li>กดปุ่ม <span class="k">⋮</span> มุมขวาบน</li><li>เลือก <b>"เพิ่มลงในหน้าจอหลัก"</b></li>
+<li>ถ้ามีให้เลือก ให้กด <b>"สร้างทางลัด"</b> หรือ <b>"เพิ่ม"</b><br>(ไม่ต้องกด "ติดตั้ง")</li><li>เปิดจากไอคอน <b>SMART SAFETY</b> บนหน้าจอ</li></ol></div>
+
+<div id="v-samsung" class="hide box"><h2>เพิ่มลงหน้าจอหลัก (Samsung Internet)</h2><ol>
+<li>กดปุ่ม <span class="k">≡</span> ด้านล่างขวา</li><li>เลือก <b>"เพิ่มหน้าไปที่"</b></li><li>เลือก <b>"หน้าจอหลัก"</b> แล้วกด <b>"เพิ่ม"</b></li></ol></div>
+
+<div id="v-inapp" class="hide box"><h2>ตอนนี้เปิดอยู่ในแอป <span id="appn">LINE</span></h2>
+<p>แอปนี้เพิ่มลงหน้าจอไม่ได้ กรุณากดปุ่มด้านล่างเพื่อเปิดใน <b>Chrome</b></p>
+<a class="b" id="chrome" href="#">เปิดใน Chrome</a><a class="b o" id="ext" href="#">เปิดในเบราว์เซอร์ของเครื่อง</a>
+<button class="b gr cp">📋 คัดลอกลิงก์ (ไปวางใน Chrome)</button></div>
+
+<div id="v-ios" class="hide box"><h2>iPhone (Safari)</h2><ol>
+<li>กดปุ่ม <b>แชร์</b> (สี่เหลี่ยมมีลูกศรชี้ขึ้น) ด้านล่าง</li><li>เลื่อนลง เลือก <b>"เพิ่มไปยังหน้าจอโฮม"</b></li><li>กด <b>"เพิ่ม"</b> มุมขวาบน</li></ol></div>
+
+<div id="v-iosother" class="hide box"><h2>กรุณาเปิดใน Safari</h2>
+<p>iPhone ต้องใช้ <b>Safari</b> เท่านั้นจึงจะเพิ่มลงหน้าจอได้</p><ol>
+<li>กดปุ่มคัดลอกลิงก์ด้านล่าง</li><li>เปิดแอป <b>Safari</b> (เข็มทิศสีฟ้า)</li><li>กดช่องที่อยู่ด้านบน แล้ว <b>วาง</b> และไป</li></ol>
+<button class="b gr cp">📋 คัดลอกลิงก์</button><a class="b o hide" id="ext2" href="#">เปิดใน Safari</a></div>
+
+<div id="v-desk" class="hide box"><h2>เปิดลิงก์นี้บนมือถือ</h2><p>สแกน QR หรือส่งลิงก์นี้ไปที่โทรศัพท์</p><button class="b gr cp">📋 คัดลอกลิงก์</button></div>
+
+<div id="inst" class="hide"><button class="b gr" id="ib">ติดตั้งแบบแอป (ทางเลือก)</button></div>
+
+<div id="v-pp" class="hide box warn"><h2>ถ้าขึ้น "Google Play Protect บล็อก"</h2><ol>
+<li>กด <b>"รับทราบ"</b> / <b>"ตกลง"</b></li><li>ลบไอคอน SMART SAFETY อันเดิมที่ใช้ไม่ได้</li>
+<li>อัปเดต <b>Chrome</b> และ <b>Android System WebView</b> ใน Play Store</li><li>หรือใช้วิธี <b>"เพิ่มลงในหน้าจอหลัก → สร้างทางลัด"</b> ด้านบน (ไม่โดนบล็อก)</li></ol>
+<a class="b g" href="https://play.google.com/store/apps/details?id=com.google.android.webview">อัปเดต Android System WebView</a>
+<a class="b g" href="https://play.google.com/store/apps/details?id=com.android.chrome">อัปเดต Chrome</a></div>
+
 <div id="done" class="hide box"><p>✅ ติดตั้งแล้ว — เปิดจากไอคอน <b>SMART SAFETY</b> บนหน้าจอ</p></div>
-<a class="b g" id="go" href="#">เข้าใช้งานระบบ</a></div>
+<p id="cpok" class="hide" style="color:#4ade80">คัดลอกลิงก์แล้ว ✓</p></div>
 <script>
 var EXEC='https:'+'\/\/script.google.com/macros/s/AKfycbwH8PjktorVLFiQaReI4A-9jAA7yncqzVDThBx4tR2NrdHotyu7kqMb7HXBE-6Yqdar/exec';
 var ua=navigator.userAgent,sa=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
-function $(i){return document.getElementById(i)}
+function $(i){return document.getElementById(i)}function show(i){$(i).classList.remove('hide')}
+var PAGE=location.origin+location.pathname,HP=location.host+location.pathname;
 $('go').href=EXEC;
-$('ext').href=location.origin+location.pathname+'?openExternalBrowser=1';
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
-var isAndroid=/Android/i.test(ua),isLine=/Line\//i.test(ua);
-$('chrome').href='intent:'+'\/\/'+location.host+location.pathname+'#Intent;scheme=https;package=com.android.chrome;end';
-var dp;addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e;if(!sa&&!isLine)$('inst').classList.remove('hide')});
-addEventListener('appinstalled',function(){$('inst').classList.add('hide');$('done').classList.remove('hide')});
-$('ib').onclick=function(){if(dp){dp.prompt();dp.userChoice.then(function(c){if(c.outcome!=='accepted')$('steps').classList.remove('hide')});dp=null}else{$('steps').classList.remove('hide');$('steps').scrollIntoView({behavior:'smooth'})}};
-/* เปิดจากไอคอนบนหน้าจอ → เข้าระบบจริงทันที (หน้าเดียวกับเว็บจริง: ล็อกอิน LINE จำไว้ในเครื่องจนกว่าจะออกจากระบบ) */
+var isAndroid=/Android/i.test(ua),isIOS=/iPhone|iPad|iPod/i.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1),
+isLine=/\bLine\//i.test(ua),isFB=/FBAN|FBAV|FB_IAB|FBIOS|Messenger/i.test(ua),isIG=/Instagram/i.test(ua),
+isSamsung=/SamsungBrowser/i.test(ua),isWV=isAndroid&&(/; wv\)/.test(ua)||/Version\/[\d.]+ Chrome/.test(ua)),
+inApp=isLine||isFB||isIG||/MicroMessenger|TikTok|musical_ly|Twitter/i.test(ua)||isWV,
+isIOSOther=isIOS&&(/CriOS|FxiOS|EdgiOS|OPiOS/i.test(ua)||inApp);
+var appName=isLine?'LINE':isFB?'Facebook / Messenger':isIG?'Instagram':'อื่น';
+$('appn').textContent=appName;
+$('chrome').href='intent:'+'//'+HP+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(PAGE)+';end';
+$('ext').href=isLine?PAGE+'?openExternalBrowser=1':'intent:'+'//'+HP+'#Intent;scheme=https;S.browser_fallback_url='+encodeURIComponent(PAGE)+';end';
+if(isLine){$('ext2').href=PAGE+'?openExternalBrowser=1';$('ext2').classList.remove('hide')}
+document.querySelectorAll('.cp').forEach(function(b){b.onclick=function(){
+ function ok(){show('cpok')}
+ if(navigator.clipboard&&isSecureContext)navigator.clipboard.writeText(PAGE).then(ok,fb);else fb();
+ function fb(){var t=document.createElement('textarea');t.value=PAGE;document.body.appendChild(t);t.select();try{document.execCommand('copy');ok()}catch(e){prompt('คัดลอกลิงก์นี้',PAGE)}t.remove()}}});
+var dp;addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e;if(!sa&&!inApp)show('inst')});
+addEventListener('appinstalled',function(){show('done')});
+$('ib').onclick=function(){if(dp){dp.prompt();dp=null}else{show('v-chrome')}};
+var bn='';
 if(sa)location.replace(EXEC);
-else if(isLine)$('line').classList.remove('hide');
-else if(isAndroid)$('inst').classList.remove('hide');
-else if(/iPhone|iPad|iPod/i.test(ua))$(/CriOS|FxiOS|EdgiOS|FBAN|Instagram/i.test(ua)?'iosother':'ios').classList.remove('hide');
+else if(isIOS){if(isIOSOther){show('v-iosother');bn='iPhone · '+(isLine?'LINE':/CriOS/.test(ua)?'Chrome':appName)}else{show('v-ios');bn='iPhone · Safari'}}
+else if(isAndroid){if(inApp){show('v-inapp');bn='Android · '+appName}else if(isSamsung){show('v-samsung');show('v-pp');bn='Android · Samsung Internet'}else{show('v-chrome');show('v-pp');bn='Android · Chrome'}}
+else{show('v-desk');bn='คอมพิวเตอร์'}
+$('bname').textContent='ตรวจพบ: '+bn;
+/* lineAuto: ถ้าเปิดใน LINE ให้เด้งไปเบราว์เซอร์ภายนอกอัตโนมัติครั้งเดียว */
+if(isLine&&!/openExternalBrowser/.test(location.search)&&!sessionStorage.ssx){sessionStorage.ssx=1;location.href=PAGE+'?openExternalBrowser=1'}
 </script></body></html>
