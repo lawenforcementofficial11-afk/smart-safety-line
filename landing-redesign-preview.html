@@ -4271,5 +4271,17 @@ function countSlotStatus(slots, acc) {
 })();
 
 </script>
-<script>setTimeout(function(){var m={'header-school':'เทศบาลนครตัวอย่าง','header-teacher':'ผอ.สมชาย ใจดี (ตัวอย่าง)','header-class':'สายตรวจ 3 จุด (ตัวอย่าง)'};for(var k in m){var e=document.getElementById(k);if(e)e.textContent=m[k];}},1500);</script></body>
+<script>setTimeout(function(){var m={'header-school':'เทศบาลนครตัวอย่าง','header-teacher':'ผอ.สมชาย ใจดี (ตัวอย่าง)','header-class':'สายตรวจ 3 จุด (ตัวอย่าง)'};for(var k in m){var e=document.getElementById(k);if(e)e.textContent=m[k];}},1500);</script><style>
+body.theme-b { background: radial-gradient(900px 520px at 15% -10%, rgba(153,246,228,.45), transparent 60%), radial-gradient(800px 500px at 100% 0%, rgba(250,204,21,.16), transparent 60%), linear-gradient(160deg, #0f766e 0%, #0d9488 50%, #10b981 100%) !important; background-attachment: fixed !important; }
+body.theme-c { background: radial-gradient(900px 520px at 15% -10%, rgba(196,181,253,.45), transparent 60%), radial-gradient(800px 500px at 100% 0%, rgba(244,114,182,.22), transparent 60%), linear-gradient(160deg, #3730a3 0%, #5b21b6 50%, #7c3aed 100%) !important; background-attachment: fixed !important; }
+body.theme-d { background: radial-gradient(900px 520px at 85% -10%, rgba(251,191,36,.45), transparent 60%), radial-gradient(800px 500px at 0% 100%, rgba(249,115,22,.35), transparent 60%), linear-gradient(165deg, #0b1f4d 0%, #1e3a8a 45%, #9a3412 100%) !important; background-attachment: fixed !important; }
+body.theme-b #app-header::before { background: linear-gradient(90deg, #facc15, #5eead4, #22c55e) !important; }
+body.theme-c #app-header::before { background: linear-gradient(90deg, #f472b6, #a78bfa, #facc15) !important; }
+body.theme-d #app-header::before { background: linear-gradient(90deg, #f97316, #fbbf24, #fde68a) !important; }
+body.theme-c #header-system-name .text-accent-500 { background: linear-gradient(180deg, #fbcfe8, #f472b6) !important; -webkit-background-clip: text !important; background-clip: text !important; }
+body.theme-d #header-system-name .text-accent-500 { background: linear-gradient(180deg, #fde68a, #f59e0b) !important; -webkit-background-clip: text !important; background-clip: text !important; }
+body.theme-d .glass-panel, body.theme-d #app-header, body.theme-d #main-tabs { background: linear-gradient(180deg, rgba(255,237,213,.18), rgba(255,255,255,.08)) !important; }
+</style>
+<script>(function(){var m=location.search.match(/[?&]theme=([abcd])/);var t=m?m[1]:'a';if(t!=='a')document.body.classList.add('theme-'+t);var b=document.getElementById('demo-banner');if(b)b.appendChild(document.createTextNode(' · ธีม '+t.toUpperCase()));})();</script>
+</body>
 </html>
