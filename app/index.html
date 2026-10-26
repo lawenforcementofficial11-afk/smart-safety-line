@@ -16,7 +16,11 @@ img{width:132px;border-radius:30px}h1{font-size:28px;margin:16px 0 6px}p{color:#
 <div id="inst" class="hide"><button class="b" id="ib">📲 ติดตั้งลงหน้าจอ</button></div>
 <div id="ios" class="hide box"><p>iPhone (Safari): กดปุ่ม <b>แชร์</b> ⬆️ ด้านล่าง<br>แล้วเลือก <b>"เพิ่มไปยังหน้าจอโฮม"</b></p></div>
 <div id="iosother" class="hide box"><p>กรุณาเปิดลิงก์นี้ใน <b>Safari</b> เพื่อติดตั้ง</p></div>
-<div id="line" class="hide box"><p>กำลังเปิดใน LINE — กดปุ่มด้านล่างเพื่อเปิดในเบราว์เซอร์แล้วติดตั้ง</p><a class="b" id="ext" href="#">เปิดในเบราว์เซอร์</a></div>
+<div id="line" class="hide box"><p>ตอนนี้เปิดอยู่ในแอป LINE ซึ่งติดตั้งไม่ได้<br>กดปุ่มด้านล่างเพื่อเปิดใน Chrome แล้วติดตั้ง</p><a class="b" id="chrome" href="#">เปิดใน Chrome</a><a class="b g" id="ext" href="#" style="font-size:19px">เปิดในเบราว์เซอร์อื่น</a></div>
+<div id="steps" class="hide box" style="text-align:left"><p style="text-align:center"><b>วิธีติดตั้ง (ถ้าไม่มีหน้าต่างติดตั้งขึ้นมา)</b></p>
+<p><b>Chrome:</b><br>1) กดปุ่ม <b style="font-size:24px">⋮</b> มุมขวาบน<br>2) เลือก <b>"ติดตั้งแอป"</b> หรือ <b>"เพิ่มลงในหน้าจอหลัก"</b><br>3) กด <b>"ติดตั้ง"</b></p>
+<p><b>Samsung Internet:</b><br>1) กดปุ่ม <b style="font-size:24px">≡</b> ด้านล่างขวา<br>2) เลือก <b>"เพิ่มหน้าไปที่"</b> → <b>"หน้าจอหลัก"</b></p>
+<p>ติดตั้งแล้ว เปิดจากไอคอน <b>SMART SAFETY</b> บนหน้าจอ</p></div>
 <div id="done" class="hide box"><p>✅ ติดตั้งแล้ว — เปิดจากไอคอน <b>SMART SAFETY</b> บนหน้าจอ</p></div>
 <a class="b g" id="go" href="#">เข้าใช้งานระบบ</a></div>
 <script>
@@ -26,11 +30,14 @@ function $(i){return document.getElementById(i)}
 $('go').href=EXEC;
 $('ext').href=location.origin+location.pathname+'?openExternalBrowser=1';
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
-var dp;addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e;if(!sa)$('inst').classList.remove('hide')});
+var isAndroid=/Android/i.test(ua),isLine=/Line\//i.test(ua);
+$('chrome').href='intent:'+'\/\/'+location.host+location.pathname+'#Intent;scheme=https;package=com.android.chrome;end';
+var dp;addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e;if(!sa&&!isLine)$('inst').classList.remove('hide')});
 addEventListener('appinstalled',function(){$('inst').classList.add('hide');$('done').classList.remove('hide')});
-$('ib').onclick=function(){if(dp){dp.prompt();dp=null}};
+$('ib').onclick=function(){if(dp){dp.prompt();dp.userChoice.then(function(c){if(c.outcome!=='accepted')$('steps').classList.remove('hide')});dp=null}else{$('steps').classList.remove('hide');$('steps').scrollIntoView({behavior:'smooth'})}};
 /* เปิดจากไอคอนบนหน้าจอ → เข้าระบบจริงทันที (หน้าเดียวกับเว็บจริง: ล็อกอิน LINE จำไว้ในเครื่องจนกว่าจะออกจากระบบ) */
 if(sa)location.replace(EXEC);
-else if(/Line\//i.test(ua))$('line').classList.remove('hide');
+else if(isLine)$('line').classList.remove('hide');
+else if(isAndroid)$('inst').classList.remove('hide');
 else if(/iPhone|iPad|iPod/i.test(ua))$(/CriOS|FxiOS|EdgiOS|FBAN|Instagram/i.test(ua)?'iosother':'ios').classList.remove('hide');
 </script></body></html>
