@@ -55,7 +55,7 @@ ol{font-size:21px;line-height:1.7;padding-left:28px;margin:6px 0}li{margin:6px 0
 <p id="cpok" class="hide" style="color:#4ade80">คัดลอกลิงก์แล้ว ✓</p></div>
 <script>
 var EXEC='https:'+'\/\/script.google.com/macros/s/AKfycbwH8PjktorVLFiQaReI4A-9jAA7yncqzVDThBx4tR2NrdHotyu7kqMb7HXBE-6Yqdar/exec';
-var ua=navigator.userAgent,sa=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+var ua=navigator.userAgent,sa=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true||/SmartSafetyApp\//.test(ua)||/[?&]source=apk/.test(location.search);
 function $(i){return document.getElementById(i)}function show(i){$(i).classList.remove('hide')}
 var PAGE=location.origin+location.pathname,HP=location.host+location.pathname;
 $('go').href=EXEC;
