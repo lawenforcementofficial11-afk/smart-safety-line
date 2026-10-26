@@ -124,54 +124,50 @@
         #line-login-note { font-size: .85rem; color: #b6c2d4; }
         #login-btn { min-height: 60px; border-radius: 18px; background: linear-gradient(180deg, #0ea5e9, #0284c7); box-shadow: 0 12px 28px -12px rgba(14,165,233,.8); }
         @media (prefers-reduced-motion: no-preference) { #app-header, #main-tabs, #tab-login .glass-panel { animation: lrRise .55s cubic-bezier(.2,.7,.2,1) both; } #main-tabs { animation-delay: .08s; } #tab-login .glass-panel { animation-delay: .16s; } @keyframes lrRise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } } }
-        body { background: radial-gradient(900px 520px at 15% -10%, rgba(125,211,252,.45), transparent 60%), radial-gradient(800px 500px at 100% 0%, rgba(250,204,21,.18), transparent 60%), radial-gradient(900px 600px at 50% 110%, rgba(56,189,248,.35), transparent 60%), linear-gradient(160deg, #1e5bb8 0%, #2470cc 50%, #2f8be0 100%) !important; background-attachment: fixed !important; color: #ffffff; }
-        .glass-panel { background: linear-gradient(180deg, rgba(255,255,255,.20), rgba(255,255,255,.10)) !important; border: 1px solid rgba(255,255,255,.32) !important; box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 20px 46px -18px rgba(8,30,80,.55) !important; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
-        #app-header, #main-tabs, #tab-login .glass-panel { background: linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,.12)) !important; border: 1px solid rgba(255,255,255,.38) !important; }
-        #app-header::before { height: 5px; background: linear-gradient(90deg, #facc15, #38bdf8 50%, #22c55e) !important; }
-        #app-header::after { background-image: linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px) !important; }
-        #app-header > #status-badge { background: rgba(10,37,94,.55) !important; border: 1px solid rgba(255,255,255,.35) !important; color: #fff; }
-        #header-system-name { background: linear-gradient(180deg, #ffffff, #e0f2fe) !important; -webkit-background-clip: text !important; background-clip: text !important; color: transparent !important; text-shadow: none; }
-        #header-system-name .text-accent-500 { background: linear-gradient(180deg, #fde68a, #facc15) !important; -webkit-background-clip: text !important; background-clip: text !important; }
-        #app-header h1 { filter: drop-shadow(0 3px 10px rgba(8,30,80,.45)); }
-        #app-header .border-t { border-color: rgba(255,255,255,.25) !important; }
-        #app-header .text-slate-400, .glass-panel .text-slate-400 { color: #dbeafe !important; }
-        .glass-panel .text-slate-300 { color: #eff6ff !important; }
-        #session-pill { background: rgba(10,37,94,.35) !important; border: 1.5px dashed rgba(255,255,255,.55) !important; color: #fff !important; }
-        #app-header button { background: #ffffff !important; color: #0b2a6b !important; border: 0 !important; box-shadow: 0 8px 20px -10px rgba(8,30,80,.7) !important; font-weight: 800 !important; }
-        #app-header button:hover { background: #fef9c3 !important; }
-        #app-header button i { color: #1d4ed8 !important; }
-        #app-header #meeting-btn { background: linear-gradient(180deg, #fb7185, #e11d48) !important; color: #fff !important; } #app-header #meeting-btn i { color: #fff !important; }
-        #main-tabs .tab-btn { color: #ffffff !important; font-weight: 800; border: 1px solid rgba(255,255,255,.3) !important; text-shadow: 0 1px 2px rgba(0,0,0,.2); }
-        #main-tabs .tab-btn:nth-of-type(4n+1) { background: linear-gradient(180deg, #3b82f6, #1d4ed8) !important; }
-        #main-tabs .tab-btn:nth-of-type(4n+2) { background: linear-gradient(180deg, #f43f5e, #be123c) !important; }
-        #main-tabs .tab-btn:nth-of-type(4n+3) { background: linear-gradient(180deg, #8b5cf6, #6d28d9) !important; }
-        #main-tabs .tab-btn:nth-of-type(4n) { background: linear-gradient(180deg, #14b8a6, #0f766e) !important; }
-        #main-tabs .tab-btn i { color: #ffffff !important; }
-        #main-tabs .tab-btn.active { background: linear-gradient(180deg, #fde047, #f59e0b) !important; color: #0b2a6b !important; text-shadow: none; border-color: #fef08a !important; box-shadow: 0 0 0 3px rgba(254,240,138,.55), 0 10px 24px -8px rgba(245,158,11,.8) !important; }
-        #main-tabs .tab-btn.active i { color: #0b2a6b !important; }
-        #tab-login .glass-input, .glass-input { background: rgba(255,255,255,.92) !important; color: #0b2a6b !important; border: 1.5px solid rgba(255,255,255,.7) !important; }
-        #officer-login-sub, #line-login-note { color: #e0f2fe !important; }
-        #tab-login #line-login-btn, #tab-login #line-login-btn.text-white { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,.2); }
+        @property --ang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+        body { background: radial-gradient(1000px 560px at 50% -12%, rgba(56,189,248,.30), transparent 62%), radial-gradient(800px 520px at 100% 100%, rgba(37,99,235,.38), transparent 60%), radial-gradient(700px 500px at 0% 70%, rgba(250,204,21,.07), transparent 60%), linear-gradient(160deg, #0b1a3d 0%, #13306b 50%, #1d4a9e 100%) !important; background-attachment: fixed !important; color: #f8fafc; }
+        .glass-panel, #app-header, #main-tabs, #tab-login .glass-panel { background: linear-gradient(165deg, rgba(37,64,128,.78) 0%, rgba(22,42,92,.82) 55%, rgba(15,30,70,.88) 100%) !important; border: 1px solid rgba(148,197,255,.24) !important; box-shadow: 0 1px 0 rgba(255,255,255,.10) inset, 0 22px 50px -18px rgba(2,8,30,.75) !important; }
+        #app-header::before { height: 4px; background: linear-gradient(90deg, #0ea5e9, #6366f1 50%, #f59e0b) !important; }
+        #app-header > #status-badge { background: rgba(8,20,50,.7) !important; border: 1px solid rgba(250,204,21,.35) !important; color: #fff; }
+        #header-system-name { background: linear-gradient(180deg, #ffffff, #cfe3ff) !important; -webkit-background-clip: text !important; background-clip: text !important; color: transparent !important; }
+        #header-system-name .text-accent-500 { background: linear-gradient(180deg, #7dd3fc, #0ea5e9) !important; -webkit-background-clip: text !important; background-clip: text !important; }
+        #app-header .border-t { border-color: rgba(148,197,255,.18) !important; }
+        #app-header .text-slate-400, .glass-panel .text-slate-400 { color: #b9c9e4 !important; }
+        #session-pill, #app-header button, #main-tabs .tab-btn, #line-login-btn { --gold: conic-gradient(from var(--ang), rgba(250,204,21,.18) 0deg, rgba(250,204,21,.18) 250deg, #fde68a 300deg, #fff7d1 320deg, #f59e0b 340deg, rgba(250,204,21,.18) 360deg); border: 2px solid transparent !important; }
+        #session-pill { background: linear-gradient(180deg, #1b3772, #12285a) padding-box, var(--gold) border-box !important; color: #e2e8f0 !important; border-style: solid !important; }
+        #app-header button { background: linear-gradient(180deg, #24478e, #163168) padding-box, var(--gold) border-box !important; color: #f1f5ff !important; font-weight: 700 !important; box-shadow: 0 8px 20px -10px rgba(2,8,30,.8), 0 0 14px -6px rgba(250,204,21,.45) !important; }
+        #app-header button:hover { filter: brightness(1.12); }
+        #app-header button i { color: #fcd34d !important; }
+        #app-header #meeting-btn { background: linear-gradient(180deg, #f43f5e, #be123c) padding-box, var(--gold) border-box !important; }
+        #main-tabs .tab-btn { background: linear-gradient(180deg, #213f80, #142c62) padding-box, var(--gold) border-box !important; color: #dbe7ff !important; font-weight: 800; }
+        #main-tabs .tab-btn.active { background: linear-gradient(180deg, #2f6fe0, #1d4ed8) padding-box, conic-gradient(from var(--ang), #f59e0b, #fde68a, #fff7d1, #fde68a, #f59e0b) border-box !important; color: #ffffff !important; box-shadow: 0 0 18px -4px rgba(250,204,21,.65), 0 10px 22px -10px rgba(29,78,216,.8) !important; }
+        #main-tabs .tab-btn.active i { color: #fde68a !important; }
+        #tab-login #line-login-btn, #tab-login #line-login-btn.text-white { background: linear-gradient(180deg, #19dc6c, #06b04b) padding-box, var(--gold) border-box !important; color: #fff !important; text-shadow: 0 1px 2px rgba(0,0,0,.2); box-shadow: 0 12px 28px -10px rgba(6,199,85,.7), 0 0 16px -6px rgba(250,204,21,.5) !important; }
         #line-login-btn { position: relative; overflow: hidden; }
-        #line-login-btn::after { content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.5), transparent); transform: skewX(-18deg); pointer-events: none; }
-        .ts-tile { background: linear-gradient(160deg, rgba(255,255,255,.95), rgba(239,246,255,.88)) !important; border: 1px solid rgba(255,255,255,.8) !important; box-shadow: 0 12px 28px -14px rgba(8,30,80,.6) !important; }
-        .ts-emerald { --c: #059669; --cs: rgba(16,185,129,.30); } .ts-rose { --c: #e11d48; --cs: rgba(244,63,94,.28); } .ts-sky { --c: #1d4ed8; --cs: rgba(37,99,235,.28); }
-        .ts-ring { background: conic-gradient(var(--c) calc(var(--p) * 1%), #dbe7f7 0) !important; }
-        .ts-ring-in { background: #fff !important; }
-        .ts-icon { background: linear-gradient(180deg, #fb7185, #e11d48) !important; color: #fff !important; box-shadow: 0 6px 14px -6px rgba(225,29,72,.7); }
-        .ts-label { color: #1e3a5f !important; } .ts-num { color: #0b1f44 !important; } .ts-of { color: #64748b !important; } .ts-unit { color: #1e3a5f !important; } .ts-sub { color: #64748b !important; }
-        .ts-bar { background: #dbe7f7 !important; }
-        .ts-skel { background: linear-gradient(90deg, #dbe7f7, #f8fbff, #dbe7f7) !important; background-size: 200% 100% !important; }
-        #today-stats p.text-slate-200, #ts-updated { color: #ffffff !important; }
+        #line-login-btn::after { content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.4), transparent); transform: skewX(-18deg); pointer-events: none; }
+        .glass-input { background: rgba(8,20,50,.55) !important; color: #fff !important; border: 1.5px solid rgba(148,197,255,.3) !important; }
+        #officer-login-sub, #line-login-note { color: #c7d5ee !important; }
+        .ts-tile { background: linear-gradient(160deg, rgba(42,74,145,.85), rgba(18,36,82,.9)) !important; border: 1px solid rgba(148,197,255,.25) !important; box-shadow: 0 12px 28px -14px rgba(2,8,30,.8), 0 1px 0 rgba(255,255,255,.08) inset !important; }
+        .ts-emerald { --c: #34d399; --cs: rgba(52,211,153,.28); } .ts-rose { --c: #fb7185; --cs: rgba(251,113,133,.28); } .ts-sky { --c: #fcd34d; --cs: rgba(250,204,21,.25); }
+        .ts-ring { background: conic-gradient(var(--c) calc(var(--p) * 1%), rgba(255,255,255,.12) 0) !important; }
+        .ts-ring-in { background: #102457 !important; }
+        .ts-icon { background: linear-gradient(180deg, #fb7185, #e11d48) !important; color: #fff !important; }
+        .ts-label { color: #d6e2f7 !important; } .ts-num { color: #ffffff !important; } .ts-of { color: #9fb3d6 !important; } .ts-unit { color: #d6e2f7 !important; } .ts-sub { color: #9fb3d6 !important; }
+        .ts-bar { background: rgba(255,255,255,.12) !important; }
+        #today-stats p.text-slate-200, #ts-updated { color: #e6eeff !important; }
+        #app-footer { color: #9fb3d6 !important; }
         @media (min-width: 768px) { #today-stats { margin-top: 2.6rem; } }
         @media (prefers-reduced-motion: no-preference) {
+            #session-pill, #app-header button, #main-tabs .tab-btn, #line-login-btn { animation: goldChase 3.2s linear infinite; }
+            #main-tabs .tab-btn:nth-of-type(2), #app-header button:nth-of-type(2) { animation-delay: -.8s; } #main-tabs .tab-btn:nth-of-type(3) { animation-delay: -1.6s; } #main-tabs .tab-btn:nth-of-type(4) { animation-delay: -2.4s; }
             #line-login-btn::after { animation: lrShine 3.8s ease-in-out infinite 1.2s; }
             #today-stats:not(.ts-err) .ts-tile { animation: tsGlow 4s ease-in-out infinite; }
             #today-stats:not(.ts-err) .ts-tile:nth-child(2) { animation-delay: 1.3s; } #today-stats:not(.ts-err) .ts-tile:nth-child(3) { animation-delay: 2.6s; }
             #status-dot.bg-emerald-400 { animation: tsPulse 2s infinite; }
-            #main-tabs .tab-btn.active { animation: tabGlow 3s ease-in-out infinite; }
         }
-        body > footer, body > .footer-text, #app-footer { color: rgba(255,255,255,.85) !important; }
+        @keyframes goldChase { to { --ang: 360deg; } }
+        @keyframes lrShine { 0%, 70% { left: -60%; } 100% { left: 130%; } }
+        @keyframes tsGlow { 0%, 100% { box-shadow: 0 12px 28px -14px rgba(2,8,30,.8); } 50% { box-shadow: 0 12px 30px -10px var(--cs), 0 0 0 2px var(--cs); } }
         @media (max-width: 639px) {
             #app-header { padding: 2.9rem .8rem .9rem !important; margin-bottom: .8rem !important; border-radius: 22px; }
             #app-header > #status-badge { top: .55rem !important; right: .55rem !important; padding: .3rem .7rem; font-size: .75rem; }
@@ -194,7 +190,7 @@
             .ts-sub { display: none; }
             .ts-bar { height: 5px; margin: 5px 6px 0; }
             #app-header .mt-6.border-t { margin-top: .8rem !important; padding-top: .8rem !important; gap: .5rem !important; flex-direction: row !important; flex-wrap: wrap; }
-            #session-pill, #app-header button { min-height: 46px !important; padding: .5rem .7rem !important; font-size: .9rem !important; border-radius: 13px !important; flex: 1 1 45%; width: auto !important; }
+            #session-pill, #app-header button { min-height: 46px !important; padding: .5rem .7rem !important; font-size: .86rem !important; border-radius: 13px !important; flex: 1 1 45%; width: auto !important; white-space: nowrap; }
             #main-tabs { margin-bottom: .8rem !important; padding: .3rem !important; gap: .3rem !important; border-radius: 18px; }
             #main-tabs .tab-btn { min-height: 54px !important; font-size: .85rem !important; gap: .15rem; border-radius: 13px; padding: .3rem .2rem !important; }
             #main-tabs .tab-btn i { font-size: 1.05rem; }
@@ -202,9 +198,6 @@
             #tab-login h2 { font-size: 1.25rem; }
             #line-login-btn { min-height: 54px; font-size: 1.1rem; }
         }
-        @keyframes lrShine { 0%, 70% { left: -60%; } 100% { left: 130%; } }
-        @keyframes tsGlow { 0%, 100% { box-shadow: 0 12px 28px -14px rgba(8,30,80,.6); } 50% { box-shadow: 0 12px 30px -10px var(--cs), 0 0 0 3px var(--cs); } }
-        @keyframes tabGlow { 0%, 100% { box-shadow: 0 0 0 3px rgba(254,240,138,.45), 0 10px 24px -8px rgba(245,158,11,.7); } 50% { box-shadow: 0 0 0 5px rgba(254,240,138,.7), 0 10px 28px -6px rgba(245,158,11,.9); } }
 #demo-banner button{display:none!important}</style>
 </head>
 <body class="p-2 md:p-6 flex flex-col items-center overflow-x-hidden"><div id="demo-banner" style="position:sticky;top:0;z-index:20000;background:#facc15;color:#111;font-weight:800;text-align:center;padding:4px 8px;font-size:13px;font-family:Sarabun,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.4)">ตัวอย่างดีไซน์ใหม่ (DEMO) - ไม่บันทึกข้อมูลจริง
@@ -4282,6 +4275,6 @@ body.theme-c #header-system-name .text-accent-500 { background: linear-gradient(
 body.theme-d #header-system-name .text-accent-500 { background: linear-gradient(180deg, #fde68a, #f59e0b) !important; -webkit-background-clip: text !important; background-clip: text !important; }
 body.theme-d .glass-panel, body.theme-d #app-header, body.theme-d #main-tabs { background: linear-gradient(180deg, rgba(255,237,213,.18), rgba(255,255,255,.08)) !important; }
 </style>
-<script>(function(){var m=location.search.match(/[?&]theme=([abcd])/);var t=m?m[1]:'a';if(t!=='a')document.body.classList.add('theme-'+t);var b=document.getElementById('demo-banner');if(b)b.appendChild(document.createTextNode(' · ธีม '+t.toUpperCase()));})();</script>
+<script>(function(){var m=location.search.match(/[?&]theme=([abcd])/);var t=m?m[1]:'';if(t)document.body.classList.add('theme-'+t);var b=document.getElementById('demo-banner');if(b&&t)b.appendChild(document.createTextNode(' · ธีม '+t.toUpperCase()));})();</script>
 </body>
 </html>
