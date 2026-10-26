@@ -183,6 +183,21 @@
         @media (prefers-reduced-motion: no-preference) { #header-system-name, #header-system-name .text-accent-500 { animation: titleSheen 6s ease-in-out infinite; } #brand-logo { animation: logoGlow 3.5s ease-in-out infinite; } }
         @keyframes titleSheen { 0%, 100% { background-position: 100% 0; } 50% { background-position: 0% 0; } }
         @keyframes logoGlow { 0%, 100% { opacity: .92; } 50% { opacity: 1; transform: scale(1.04); } }
+        #app-header > #status-badge { font-weight: 900 !important; font-size: .85rem !important; padding: .4rem .9rem .4rem .75rem !important; transition: background .3s, border-color .3s; }
+        #app-header > #status-badge[data-state="online"] { background: linear-gradient(180deg, #22c55e, #15803d) !important; border: 1.5px solid #86efac !important; box-shadow: 0 0 0 0 rgba(34,197,94,.6), 0 6px 18px -6px rgba(34,197,94,.8) !important; }
+        #app-header > #status-badge[data-state="offline"] { background: linear-gradient(180deg, #ef4444, #b91c1c) !important; border: 1.5px solid #fca5a5 !important; box-shadow: 0 6px 18px -6px rgba(239,68,68,.85) !important; }
+        #status-badge[data-state="online"] #status-text, #status-badge[data-state="offline"] #status-text { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,.3); letter-spacing: .03em; }
+        #status-badge[data-state="online"] #status-dot { background: #dcfce7 !important; width: 11px !important; height: 11px !important; box-shadow: 0 0 0 2px #16a34a, 0 0 10px #bbf7d0 !important; }
+        #status-badge[data-state="offline"] #status-dot { background: #fee2e2 !important; width: 11px !important; height: 11px !important; box-shadow: 0 0 0 2px #dc2626, 0 0 10px #fecaca !important; }
+        @media (prefers-reduced-motion: no-preference) {
+            #status-badge[data-state="online"] { animation: badgeRingG 2s ease-out infinite; }
+            #status-badge[data-state="online"] #status-dot { animation: ledBlink 1.6s ease-in-out infinite !important; }
+            #status-badge[data-state="offline"] { animation: badgeRingR 1.2s ease-out infinite; }
+            #status-badge[data-state="offline"] #status-dot, #status-badge[data-state="offline"] #status-text { animation: ledBlink .9s steps(2, jump-none) infinite !important; }
+        }
+        @keyframes ledBlink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+        @keyframes badgeRingG { 0% { box-shadow: 0 0 0 0 rgba(34,197,94,.65), 0 6px 18px -6px rgba(34,197,94,.8); } 100% { box-shadow: 0 0 0 12px rgba(34,197,94,0), 0 6px 18px -6px rgba(34,197,94,.8); } }
+        @keyframes badgeRingR { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,.7), 0 6px 18px -6px rgba(239,68,68,.85); } 100% { box-shadow: 0 0 0 12px rgba(239,68,68,0), 0 6px 18px -6px rgba(239,68,68,.85); } }
         @keyframes goldChase { to { --ang: 360deg; } }
         @keyframes lrShine { 0%, 70% { left: -60%; } 100% { left: 130%; } }
         @keyframes tsGlow { 0%, 100% { box-shadow: 0 12px 28px -14px rgba(2,8,30,.8); } 50% { box-shadow: 0 12px 30px -10px var(--cs), 0 0 0 2px var(--cs); } }
@@ -1259,6 +1274,7 @@
         function setStatus(state) {
             const dot = document.getElementById('status-dot');
             const txt = document.getElementById('status-text');
+            const sb = document.getElementById('status-badge'); if (sb) sb.dataset.state = state;
             if (state === 'online') {
                 dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,1)]';
                 txt.innerText = 'ออนไลน์'; txt.className = 'tracking-wider text-emerald-400';
@@ -1780,7 +1796,7 @@
                 up.textContent = tsLastOk ? ('ยังเชื่อมต่อไม่ได้ · ข้อมูลเมื่อ ' + tsLastOk + ' น.') : 'ยังโหลดข้อมูลไม่ได้ · จะลองใหม่อัตโนมัติ';
             }
         }
-        function startTodayStats() { refreshTodayStats(); setInterval(() => { if (!document.hidden) refreshTodayStats(); }, 60000); document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshTodayStats(); }); }
+        function startTodayStats() { window.addEventListener('offline', () => setStatus('offline')); window.addEventListener('online', () => { testConnectionSilently(); refreshTodayStats(); }); if (navigator.onLine === false) setStatus('offline'); refreshTodayStats(); setInterval(() => { if (!document.hidden) refreshTodayStats(); }, 60000); document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshTodayStats(); }); }
         async function testConnectionSilently() { const r = await callAPI('ping'); setStatus(r && r.status === 'success' ? 'online' : 'offline'); if (r && r.line) setLineInfo(r.line); if (r && r.uiTexts) setUiTexts(r.uiTexts); return r; }
         function startLiveClock() {
             setInterval(() => {
