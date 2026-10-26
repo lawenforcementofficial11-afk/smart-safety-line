@@ -272,7 +272,7 @@
         }
 #demo-banner button{display:none!important}</style>
 </head>
-<body class="p-2 md:p-6 flex flex-col items-center overflow-x-hidden"><div id="demo-banner" style="position:sticky;top:0;z-index:20000;background:#facc15;color:#111;font-weight:800;text-align:center;padding:4px 8px;font-size:13px;font-family:Sarabun,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.4)">ตัวอย่างดีไซน์หน้าเจ้าหน้าที่ (DEMO) - ข้อมูลสมมติ
+<body class="p-2 md:p-6 flex flex-col items-center overflow-x-hidden"><div id="demo-banner" style="position:sticky;top:0;z-index:20000;background:#facc15;color:#111;font-weight:800;text-align:center;padding:4px 8px;font-size:13px;font-family:Sarabun,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.4)">ตัวอย่างหน้าเจ้าหน้าที่ (DEMO) - ข้อมูลสมมติ · กดปุ่มเพื่อฟังเสียง (ครั้งที่ 3 จำลองล้มเหลว)
 <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px">
 <button onclick="demoRole('admin')" style="background:#7c3aed;color:#fff;border-radius:12px;padding:10px 18px;font-size:17px">🛡️ แอดมิน</button>
 <button onclick="demoRole('commander')" style="background:#d97706;color:#fff;border-radius:12px;padding:10px 18px;font-size:17px">⭐ ผู้บังคับบัญชา (รหัส 1111)</button>
@@ -1765,6 +1765,7 @@
             switchTab(DEFAULT_TAB[currentRole()], null, true);
             startLiveClock();
             startTodayStats();
+            ssMountVoiceBtn();
             if (session) { loadData(); if (currentRole() === 'officer') startGpsWatch(); }
             else testConnectionSilently();
             readLineHandoff();
@@ -1837,6 +1838,32 @@
             }
         }
         function startTodayStats() { window.addEventListener('offline', () => setStatus('offline')); window.addEventListener('online', () => { testConnectionSilently(); refreshTodayStats(); }); if (navigator.onLine === false) setStatus('offline'); refreshTodayStats(); setInterval(() => { if (!document.hidden) refreshTodayStats(); }, 60000); document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshTodayStats(); }); }
+        const SS_VOICE_KEY = 'ss_voice_on';
+        function ssVoiceOn() { try { return localStorage.getItem(SS_VOICE_KEY) !== '0'; } catch (e) { return true; } }
+        let ssThVoice = null;
+        function ssPickVoice() { try { const vs = window.speechSynthesis ? speechSynthesis.getVoices() : []; ssThVoice = vs.find(v => /^th(-|_|$)/i.test(v.lang)) || null; } catch (e) {} }
+        if (window.speechSynthesis) { ssPickVoice(); try { speechSynthesis.addEventListener('voiceschanged', ssPickVoice); } catch (e) {} }
+        function ssBeep(ok) {
+            try { if (navigator.vibrate) navigator.vibrate(ok ? 80 : [120, 80, 120]); } catch (e) {}
+            try { const C = window.AudioContext || window.webkitAudioContext; if (!C) return; const ac = ssBeep.ac || (ssBeep.ac = new C()); const o = ac.createOscillator(), g = ac.createGain();
+                o.frequency.value = ok ? 880 : 300; g.gain.value = .08; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + (ok ? .15 : .35)); } catch (e) {}
+        }
+        function ssSpeak(text, ok) {
+            if (!ssVoiceOn()) return;
+            if (text === 'fail') { text = 'บันทึกไม่สำเร็จ กรุณาลองใหม่'; ok = false; }
+            if (ok === undefined) ok = true;
+            const S = window.speechSynthesis;
+            if (!S || !window.SpeechSynthesisUtterance) { ssBeep(ok); return; }
+            if (!ssThVoice) ssPickVoice();
+            if (!ssThVoice && S.getVoices().length) { ssBeep(ok); return; }
+            try { S.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'th-TH'; if (ssThVoice) u.voice = ssThVoice; u.rate = .95; u.volume = 1; u.onerror = () => ssBeep(ok); S.speak(u); } catch (e) { ssBeep(ok); }
+        }
+        function ssVoiceBtnSync() { const b = document.getElementById('voice-toggle'); if (!b) return; const on = ssVoiceOn(); b.textContent = on ? '🔊' : '🔇'; b.setAttribute('aria-label', on ? 'เสียงแจ้งเตือน: เปิด (แตะเพื่อปิด)' : 'เสียงแจ้งเตือน: ปิด (แตะเพื่อเปิด)'); b.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+        function ssToggleVoice() { const on = !ssVoiceOn(); try { localStorage.setItem(SS_VOICE_KEY, on ? '1' : '0'); } catch (e) {} ssVoiceBtnSync(); if (on) ssSpeak('เปิดเสียงแจ้งเตือนแล้ว'); else if (window.speechSynthesis) speechSynthesis.cancel(); }
+        function ssMountVoiceBtn() {
+            const h = document.getElementById('app-header'); if (!h || document.getElementById('voice-toggle')) return;
+            const b = document.createElement('button'); b.type = 'button'; b.id = 'voice-toggle'; b.onclick = ssToggleVoice; h.appendChild(b); ssVoiceBtnSync();
+        }
         async function testConnectionSilently() { const r = await callAPI('ping'); setStatus(r && r.status === 'success' ? 'online' : 'offline'); if (r && r.line) setLineInfo(r.line); if (r && r.uiTexts) setUiTexts(r.uiTexts); return r; }
         function startLiveClock() {
             setInterval(() => {
@@ -2138,8 +2165,9 @@
             if (!fix) return;
             swalLoading({ title: 'กำลังบันทึก...', allowOutsideClick: false });
             const res = await api('officerCheckIn', { type, lat: fix.lat, lng: fix.lng, accuracy: fix.accuracy });
-            if (!res || res.status !== 'success') return swalError(T('tpl.checkin_fail', { type }), res);
+            if (!res || res.status !== 'success') { ssSpeak('fail'); return swalError(T('tpl.checkin_fail', { type }), res); }
             mergeOfficerView(res.data); renderOfficerPanel();
+            ssSpeak(type === 'เข้าเวร' ? 'บันทึกเข้าเวรสำเร็จ' : 'บันทึกออกเวรสำเร็จ');
             const r = res.data.record;
             if (r.inRadius === false) {
                 await Swal.fire({ icon: 'warning', title: T('tpl.checkin_out_radius', { type }), html: `เวลา <b>${esc(r.time)}</b> น.<br>ห่างจุดประจำการ <b class="text-rose-300">${esc(r.distance)} ม.</b> (รัศมี ${esc(r.radius)} ม.)<br><span class="text-xs text-slate-400">ระบบแจ้งผู้บังคับบัญชาแล้ว</span>${r.autoClosedCheckpoint ? `<br><span class="text-sm text-amber-300">ปิดการประจำจุด "${esc(r.autoClosedCheckpoint)}" ให้อัตโนมัติแล้ว</span>` : ''}`, ...SWAL_DARK });
@@ -2214,8 +2242,9 @@
             const v = r.value, fix = v.fix || (lastFix && Date.now() - lastFix.ts < 120000 ? lastFix : null);
             delete v.fix;
             const res = await api('submitCheckpointNote', Object.assign(v, fix ? { lat: fix.lat, lng: fix.lng, accuracy: fix.accuracy } : {}));
-            if (!res || res.status !== 'success') return swalError('ส่งหมายเหตุไม่สำเร็จ', res);
+            if (!res || res.status !== 'success') { ssSpeak('fail'); return swalError('ส่งหมายเหตุไม่สำเร็จ', res); }
             mergeOfficerView(res.data); renderOfficerPanel();
+            ssSpeak('ส่งหมายเหตุเรียบร้อย');
             const rec = res.data.record;
             await Swal.fire({ icon: 'success', title: 'ส่งหมายเหตุแล้ว', html: `<b>${esc(rec.checkpoint)}</b>${slot ? ` <span class="font-mono text-cyan-200">${esc(slot.start)}–${esc(slot.end)}</span>` : ''} · ${esc(rec.reason)}<br><span class="text-sm text-slate-400">เวลา ${esc(String(rec.time).slice(0, 5))} น. · ${rec.hasGps ? 'บันทึกพิกัดแล้ว' : 'ไม่มีพิกัด'} · ผู้บังคับบัญชาดูได้ทันที</span>`, ...SWAL_DARK });
         }
@@ -2273,8 +2302,9 @@
             if (!fix) return;
             swalLoading({ title: 'กำลังบันทึก...', allowOutsideClick: false });
             const res = await api('slotCheck', { slotId: id, kind, lat: fix.lat, lng: fix.lng, accuracy: fix.accuracy });
-            if (!res || res.status !== 'success') { if (res && res.data) { mergeOfficerView(res.data); renderOfficerPanel(); } return swalError(`${word}ไม่สำเร็จ`, res); }
+            if (!res || res.status !== 'success') { ssSpeak('fail'); if (res && res.data) { mergeOfficerView(res.data); renderOfficerPanel(); } return swalError(`${word}ไม่สำเร็จ`, res); }
             mergeOfficerView(res.data); renderOfficerPanel();
+            ssSpeak(kind === 'in' ? 'บันทึกเข้าจุดสำเร็จ' : 'บันทึกออกจุดสำเร็จ');
             const r = res.data.record;
             const extra = (r.lateMinutes ? `<br><span class="text-amber-300 font-bold">สาย ${esc(r.lateMinutes)} นาที</span>` : '') +
                 (r.noCoords ? '<br><span class="text-xs text-slate-400">จุดนี้ยังไม่มีพิกัด — บันทึก GPS ไว้โดยไม่ตรวจรัศมี</span>' : (r.distance !== null && r.distance !== undefined ? `<br><span class="text-xs text-slate-400">ห่างจุด ${esc(r.distance)} ม.</span>` : ''));
@@ -3193,6 +3223,7 @@
             swalLoading({ title: 'กำลังเช็คเอาท์...' });
             const fix = await quietFix();
             const res = await api('patrolCheckOut', fix ? { lat: fix.lat, lng: fix.lng, accuracy: fix.accuracy } : {});
+            if (res && res.status === 'success') ssSpeak('บันทึกจุดตรวจสำเร็จ'); else if (!res || res.code !== 'NO_OPEN_CHECKPOINT') ssSpeak('fail');
             if (!res || res.status !== 'success') { if (res && res.code === 'NO_OPEN_CHECKPOINT') { appData.openCheckpoint = null; renderOfficerPanel(); return true; } await swalError('เช็คเอาท์ไม่สำเร็จ', res); return false; }
             mergeOfficerView(res.data); renderOfficerPanel();
             const r = res.data.record;
@@ -4350,7 +4381,9 @@ body.theme-d #header-system-name .text-accent-500 { background: linear-gradient(
 body.theme-d .glass-panel, body.theme-d #app-header, body.theme-d #main-tabs { background: linear-gradient(180deg, rgba(255,237,213,.18), rgba(255,255,255,.08)) !important; }
 </style>
 <script>(function(){var m=location.search.match(/[?&]theme=([abcd])/);var t=m?m[1]:'';if(t)document.body.classList.add('theme-'+t);var b=document.getElementById('demo-banner');var hm=location.search.match(/[?&]head=([123])/);if(hm&&hm[1]!=='1')document.body.classList.add('head-'+hm[1]);if(b&&t)b.appendChild(document.createTextNode(' · ธีม '+t.toUpperCase()));})();</script>
-<script type="text/plain" id="off-css-src">        #tab-officer > .glass-panel { background: radial-gradient(520px 220px at 100% 0%, rgba(45,212,191,.16), transparent 70%), linear-gradient(170deg, #1a3a9c 0%, #142e7a 40%, #0f2a66 100%) !important; border: 1px solid rgba(250,204,21,.32) !important; border-top: 1px solid rgba(250,204,21,.32) !important; }
+<script type="text/plain" id="off-css-src">        #app-header > #voice-toggle { position: absolute !important; top: .55rem; left: .55rem; z-index: 3; width: 44px; height: 44px; min-height: 44px !important; padding: 0 !important; border-radius: 50% !important; font-size: 1.2rem !important; display: grid; place-items: center; background: rgba(8,20,50,.55) !important; border: 1px solid rgba(250,204,21,.4) !important; box-shadow: none !important; animation: none !important; flex: none !important; width: 44px !important; }
+        #app-header > #voice-toggle[aria-pressed="false"] { opacity: .7; }
+        #tab-officer > .glass-panel { background: radial-gradient(520px 220px at 100% 0%, rgba(45,212,191,.16), transparent 70%), linear-gradient(170deg, #1a3a9c 0%, #142e7a 40%, #0f2a66 100%) !important; border: 1px solid rgba(250,204,21,.32) !important; border-top: 1px solid rgba(250,204,21,.32) !important; }
         #officer-info .text-white, #officer-info p:first-child { color: #fff; }
         #tab-officer .glass-input { background: linear-gradient(180deg, rgba(8,20,50,.75), rgba(15,34,80,.75)) !important; border: 1.5px solid rgba(250,204,21,.45) !important; box-shadow: 0 0 14px -6px rgba(250,204,21,.6); }
         #live-clock-display { color: #fde68a; font-size: 1.15rem; text-shadow: 0 0 10px rgba(250,204,21,.45); }
@@ -4370,5 +4403,20 @@ body.theme-d .glass-panel, body.theme-d #app-header, body.theme-d #main-tabs { b
         #officer-activity > * { background: rgba(255,255,255,.05); border-radius: 12px; }
         #officer-checkpoint-card { background: linear-gradient(165deg, rgba(245,158,11,.22), rgba(120,53,15,.25)) !important; box-shadow: 0 0 18px -8px rgba(250,204,21,.6); }
         @media (prefers-reduced-motion: no-preference) { #tab-officer .big-action:not(:disabled), #tab-officer [class*="slot-btn-"]:not(:disabled) { animation: goldChase 3.2s linear infinite; } #tab-officer #btn-checkout { animation-delay: -1s; } #tab-officer #btn-cp-note { animation-delay: -2s; } }
-</script><script>setTimeout(async function(){try{var r=await callAPI('officerLogin',{no:'x',pin:'x'});if(r&&r.data){setSession(r.data);await afterLogin();}}catch(e){console.error(e);}if(location.search.indexOf('before')<0){var st=document.createElement('style');st.textContent=document.getElementById('off-css-src').textContent;document.head.appendChild(st);}},600);</script></body>
+</script><script>setTimeout(async function(){try{var r=await callAPI('officerLogin',{no:'x',pin:'x'});if(r&&r.data){setSession(r.data);await afterLogin();}}catch(e){console.error(e);}if(location.search.indexOf('before')<0){var st=document.createElement('style');st.textContent=document.getElementById('off-css-src').textContent;document.head.appendChild(st);}},600);</script><script>(function(){
+try{var fake={coords:{latitude:12.9236,longitude:100.8825,accuracy:8},timestamp:Date.now()};Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition:function(ok){setTimeout(function(){fake.timestamp=Date.now();ok(fake);},300);},watchPosition:function(ok){setTimeout(function(){ok(fake);},300);return 1;},clearWatch:function(){}}});}catch(e){}
+try{obtainFix=async function(){return {lat:12.9236,lng:100.8825,accuracy:8};};quietFix=obtainFix;}catch(e){}
+var n=0, orig=window.postToBackend;
+window.postToBackend=postToBackend=async function(action,body){
+  var acts={officerCheckIn:1,slotCheck:1,submitCheckpointNote:1,patrolCheckOut:1};
+  if(!acts[action]) return orig(action,body);
+  await new Promise(function(r){setTimeout(r,500);});
+  n++; if(n%3===0) return JSON.stringify({status:'error',code:'DEMO_FAIL',message:'ตัวอย่าง: จำลองการบันทึกไม่สำเร็จ (ทุกครั้งที่ 3)'});
+  var b={};try{b=JSON.parse(body).payload||{};}catch(e){}
+  var t=new Date().toLocaleTimeString('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hour12:false});
+  var rec={time:t,inRadius:true,checkpoint:'จุดตรวจชายหาด (ตัวอย่าง)',start:'10:00',end:'11:00',lateMinutes:0,outTime:t};
+  return JSON.stringify({status:'success',data:{record:rec}});
+};
+})();</script>
+</body>
 </html>
