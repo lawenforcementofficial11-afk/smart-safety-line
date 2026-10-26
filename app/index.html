@@ -1,10 +1,20 @@
 <!doctype html><html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0f172a"><link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="icon-192.png?v=3">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3">
+<meta name="theme-color" content="#0f172a"><link rel="manifest" href="https://lawenforcementofficial11-afk.github.io/smart-safety-line/app/manifest.json">
+<link rel="icon" type="image/png" href="https://lawenforcementofficial11-afk.github.io/smart-safety-line/app/icon-192.png?v=3">
+<link rel="apple-touch-icon" sizes="180x180" href="https://lawenforcementofficial11-afk.github.io/smart-safety-line/app/apple-touch-icon.png?v=3">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SMART SAFETY"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>
+var EXEC='https:'+'\/\/script.google.com/macros/s/AKfycbwH8PjktorVLFiQaReI4A-9jAA7yncqzVDThBx4tR2NrdHotyu7kqMb7HXBE-6Yqdar/exec';
+(function(){var go=false;try{var q=location.search||'',r=document.referrer||'',ua=navigator.userAgent||'';
+if(/[?&]source=(pwa|apk)/.test(q)||/SmartSafetyApp\//.test(ua)||navigator.standalone===true)go=true;
+try{if(window.matchMedia&&(matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: minimal-ui)').matches))go=true}catch(e){}
+if(/script\.google\.com|googleusercontent\.com/.test(r))go=true;
+try{if(window.top!==window.self)go=true}catch(e){go=true}
+if(location.hostname!=='lawenforcementofficial11-afk.github.io'&&location.hostname!=='localhost')go=true;}catch(e){}
+if(go){window.__ssgo=1;try{document.documentElement.style.display='none'}catch(e){}location.replace(EXEC)}})();
+</script>
 <title>SMART SAFETY</title>
 <style>html,body{margin:0;min-height:100%;background:#0f172a;color:#fff;font-family:system-ui,"Noto Sans Thai","Sarabun",sans-serif}
 .s{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:22px 16px 40px;text-align:center;box-sizing:border-box}
@@ -17,7 +27,7 @@ ol{font-size:21px;line-height:1.7;padding-left:28px;margin:6px 0}li{margin:6px 0
 .warn{border-color:#f59e0b;background:#422006}.warn h2{color:#fbbf24}
 .k{display:inline-block;background:#fff;color:#0f172a;border-radius:8px;padding:0 8px;font-weight:800}
 .tag{font-size:16px;color:#94a3b8;margin-top:6px}.hide{display:none}</style></head><body>
-<div class="s"><img src="icon-512.png?v=3" alt="SMART SAFETY"><h1>SMART SAFETY</h1><p>ระบบสายตรวจ เทศกิจเมืองพัทยา</p>
+<div class="s"><img src="https://lawenforcementofficial11-afk.github.io/smart-safety-line/app/icon-512.png?v=3" alt="SMART SAFETY"><h1>SMART SAFETY</h1><p>ระบบสายตรวจ เทศกิจเมืองพัทยา</p>
 <a class="b g" id="go" href="#">▶ เปิดใช้งานเลย (ไม่ต้องติดตั้ง)</a>
 <div class="tag" id="bname"></div>
 
@@ -54,12 +64,12 @@ ol{font-size:21px;line-height:1.7;padding-left:28px;margin:6px 0}li{margin:6px 0
 <div id="done" class="hide box"><p>✅ ติดตั้งแล้ว — เปิดจากไอคอน <b>SMART SAFETY</b> บนหน้าจอ</p></div>
 <p id="cpok" class="hide" style="color:#4ade80">คัดลอกลิงก์แล้ว ✓</p></div>
 <script>
-var EXEC='https:'+'\/\/script.google.com/macros/s/AKfycbwH8PjktorVLFiQaReI4A-9jAA7yncqzVDThBx4tR2NrdHotyu7kqMb7HXBE-6Yqdar/exec';
+try{
 var ua=navigator.userAgent,sa=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true||/SmartSafetyApp\//.test(ua)||/[?&]source=apk/.test(location.search);
 function $(i){return document.getElementById(i)}function show(i){$(i).classList.remove('hide')}
 var PAGE=location.origin+location.pathname,HP=location.host+location.pathname;
 $('go').href=EXEC;
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
+try{if('serviceWorker'in navigator&&location.hostname.indexOf('github.io')>0)navigator.serviceWorker.register('sw.js')['catch'](function(){})}catch(e){}
 var isAndroid=/Android/i.test(ua),isIOS=/iPhone|iPad|iPod/i.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1),
 isLine=/\bLine\//i.test(ua),isFB=/FBAN|FBAV|FB_IAB|FBIOS|Messenger/i.test(ua),isIG=/Instagram/i.test(ua),
 isSamsung=/SamsungBrowser/i.test(ua),isWV=isAndroid&&(/; wv\)/.test(ua)||/Version\/[\d.]+ Chrome/.test(ua)),
@@ -70,19 +80,21 @@ $('appn').textContent=appName;
 $('chrome').href='intent:'+'//'+HP+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(PAGE)+';end';
 $('ext').href=isLine?PAGE+'?openExternalBrowser=1':'intent:'+'//'+HP+'#Intent;scheme=https;S.browser_fallback_url='+encodeURIComponent(PAGE)+';end';
 if(isLine){$('ext2').href=PAGE+'?openExternalBrowser=1';$('ext2').classList.remove('hide')}
-document.querySelectorAll('.cp').forEach(function(b){b.onclick=function(){
+var cps=document.querySelectorAll('.cp');for(var ci=0;ci<cps.length;ci++)(function(b){b.onclick=function(){
  function ok(){show('cpok')}
- if(navigator.clipboard&&isSecureContext)navigator.clipboard.writeText(PAGE).then(ok,fb);else fb();
- function fb(){var t=document.createElement('textarea');t.value=PAGE;document.body.appendChild(t);t.select();try{document.execCommand('copy');ok()}catch(e){prompt('คัดลอกลิงก์นี้',PAGE)}t.remove()}}});
+ if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(PAGE).then(ok,fb);else fb();
+ function fb(){var t=document.createElement('textarea');t.value=PAGE;document.body.appendChild(t);t.select();try{document.execCommand('copy');ok()}catch(e){prompt('คัดลอกลิงก์นี้',PAGE)}if(t.parentNode)t.parentNode.removeChild(t)}}})(cps[ci]);
 var dp;addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e;if(!sa&&!inApp)show('inst')});
 addEventListener('appinstalled',function(){show('done')});
 $('ib').onclick=function(){if(dp){dp.prompt();dp=null}else{show('v-chrome')}};
 var bn='';
-if(sa)location.replace(EXEC);
+if(sa||window.__ssgo){location.replace(EXEC)}
 else if(isIOS){if(isIOSOther){show('v-iosother');bn='iPhone · '+(isLine?'LINE':/CriOS/.test(ua)?'Chrome':appName)}else{show('v-ios');bn='iPhone · Safari'}}
 else if(isAndroid){if(inApp){show('v-inapp');bn='Android · '+appName}else if(isSamsung){show('v-samsung');show('v-pp');bn='Android · Samsung Internet'}else{show('v-chrome');show('v-pp');bn='Android · Chrome'}}
 else{show('v-desk');bn='คอมพิวเตอร์'}
 $('bname').textContent='ตรวจพบ: '+bn;
 /* lineAuto: ถ้าเปิดใน LINE ให้เด้งไปเบราว์เซอร์ภายนอกอัตโนมัติครั้งเดียว */
-if(isLine&&!/openExternalBrowser/.test(location.search)&&!sessionStorage.ssx){sessionStorage.ssx=1;location.href=PAGE+'?openExternalBrowser=1'}
+if(isLine&&!/openExternalBrowser/.test(location.search)&&!(function(){try{if(sessionStorage.ssx)return 1;sessionStorage.ssx=1}catch(e){return 1}})()){location.href=PAGE+'?openExternalBrowser=1'}
+
+}catch(err){try{var ids=["v-chrome","v-samsung","v-inapp","v-ios","v-iosother","v-pp"];for(var k=0;k<ids.length;k++){var el=document.getElementById(ids[k]);if(el)el.className=el.className.replace(/\bhide\b/,"")}document.getElementById("go").href=EXEC;document.getElementById("bname").textContent="แสดงทุกวิธี"}catch(e2){}}
 </script></body></html>
