@@ -4066,8 +4066,7 @@
     function css() {
         const st = document.createElement('style');
         st.textContent = `
-            table:has(#admin-student-list) th:nth-child(4), table:has(#admin-student-list) td:nth-child(4),
-            table:has(#admin-student-list) th:nth-child(9), table:has(#admin-student-list) td:nth-child(9) { display: none; }
+            table:has(#admin-student-list) th:nth-child(4), table:has(#admin-student-list) td:nth-child(4) { display: none; }
             .adm-x label, .adm-x p, .adm-x td, .adm-x th, .adm-x select, .adm-x input { font-size: 1rem; }
             .adm-x table td, .adm-x table th { padding: .6rem .75rem; }
             .adm-chip { display:inline-block; padding:.2rem .7rem; border-radius:999px; font-weight:700; font-size:.85rem; }
@@ -4107,6 +4106,7 @@
                     <label>วันหยุดประจำ<select id="adm-b-wo" class="glass-input rounded-xl p-3 w-full mt-1"><option value="">ไม่เปลี่ยน</option><option value="none">ไม่มี</option>${[[0,6,'ส.–อา.'],[0,1,'อา.–จ.'],[1,2,'จ.–อ.'],[2,3,'อ.–พ.'],[3,4,'พ.–พฤ.'],[4,5,'พฤ.–ศ.'],[5,6,'ศ.–ส.']].map(x => `<option value="${x[0]},${x[1]}">${x[2]}</option>`).join('')}</select></label>
                     <label class="md:col-span-2">จุดที่รับผิดชอบ (เพิ่มให้)<select id="adm-b-cp" class="glass-input rounded-xl p-3 w-full mt-1"></select></label>
                     <label class="md:col-span-2 flex items-center gap-2 mt-7"><input type="checkbox" id="adm-b-cp-replace" class="w-5 h-5"> แทนที่จุดเดิมทั้งหมด (ไม่ติ๊ก = เพิ่มต่อท้าย)</label>
+                    <label class="md:col-span-2">📍 หมุด GPS (ปักหมุดเอง)<select id="adm-b-pin" class="glass-input rounded-xl p-3 w-full mt-1"><option value="">ไม่เปลี่ยน</option><option value="1">อนุญาต</option><option value="0">ปิด</option></select></label>
                     <button type="button" id="adm-bulk-apply" class="md:col-span-4 ${btnCls('bg-teal-600 hover:bg-teal-500')}"><i class="fa-solid fa-check mr-1"></i> ใช้กับคนที่เลือก</button>
                 </div>`);
             acc.parentNode.insertBefore(bulk.firstElementChild, acc.nextSibling);
@@ -4189,13 +4189,14 @@
     function bulkApply() {
         const nos = new Set([...document.querySelectorAll('#adm-bulk-list input:checked')].map(c => c.value));
         if (!nos.size) return Swal.fire({ icon: 'warning', title: 'ยังไม่ได้เลือกเจ้าหน้าที่', ...SWAL_DARK });
-        const vin = $('adm-b-in').value, vout = $('adm-b-out').value, rad = $('adm-b-rad').value, wo = $('adm-b-wo').value, cp = $('adm-b-cp').value, rep = $('adm-b-cp-replace').checked;
-        if (!vin && !vout && !rad && !wo && !cp) return Swal.fire({ icon: 'warning', title: 'ยังไม่ได้กรอกค่าที่จะเปลี่ยน', ...SWAL_DARK });
+        const vin = $('adm-b-in').value, vout = $('adm-b-out').value, rad = $('adm-b-rad').value, wo = $('adm-b-wo').value, cp = $('adm-b-cp').value, rep = $('adm-b-cp-replace').checked, pin = $('adm-b-pin').value;
+        if (!vin && !vout && !rad && !wo && !cp && !pin) return Swal.fire({ icon: 'warning', title: 'ยังไม่ได้กรอกค่าที่จะเปลี่ยน', ...SWAL_DARK });
         let n = 0;
         appData.students.forEach(s => {
             if (!nos.has(s.no)) return; n++;
             if (vin) s.shiftIn = vin; if (vout) s.shiftOut = vout; if (rad) s.radius = String(Number(rad));
             if (wo) s.weeklyOff = wo === 'none' ? [] : wo.split(',').map(Number);
+            if (pin) s.freePin = s.manualPin = pin === '1';
             if (cp) s.checkpoints = rep ? [cp] : [...new Set([...(s.checkpoints || []), cp])];
         });
         setPersonnelDirty(true); renderAdminStudents();
