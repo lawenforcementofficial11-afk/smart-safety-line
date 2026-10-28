@@ -913,22 +913,23 @@
                 </div>
             </div>
 
-            <!-- [shift-demo] แม่แบบช่วงเวลาตามผลัด -->
+            <!-- [shift] แม่แบบช่วงเวลาตามผลัด -->
             <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-emerald-400" id="shift-tpl-admin">
                 <h2 class="text-xl md:text-2xl font-bold mb-2 text-white flex flex-wrap items-center gap-2"><div class="bg-emerald-500/20 p-2 rounded-lg mr-1"><i class="fa-solid fa-layer-group text-emerald-300"></i></div> แม่แบบตามผลัด <span id="tpl-total" class="px-3 py-1 rounded-full text-sm font-bold bg-slate-700 text-slate-200"></span></h2>
-                <p class="text-base text-slate-300 mb-4 leading-relaxed">ตั้งครั้งเดียว ใช้กับ<b>ทุกคนในผลัด</b>นั้นอัตโนมัติ · ถ้าเจ้าหน้าที่คนใดมี "ช่วงเวลารายบุคคล" อยู่แล้ว ระบบจะ<b class="text-amber-300">ใช้ของรายบุคคลแทนแม่แบบ</b> (ลบช่วงรายบุคคลออกทั้งหมด = กลับมาใช้แม่แบบ)</p>
+                <p class="text-base text-slate-300 mb-4 leading-relaxed">ตั้งครั้งเดียว ใช้กับคนในผลัดนั้น<b>เฉพาะจุดที่เขารับผิดชอบ</b> (จุดที่มอบหมายในบัญชีกำลังพล · ไม่มีจุดที่รับผิดชอบ = ไม่ได้ช่วงจากแม่แบบ) · ถ้าเจ้าหน้าที่คนใดมี "ช่วงเวลารายบุคคล" อยู่แล้ว ระบบจะ<b class="text-amber-300">ใช้ของรายบุคคลแทนแม่แบบ</b> (ลบช่วงรายบุคคลออกทั้งหมด = กลับมาใช้แม่แบบ)</p>
                 <div id="tpl-shift-btns" class="grid grid-cols-3 gap-2 mb-4"></div>
                 <p id="tpl-shift-info" class="text-base text-emerald-200 mb-3"></p>
                 <div id="tpl-rows" class="space-y-2 mb-3"></div>
                 <div id="tpl-check" class="mb-3"></div>
                 <div class="flex flex-col sm:flex-row gap-2">
+                    <button onclick="tplCopyMorning()" id="tpl-copy" class="sm:w-auto bg-sky-600/20 hover:bg-sky-600 border border-sky-500/40 text-sky-100 px-6 py-4 rounded-xl text-lg font-bold"><i class="fa-solid fa-copy mr-1"></i> คัดลอกจากผลัดเช้า</button>
                     <button onclick="tplAddRow()" id="tpl-add" class="sm:w-auto bg-emerald-600/20 hover:bg-emerald-600 border border-emerald-500/40 text-emerald-100 px-6 py-4 rounded-xl text-lg font-bold"><i class="fa-solid fa-plus mr-1"></i> เพิ่มแถว</button>
                     <button onclick="saveShiftTemplate()" id="tpl-save" class="flex-1 bg-accent-600 hover:bg-accent-500 text-white py-4 rounded-xl text-lg font-bold shadow-lg"><i class="fa-solid fa-save mr-2"></i> บันทึกแม่แบบผลัดนี้</button>
                 </div>
                 <div id="tpl-unmatched" class="mt-5"></div>
             </div>
 
-            <!-- [remind-demo] เตือนลืมเข้า/ออกเวร -->
+            <!-- [remind] เตือนลืมเข้า/ออกเวร -->
             <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-amber-400" id="remind-admin">
                 <h2 class="text-xl md:text-2xl font-bold mb-2 text-white flex items-center gap-2"><div class="bg-amber-500/20 p-2 rounded-lg mr-1"><i class="fa-solid fa-bell text-amber-300"></i></div> เตือนลืมเข้าเวร / ออกเวร (LINE)</h2>
                 <ul class="text-base text-slate-200 mb-4 space-y-1 leading-relaxed">
@@ -2383,7 +2384,7 @@
             }
             return null;
         }
-        // [shift-demo] ก่อนเวลาเข้าเวร (ทุกผลัด): ปุ่มเข้าเวรเป็นสีเทา + บอกเวลาที่กดได้ (เซิร์ฟเวอร์ตรวจซ้ำ)
+        // [shift] ก่อนเวลาเข้าเวร (ทุกผลัด): ปุ่มเข้าเวรเป็นสีเทา + บอกเวลาที่กดได้ (เซิร์ฟเวอร์ตรวจซ้ำ)
         function hm2m(s) { const x = String(s || '').match(/^(\d{1,2}):(\d{2})/); return x ? (+x[1]) * 60 + (+x[2]) : NaN; }
         function preShiftNow() { const me = appData.me || {}, t = hm2m(bkkNowParts().time), i = hm2m(me.shiftIn); if (isNaN(t) || isNaN(i)) return false; const d = (i - t + 1440) % 1440; return d > 0 && d <= 720; }
         function earlyText() { const si = String((appData.me || {}).shiftIn || '').slice(0, 5); return 'เช็กอินได้ตั้งแต่ ' + si + ' น.'; }
@@ -2562,7 +2563,7 @@
             else slotCheck(id, act);
         });
 
-        // ---------- [remind-demo] ประวัติการเตือน ----------
+        // ---------- [remind] ประวัติการเตือน ----------
         const REMIND_KIND = { remindIn: '⏰ เตือนเข้าเวร', remindOut1: '🏁 เตือนออกเวร', remindOut2: '⚠️ เตือนออกเวร (ครั้งที่ 2)', autoClose: '📝 ระบบปิดเวรให้' };
         function remindResultText(r) { return (r.indexOf('closed') >= 0 ? 'บันทึกออกเวรแล้ว · ' : '') + (r.indexOf('line:200') >= 0 ? 'ส่ง LINE แล้ว' : r.indexOf('no-line') >= 0 ? 'ยังไม่ผูก LINE' : r.indexOf('no-token') >= 0 ? 'ยังไม่ตั้งค่า LINE' : 'ส่ง LINE ไม่สำเร็จ'); }
         async function loadReminderLog() {
@@ -2571,7 +2572,7 @@
             document.getElementById('remind-token').innerHTML = d.hasToken ? '<p class="text-base text-emerald-300"><i class="fa-solid fa-circle-check mr-1"></i> เชื่อม LINE แล้ว</p>' : '<p class="text-base text-rose-300 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ยังไม่ได้ตั้งค่า LINE สำหรับส่งข้อความ — ระบบยังปิดเวรอัตโนมัติได้ แต่ส่งข้อความไม่ได้</p>';
             document.getElementById('remind-log').innerHTML = d.list.length ? `<div class="overflow-x-auto"><table class="w-full text-base"><thead><tr class="text-slate-400 text-sm"><th class="p-2 text-left">เวลา</th><th class="p-2 text-left">เจ้าหน้าที่</th><th class="p-2 text-left">เรื่อง</th><th class="p-2 text-left">ผล</th></tr></thead><tbody>${d.list.map(x => `<tr class="border-t border-white/5 ${x.kind === 'autoClose' ? 'bg-amber-500/10' : ''}"><td class="p-2 font-mono">${esc(new Date(x.ts).toLocaleString('th-TH', { timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}</td><td class="p-2">${esc(x.name || x.no)}</td><td class="p-2 font-bold">${esc(REMIND_KIND[x.kind] || x.kind)}</td><td class="p-2">${esc(remindResultText(x.result))}</td></tr>`).join('')}</tbody></table></div>` : '<p class="text-lg text-slate-400">ยังไม่มีการเตือนใน 7 วันที่ผ่านมา</p>';
         }
-        // ---------- [shift-demo] แม่แบบช่วงเวลาตามผลัด ----------
+        // ---------- [shift] แม่แบบช่วงเวลาตามผลัด ----------
         let tplShift = 'morning', tplDraft = null, tplDirty = false;
         function tplMin(t) { const m = String(t || '').match(/^(\d{2}):(\d{2})$/); return m ? (+m[1]) * 60 + (+m[2]) : NaN; }
         function shiftDefs() { return ((appData.shiftInfo || {}).shifts) || [{ key: 'morning', label: 'เช้า', start: '08:00', end: '16:00' }, { key: 'afternoon', label: 'บ่าย', start: '16:00', end: '00:00' }, { key: 'night', label: 'ดึก', start: '00:00', end: '08:00' }]; }
@@ -2608,7 +2609,8 @@
             setHTMLIfChanged(document.getElementById('tpl-shift-btns'), shiftDefs().map(d => { const n = studs.filter(s => shiftKeyOfC(s.shiftIn, s.shiftOut) === d.key).length;
                 return `<button type="button" data-tpl-shift="${esc(d.key)}" class="py-4 rounded-2xl text-lg font-bold border-2 ${d.key === tplShift ? 'bg-emerald-500 text-slate-900 border-emerald-300' : 'bg-slate-800 text-slate-200 border-slate-600'}">ผลัด${esc(d.label)}<span class="block text-sm font-semibold">${esc(d.start)}–${esc(d.end)} · ${n} คน</span></button>`; }).join(''));
             const def = shiftDefs().find(d => d.key === tplShift), inShift = studs.filter(s => shiftKeyOfC(s.shiftIn, s.shiftOut) === tplShift), own = inShift.filter(s => per[s.no]);
-            document.getElementById('tpl-shift-info').innerHTML = esc(`ผลัด${def.label} ${def.start}–${def.end} น. · ใช้แม่แบบ ${inShift.length - own.length} คน`) + (own.length ? ` · <span class="text-amber-300">ใช้ช่วงรายบุคคลแทน ${own.length} คน (${esc(own.map(s => s.name).join(', '))})</span>` : '');
+            const noCp = inShift.filter(s => !per[s.no] && !(s.checkpoints || []).length).length;
+            document.getElementById('tpl-shift-info').innerHTML = esc(`ผลัด${def.label} ${def.start}–${def.end} น. · ใช้แม่แบบ ${inShift.length - own.length - noCp} คน`) + (noCp ? ` · <span class="text-slate-300">ยังไม่มีจุดที่รับผิดชอบ ${noCp} คน (ไม่ได้ช่วงจากแม่แบบ)</span>` : '') + (own.length ? ` · <span class="text-amber-300">ใช้ช่วงรายบุคคลแทน ${own.length} คน (${esc(own.map(s => s.name).join(', '))})</span>` : '');
             const cps = appData.checkpoints || [];
             setHTMLIfChanged(box, tplDraft.map((x, i) => `
                 <div class="tpl-row grid grid-cols-12 gap-2 items-center bg-slate-900/50 border border-white/5 rounded-xl p-3" data-i="${i}">
@@ -2617,6 +2619,7 @@
                     <input type="time" data-f="start" value="${esc(x.start)}" aria-label="เวลาเริ่ม" class="glass-input rounded-lg p-3 text-lg col-span-5 md:col-span-2">
                     <input type="time" data-f="end" value="${esc(x.end)}" aria-label="เวลาสิ้นสุด" class="glass-input rounded-lg p-3 text-lg col-span-5 md:col-span-2">
                     <button type="button" data-tpl-del="1" class="col-span-2 md:col-span-2 py-3 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-base font-bold"><i class="fa-solid fa-trash mr-1"></i>ลบ</button>
+                    <p class="tpl-assigned col-span-12 pl-1 text-base ${tplAssigned(x.checkpoint).length ? 'text-emerald-200' : 'text-amber-300'}">${esc(tplAssignedText(x.checkpoint))}</p>
                 </div>`).join('') || '<p class="text-lg text-slate-400">ยังไม่มีแม่แบบของผลัดนี้ — กด "เพิ่มแถว"</p>');
             renderTplCheck();
             const um = ((appData.shiftInfo || {}).unmatched) || [];
@@ -2629,6 +2632,30 @@
             const v = tplValidate(tplShift, tplDraft || []);
             el.innerHTML = v.errors.map(e => `<p class="text-base font-bold text-rose-300 bg-rose-500/10 rounded-lg px-3 py-2 mb-1"><i class="fa-solid fa-circle-xmark mr-1"></i>${esc(e)}</p>`).join('') +
                 v.warnings.map(e => `<p class="text-base font-bold text-amber-200 bg-amber-500/10 rounded-lg px-3 py-2 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${esc(e)}</p>`).join('');
+        }
+        // จำนวนคนในผลัดนี้ที่ได้รับมอบหมายจุดนั้น (และไม่มีช่วงรายบุคคล → ใช้แม่แบบ)
+        function tplAssigned(cp) {
+            if (!cp) return [];
+            const per = {}; (appData.schedule || []).filter(x => !x.tpl).forEach(x => { per[x.no] = true; });
+            return (appData.students || []).filter(s => shiftKeyOfC(s.shiftIn, s.shiftOut) === tplShift && !per[s.no] && (s.checkpoints || []).includes(cp));
+        }
+        function tplAssignedText(cp) {
+            if (!cp) return '';
+            const a = tplAssigned(cp);
+            return a.length ? `👮 มอบหมายจุดนี้ในผลัดนี้ ${a.length} คน` : '⚠ ยังไม่มีใครในผลัดนี้ได้รับมอบหมายจุดนี้ — แถวนี้ยังไม่ถูกใช้กับใคร';
+        }
+        // คัดลอกจากผลัดเช้า → เลื่อนเวลา +8 ชม. (บ่าย) / +16 ชม. (ดึก) แล้วแก้ไขต่อได้ (เหมือน shiftCopyRows ฝั่งเซิร์ฟเวอร์)
+        async function tplCopyMorning() {
+            if (tplShift === 'morning') return Swal.fire({ icon: 'info', title: 'เลือกผลัดบ่ายหรือผลัดดึกก่อน', text: 'ปุ่มนี้คัดลอกแถวของผลัดเช้ามาใส่ผลัดที่เลือก', confirmButtonText: 'ตกลง', ...SWAL_DARK });
+            const src = tplOf('morning'); if (!src.length) return Swal.fire({ icon: 'info', title: 'ผลัดเช้ายังไม่มีแม่แบบ', confirmButtonText: 'ตกลง', ...SWAL_DARK });
+            const def = shiftDefs().find(d => d.key === tplShift), mdef = shiftDefs().find(d => d.key === 'morning');
+            if (tplDraft && tplDraft.length) { const r = await Swal.fire({ icon: 'warning', title: 'แทนที่แถวเดิมของผลัด' + def.label + '?', text: 'แถวเดิม ' + tplDraft.length + ' แถวจะถูกแทนที่ (ยังไม่บันทึกจนกว่าจะกดบันทึก)', showCancelButton: true, confirmButtonText: 'แทนที่', cancelButtonText: 'ยกเลิก', ...SWAL_DARK }); if (!r.isConfirmed) return; }
+            const off = (tplMin(def.start) - tplMin(mdef.start) + 1440) % 1440, ws = tplMin(def.start); let we = tplMin(def.end); if (we <= ws) we += 1440;
+            const hm = m => { m = ((m % 1440) + 1440) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+            const fs = tplMin(mdef.start), rel = m => { let d = ((m - fs) % 1440 + 1440) % 1440; if (d >= 1080) d -= 1440; return ws + d; };
+            tplDraft = src.map(x => { let s = rel(tplMin(x.start)), e = rel(tplMin(x.end)); if (e <= s) e += 1440; s = Math.max(ws, Math.min(s, we)); e = Math.max(ws, Math.min(e, we)); return { checkpoint: x.checkpoint, start: hm(s), end: hm(e) }; });
+            tplDirty = true; renderShiftTpl();
+            toast('คัดลอก ' + tplDraft.length + ' แถวจากผลัดเช้าแล้ว — ตรวจ/แก้เวลา แล้วกดบันทึก');
         }
         function tplAddRow() {
             const last = tplDraft[tplDraft.length - 1], def = shiftDefs().find(d => d.key === tplShift);
@@ -2645,7 +2672,7 @@
             tplDraft.splice(Number(d.closest('.tpl-row').dataset.i), 1); tplDirty = true; renderShiftTpl();
         });
         document.addEventListener('input', e => { const f = e.target.closest('#tpl-rows [data-f]'); if (!f) return; const i = Number(f.closest('.tpl-row').dataset.i); tplDraft[i][f.dataset.f] = f.value; tplDirty = true; renderTplCheck(); });
-        document.addEventListener('change', e => { const f = e.target.closest('#tpl-rows select[data-f]'); if (f) { tplDraft[Number(f.closest('.tpl-row').dataset.i)].checkpoint = f.value; tplDirty = true; renderTplCheck(); } });
+        document.addEventListener('change', e => { const f = e.target.closest('#tpl-rows select[data-f]'); if (f) { tplDraft[Number(f.closest('.tpl-row').dataset.i)].checkpoint = f.value; tplDirty = true; renderShiftTpl(); } });
         async function saveShiftTemplate() {
             const v = tplValidate(tplShift, tplDraft), def = shiftDefs().find(d => d.key === tplShift);
             if (v.errors.length) return Swal.fire({ icon: 'error', title: 'บันทึกไม่ได้', html: v.errors.map(esc).join('<br>'), ...SWAL_DARK });
@@ -5379,7 +5406,7 @@ function countSlotStatus(slots, acc) {
   return acc;
 }
 
-// ---------- [shift-demo] แม่แบบช่วงเวลาตามผลัด ----------
+// ---------- [shift] แม่แบบช่วงเวลาตามผลัด ----------
 var SHIFT_DEFS = [
   { key: 'morning', label: 'เช้า', start: '08:00', end: '16:00' },
   { key: 'afternoon', label: 'บ่าย', start: '16:00', end: '00:00' },
@@ -5391,6 +5418,27 @@ function shiftKeyOf(shiftIn, shiftOut) {
   var i = timeToMinutes(shiftIn), o = timeToMinutes(shiftOut);
   for (var k = 0; k < SHIFT_DEFS.length; k++) if (timeToMinutes(SHIFT_DEFS[k].start) === i && timeToMinutes(SHIFT_DEFS[k].end) === o) return SHIFT_DEFS[k].key;
   return '';
+}
+// บัญชีทดสอบของผู้ดูแล — ไม่แสดงในรายการ "เวลาเวรไม่ตรงผลัดใด" (ไม่แก้เวลาเวรของบัญชีเหล่านี้)
+var SHIFT_EXEMPT_NOS = ['6401058'];
+function shiftUnmatched(students) {
+  return (students || []).filter(function (s) { return !shiftKeyOf(s.shiftIn, s.shiftOut) && SHIFT_EXEMPT_NOS.indexOf(String(s.no)) < 0; })
+    .map(function (s) { return { no: s.no, name: s.name, shiftIn: s.shiftIn, shiftOut: s.shiftOut }; });
+}
+// คัดลอกแถวแม่แบบจากผลัดหนึ่งไปอีกผลัด: เลื่อนเวลาตามผลต่างเวลาเริ่มผลัด (+8 ชม./+16 ชม.) วนรอบเที่ยงคืน แล้วบีบให้อยู่ในช่วงผลัดปลายทาง
+function shiftCopyRows(rows, fromKey, toKey) {
+  var f = shiftDefOf(fromKey), t = shiftDefOf(toKey); if (!f || !t) return [];
+  var off = (timeToMinutes(t.start) - timeToMinutes(f.start) + 1440) % 1440;
+  var ws = timeToMinutes(t.start), we = timeToMinutes(t.end); if (we <= ws) we += 1440;
+  var hm = function (m) { m = ((m % 1440) + 1440) % 1440; return ('0' + Math.floor(m / 60)).slice(-2) + ':' + ('0' + (m % 60)).slice(-2); };
+  var fs = timeToMinutes(f.start);
+  var rel = function (m) { var d = ((m - fs) % 1440 + 1440) % 1440; if (d >= 1080) d -= 1440; return ws + d; };   // ตำแหน่งเทียบเวลาเริ่มผลัดต้นทาง (ก่อนเริ่มผลัด = ติดลบ)
+  return (rows || []).map(function (x) {
+    var s = rel(timeToMinutes(x.start)), e = rel(timeToMinutes(x.end));
+    if (e <= s) e += 1440;
+    s = Math.max(ws, Math.min(s, we)); e = Math.max(ws, Math.min(e, we));
+    return { checkpoint: x.checkpoint, start: hm(s), end: hm(e) };
+  });
 }
 var SHIFT_MIN_GAP_MIN = 10;   // ช่องว่างระหว่างช่วงน้อยกว่านี้ → เตือน (เดินทางไม่ทัน)
 // ตรวจแถวของแม่แบบ: errors = บันทึกไม่ได้ ; warnings = บันทึกได้แต่ควรตรวจ
@@ -5419,14 +5467,16 @@ function validateShiftSlots(key, slots) {
   return { errors: errors, warnings: warnings };
 }
 // ตารางที่ใช้จริง: คนที่มีช่วงรายบุคคล ≥ 1 ช่วง → ใช้ของตัวเองทั้งหมด (แทนแม่แบบ) ; ไม่มี → ใช้แม่แบบของผลัดตนเอง
+// เฉพาะแถวที่จุดตรวจอยู่ใน "จุดที่รับผิดชอบ" (PatrolData.Checkpoints) ของคนนั้น ; ไม่มีจุดที่รับผิดชอบ = ไม่ได้ช่วงจากแม่แบบ
 function effectiveSchedule(students, personal, templates) {
   var has = {}; (personal || []).forEach(function (x) { has[x.no] = true; });
   var out = (personal || []).slice();
   (students || []).forEach(function (s) {
     if (has[s.no]) return;
     var key = shiftKeyOf(s.shiftIn, s.shiftOut); if (!key) return;
+    var mine = s.checkpoints || []; if (!mine.length) return;
     (templates || []).forEach(function (t) {
-      if (t.shift !== key) return;
+      if (t.shift !== key || mine.indexOf(t.checkpoint) < 0) return;
       out.push({ no: s.no, checkpoint: t.checkpoint, start: t.start, end: t.end, days: (t.days || []).slice(), since: t.since || '', tpl: key,
         id: slotIdOf(s.no, t.checkpoint, t.start, t.end, t.days || []) });
     });
@@ -5434,7 +5484,7 @@ function effectiveSchedule(students, personal, templates) {
   return out;
 }
 
-// [shift-demo] ห้ามเข้าเวร/เข้าจุดก่อนเวลาเข้าเวร (ทุกผลัด): ช่วง 12 ชม. ก่อน ShiftIn = "ยังไม่ถึงเวลา"
+// [shift] ห้ามเข้าเวร/เข้าจุดก่อนเวลาเข้าเวร (ทุกผลัด): ช่วง 12 ชม. ก่อน ShiftIn = "ยังไม่ถึงเวลา"
 function preShiftBlocked(time, shiftIn) {
   var t = timeToMinutes(time), i = timeToMinutes(shiftIn);
   if (isNaN(t) || isNaN(i)) return false;
@@ -5446,7 +5496,7 @@ function preShiftMsg(shiftIn) {
   return 'ยังไม่ถึงเวลาเข้าเวร — เช็กอินได้ตั้งแต่ ' + hhmm + ' น.' + (timeToMinutes(shiftIn) === 0 ? ' (ผลัดดึกเริ่ม 00:00 น. กรุณากดหลังเที่ยงคืน)' : '');
 }
 
-// ---------- [remind-demo] เตือนลืมเข้าเวร/ออกเวร + ปิดเวรอัตโนมัติ ----------
+// ---------- [remind] เตือนลืมเข้าเวร/ออกเวร + ปิดเวรอัตโนมัติ ----------
 var REMIND_RULES = { IN_AFTER_MIN: 15, OUT_AT_MIN: 0, OUT_AGAIN_MIN: 30, AUTO_CLOSE_MIN: 60 };
 var AUTO_CLOSE_TAG = 'ไม่ได้เช็กอินออก (ระบบปิดให้)';
 // ทุกการกระทำที่ "ถึงเวลา" ณ now: remindIn / remindOut1 / remindOut2 / autoClose (ตัดรายการที่อยู่ใน sent แล้ว)
@@ -5551,9 +5601,7 @@ function reminderText(a) {
     DB.students.push(mkS('9098', 'นายสมเกียรติ เวลาเหลื่อม', '08:30', '16:30', [], false, [0, 6]), mkS('9099', 'นางสาวสุดา เวลาเหลื่อม', '08:30', '16:30', [], false, [0, 6]));
     const A = 'ชายหาดตัวอย่าง จุดซอย 6', B = 'ซอย 6 และ ซอย 6/1', C = 'ชายหาด ท่าเรือเก่า';
     const T = (shift, cp, s, e) => ({ shift, checkpoint: cp, start: s, end: e, days: [], since: Y2 });
-    DB.tpl = [T('morning', A, '08:00', '10:00'), T('morning', B, '10:00', '12:00'), T('morning', A, '13:00', '14:30'), T('morning', C, '14:30', '16:00'),
-      T('afternoon', C, '16:00', '18:00'), T('afternoon', A, '18:30', '21:00'), T('afternoon', B, '21:00', '23:00'), T('afternoon', C, '23:00', '00:00'),
-      T('night', B, '00:00', '02:00'), T('night', A, '02:30', '05:00'), T('night', C, '06:00', '08:00')];
+    DB.tpl = [T('morning', A, '08:00', '10:00'), T('morning', B, '10:15', '12:00'), T('morning', A, '13:00', '14:30'), T('morning', C, '14:45', '16:00')];
     DB.schedule = [{ id: 'p1', no: '9002', checkpoint: B, start: '09:00', end: '12:00', days: [], since: Y2 }];
   })();
 
@@ -5572,6 +5620,9 @@ function reminderText(a) {
       { ts: at(N.date, '00:00'), kind: 'remindOut1', no: '9013', name: 'นายธีระ รักงาน', dutyDate: Y, result: 'line:200' },
       { ts: at(Y, '16:15'), kind: 'remindIn', no: '9012', name: 'นายสุรชัย กล้าหาญ', dutyDate: Y, result: 'line:200' }];
   })();
+  /* cp-assign: มอบหมายจุดที่รับผิดชอบ 1–3 จุด (สมมติ) ; บางคนยังไม่มอบหมาย */
+  (function () { const A = 'ชายหาดตัวอย่าง จุดซอย 6', B = 'ซอย 6 และ ซอย 6/1', C = 'ชายหาด ท่าเรือเก่า', sets = [[A], [A, B], [B, C], [A, B, C], [C], []];
+    DB.students.forEach((s, i) => { s.checkpoints = sets[i % sets.length].slice(); }); })();
   const EFF = () => CORE.effectiveSchedule(DB.students, DB.schedule, DB.tpl);
   const SHIFT_INFO = () => ({ shifts: CORE.SHIFT_DEFS, templates: DB.tpl, unmatched: DB.students.filter(s => !CORE.shiftKeyOf(s.shiftIn, s.shiftOut)).map(s => ({ no: s.no, name: s.name, shiftIn: s.shiftIn, shiftOut: s.shiftOut })) });
   const ROLES = {
