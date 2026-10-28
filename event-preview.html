@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="robots" content="noindex"><title>SMART SAFETY - ศูนย์สั่งการ</title>
+    <title>SMART SAFETY - ศูนย์สั่งการ</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -325,8 +325,20 @@
             #line-login-btn { min-height: 54px; font-size: 1.1rem; }
         }
 </style>
+<style>
+.acc-head{width:100%;display:flex;align-items:center;gap:.75rem;min-height:64px;padding:.5rem .25rem;text-align:left;cursor:pointer;color:#fff;background:none;border:0}
+.acc-head .acc-t{flex:1;font-size:1.3rem;font-weight:800;line-height:1.3}
+.acc-head .acc-s{display:block;font-size:1.05rem;font-weight:600;color:#cbd5e1;margin-top:2px}
+.acc-head .acc-c{flex:none;width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:1.3rem;transition:transform .2s}
+.acc.acc-open>.acc-head .acc-c{transform:rotate(180deg)}
+.acc:not(.acc-open)>.acc-body{display:none}
+.acc-sub{border:1px solid rgba(255,255,255,.12);border-radius:1rem;padding:.25rem .9rem;margin-bottom:.75rem;background:rgba(15,23,42,.35)}
+.acc-sub>.acc-head .acc-t{font-size:1.15rem}
+.acc-sub>.acc-body{padding-bottom:.6rem}
+.acc-top>.acc-body>h2:first-child,.acc-top>.acc-body>p.acc-hide{display:none}
+</style>
 </head>
-<body class="p-2 md:p-6 flex flex-col items-center overflow-x-hidden"><div id="demo-banner" style="position:sticky;top:0;z-index:20000;background:#facc15;color:#111;font-weight:800;text-align:center;padding:8px;font-size:17px;font-family:Sarabun,sans-serif">ตัวอย่าง "จัดเจ้าหน้าที่ไปงานอีเวนต์" (DEMO · ข้อมูลสมมติ · ไม่เชื่อมระบบจริง) · <a href="?as=commander" style="text-decoration:underline">ผู้บังคับบัญชา</a> · <a href="?as=officer" style="text-decoration:underline">เจ้าหน้าที่</a></div>
+<body class="p-2 md:p-6 flex flex-col items-center overflow-x-hidden"><div id="demo-banner" style="position:sticky;top:0;z-index:20000;background:#facc15;color:#111;font-weight:800;text-align:center;padding:8px;font-size:17px;font-family:Sarabun,sans-serif">ตัวอย่าง "จัดเจ้าหน้าที่ไปงานอีเวนต์ หลายจุด" (DEMO · ข้อมูลสมมติ · ไม่เชื่อมระบบจริง) · <a href="?as=commander" style="text-decoration:underline">ผู้บังคับบัญชา</a> · <a href="?as=officer" style="text-decoration:underline">เจ้าหน้าที่</a></div>
 
     <div id="app-header" class="w-full max-w-7xl glass-panel rounded-3xl p-6 pt-14 md:p-8 mb-6 fade-in relative border-t-4 border-t-accent-500">
         <div id="status-badge" class="absolute top-3 right-3 md:top-4 md:right-4 flex items-center space-x-2 bg-black/50 px-4 py-2 rounded-full text-xs font-bold border border-white/10 shadow-lg">
@@ -940,35 +952,31 @@
                 <div class="flex items-center text-sm font-bold text-slate-200"><i class="fa-solid fa-star text-amber-400 mr-2"></i><span id="cmd-session-info">เข้าสู่ระบบผู้บังคับบัญชาแล้ว</span></div>
                 <button onclick="logout()" class="w-full sm:w-auto justify-center bg-slate-800 hover:bg-rose-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold border border-slate-600 flex items-center"><i class="fa-solid fa-right-from-bracket mr-2"></i> ออกจากระบบผู้บังคับบัญชา</button>
             </div>
-            <!-- [event] จัดเจ้าหน้าที่ไปงานอีเวนต์ -->
+            <!-- [event] จัดเจ้าหน้าที่ไปงานอีเวนต์ (หลายจุด) -->
             <div class="glass-panel rounded-3xl p-5 md:p-8 border-t-4 border-t-fuchsia-400" id="cmd-event-card">
                 <h2 class="text-xl md:text-2xl font-bold mb-2 text-white flex items-center gap-2"><div class="bg-fuchsia-500/20 p-2 rounded-lg mr-1"><i class="fa-solid fa-flag text-fuchsia-300"></i></div> จัดเจ้าหน้าที่ไปงานอีเวนต์</h2>
-                <p class="text-base text-slate-300 mb-4">สร้างงาน → เลือกคน (ติ๊กเอง หรือกดสุ่ม) → บันทึก · เจ้าหน้าที่จะเห็นงานในหน้าของตัวเอง</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                    <div class="md:col-span-2"><label class="block text-base text-slate-300 mb-1">คัดลอกจากงานก่อนหน้า (ไม่บังคับ)</label><select id="ev-copy" class="glass-input rounded-xl p-3 text-lg w-full"></select></div>
-                    <div class="md:col-span-2"><label class="block text-base text-slate-300 mb-1">ชื่องาน</label><input id="ev-name" maxlength="120" placeholder="เช่น งานลอยกระทง ชายหาดพัทยา" class="glass-input rounded-xl p-3 text-lg w-full"></div>
+                <p class="text-base text-slate-300 mb-4">1) ใส่ข้อมูลงาน 2) เพิ่มจุด (ปักหมุด รัศมี จำนวนคน) 3) กด "สุ่มให้ครบทุกจุด" หรือเลือกเอง 4) บันทึก · เจ้าหน้าที่เห็นเฉพาะจุดของตัวเองและเช็กอินได้เมื่ออยู่ในรัศมี</p>
+                <div data-acc="ev-info" data-acc-title="① ข้อมูลงาน / คัดลอกงานก่อน"><div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                    <div class="md:col-span-2"><label class="block text-base text-slate-300 mb-1">คัดลอกจากงานก่อนหน้า (จุด + คน)</label><select id="ev-copy" class="glass-input rounded-xl p-3 text-lg w-full"></select></div>
+                    <div class="md:col-span-2"><label class="block text-base text-slate-300 mb-1">ชื่องาน</label><input id="ev-name" maxlength="120" placeholder="เช่น พัทยามาราธอน" class="glass-input rounded-xl p-3 text-lg w-full"></div>
                     <div><label class="block text-base text-slate-300 mb-1">วันที่</label><input type="date" id="ev-date" class="glass-input rounded-xl p-3 text-lg w-full"></div>
                     <div class="grid grid-cols-2 gap-2"><div><label class="block text-base text-slate-300 mb-1">เริ่ม</label><input type="time" id="ev-start" class="glass-input rounded-xl p-3 text-lg w-full"></div><div><label class="block text-base text-slate-300 mb-1">ถึง</label><input type="time" id="ev-end" class="glass-input rounded-xl p-3 text-lg w-full"></div></div>
-                    <div class="md:col-span-2"><label class="block text-base text-slate-300 mb-1">สถานที่</label><input id="ev-place" maxlength="200" placeholder="เช่น ลานคนเมืองพัทยา" class="glass-input rounded-xl p-3 text-lg w-full"></div>
-                    <div class="md:col-span-2 flex flex-wrap items-end gap-2"><div><label class="block text-base text-slate-300 mb-1">จุดนัดพบบนแผนที่ (ไม่บังคับ)</label><div class="flex gap-2"><input id="ev-lat" inputmode="decimal" placeholder="ละติจูด" class="glass-input rounded-xl p-3 text-lg w-40"><input id="ev-lng" inputmode="decimal" placeholder="ลองจิจูด" class="glass-input rounded-xl p-3 text-lg w-40"></div></div>
-                        <button type="button" onclick="evUseHere()" class="bg-slate-700 hover:bg-slate-600 text-white px-5 py-3.5 rounded-xl text-lg font-bold"><i class="fa-solid fa-location-crosshairs mr-1"></i> ใช้ตำแหน่งปัจจุบัน</button></div>
-                </div>
-                <div class="rounded-2xl bg-slate-900/60 border border-fuchsia-400/30 p-4 mb-3">
-                    <div class="flex flex-wrap items-center gap-3">
-                        <label class="text-lg font-bold text-white">จำนวนคน</label><input type="number" id="ev-n" min="1" max="200" value="5" class="glass-input rounded-xl p-3 text-2xl font-bold w-24 text-center">
-                        <label class="flex items-center gap-2 text-lg font-bold text-emerald-200 cursor-pointer"><input type="checkbox" id="ev-fair" checked class="w-7 h-7 accent-emerald-500"> กระจายงานให้เท่ากัน</label>
+                    <div class="md:col-span-2"><label class="block text-base text-slate-300 mb-1">สถานที่ (ภาพรวม)</label><input id="ev-place" maxlength="200" placeholder="เช่น ชายหาดพัทยา" class="glass-input rounded-xl p-3 text-lg w-full"></div>
+                </div></div>
+                <div data-acc="ev-rand" data-acc-title="② ตัวเลือกการสุ่ม"><div class="rounded-2xl bg-slate-900/60 border border-fuchsia-400/30 p-4 mb-3">
+                    <label class="flex items-center gap-2 text-lg font-bold text-emerald-200 cursor-pointer"><input type="checkbox" id="ev-fair" checked class="w-7 h-7 accent-emerald-500"> กระจายงานให้เท่ากัน</label>
+                    <p class="text-sm text-slate-400 mt-1">สุ่มจากทุกคน (ไม่ดูวันหยุด/ลา/ผลัด) · เปิด = เลือกคนที่เคยไปงานน้อยกว่าก่อน · 1 คนอยู่ได้ 1 จุด</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                        <button type="button" onclick="evRandom(false)" id="ev-rand" class="bg-fuchsia-600 hover:bg-fuchsia-500 text-white py-4 rounded-xl text-xl font-bold"><i class="fa-solid fa-shuffle mr-2"></i> สุ่มให้ครบทุกจุด</button>
+                        <button type="button" onclick="evRandom(true)" id="ev-reroll" class="bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-xl text-xl font-bold"><i class="fa-solid fa-rotate mr-2"></i> ล้างแล้วสุ่มใหม่ทั้งหมด</button>
                     </div>
-                    <p class="text-sm text-slate-400 mt-1">สุ่มจากทุกคน (ไม่ดูวันหยุด/ลา/ผลัด) · เปิด "กระจายงานให้เท่ากัน" = เลือกคนที่เคยไปงานน้อยกว่าก่อน</p>
-                    <div class="grid grid-cols-2 gap-2 mt-3">
-                        <button type="button" onclick="evRandom(false)" id="ev-rand" class="bg-fuchsia-600 hover:bg-fuchsia-500 text-white py-4 rounded-xl text-xl font-bold"><i class="fa-solid fa-shuffle mr-2"></i> สุ่มเลือก</button>
-                        <button type="button" onclick="evRandom(true)" id="ev-reroll" class="bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-xl text-xl font-bold"><i class="fa-solid fa-rotate mr-2"></i> สุ่มใหม่ทั้งหมด</button>
-                    </div>
+                    <p id="ev-total" class="text-lg text-white font-bold mt-3"></p>
                 </div>
-                <div id="ev-chosen" class="mb-3"></div>
-                <details class="mb-3"><summary class="cursor-pointer text-lg font-bold text-sky-200 py-2"><i class="fa-solid fa-list-check mr-1"></i> เลือกเองจากรายชื่อทั้งหมด (<span id="ev-roster-count">0</span> คน)</summary><input id="ev-filter" placeholder="ค้นหาชื่อ/รหัส" class="glass-input rounded-xl p-3 text-lg w-full my-2"><div id="ev-roster" class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[520px] overflow-y-auto"></div></details>
+                </div>
+                <div data-acc="ev-points" data-acc-title="③ จุดและรายชื่อเจ้าหน้าที่"><div id="ev-points" class="space-y-3 mb-3"></div>
+                <button type="button" onclick="evAddPoint()" id="ev-add-point" class="w-full bg-sky-700 hover:bg-sky-600 text-white py-4 rounded-xl text-lg font-bold mb-3"><i class="fa-solid fa-location-dot mr-2"></i> เพิ่มจุด</button></div>
                 <div class="flex flex-col sm:flex-row gap-2"><button type="button" onclick="evSave()" id="ev-save" class="flex-1 bg-accent-600 hover:bg-accent-500 text-white py-4 rounded-xl text-xl font-bold shadow-lg"><i class="fa-solid fa-save mr-2"></i> บันทึกงานนี้</button><button type="button" onclick="evNew()" class="bg-slate-700 hover:bg-slate-600 text-white px-6 py-4 rounded-xl text-lg font-bold"><i class="fa-solid fa-file mr-1"></i> เริ่มงานใหม่</button></div>
-                <h3 class="text-lg font-bold text-white mt-6 mb-2"><i class="fa-solid fa-calendar-days mr-1"></i> งานที่จัดแล้ว</h3>
-                <div id="ev-list"></div>
+                <div data-acc="ev-list" data-acc-title="④ งานที่จัดแล้ว (เช็กอินแล้ว / ต้องการ)" class="mt-4"><div id="ev-list"></div></div>
             </div>
             <div class="glass-panel rounded-3xl p-5 md:p-8 border-t-4 border-t-amber-400" id="cmd-leave-card">
                 <h2 class="text-lg md:text-xl font-bold mb-2 text-white flex items-center"><div class="bg-amber-500/20 p-2 rounded-lg mr-3"><i class="fa-solid fa-calendar-xmark text-amber-300"></i></div> รายการลา <span id="cmd-leave-new" class="hidden ml-2 px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-900 text-sm font-black"></span></h2>
@@ -2316,13 +2324,12 @@
             });
             return !!r.isConfirmed;
         }
-        // ---------- [event] จัดเจ้าหน้าที่ไปงานอีเวนต์ ----------
+        // ---------- [event] จัดเจ้าหน้าที่ไปงานอีเวนต์ (หลายจุด) ----------
 function eventCounts(events, skipId) {
   var c = {};
   (events || []).forEach(function (e) { if (e.status === 'cancelled' || (skipId && e.id === skipId)) return; (e.officers || []).forEach(function (no) { c[no] = (c[no] || 0) + 1; }); });
   return c;
-}
-function shuffleArr(a, rng) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rng() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+}function shuffleArr(a, rng) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rng() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 // สุ่ม n คนจาก pool (ไม่สนวันหยุด/ลา/ผลัด) ; opts: { fair, counts, exclude, keep, rng }
 // fair = เลือกคนที่เคยไปงานน้อยที่สุดก่อน (เท่ากัน = สุ่ม) ; keep = คนที่ล็อกไว้แล้ว (นับรวมใน n)
 function pickEventOfficers(pool, n, opts) {
@@ -2333,8 +2340,7 @@ function pickEventOfficers(pool, n, opts) {
   if (opts.fair) cand.sort(function (a, b) { return (counts[a] || 0) - (counts[b] || 0); });   // sort เสถียร → เท่ากันคงลำดับสุ่ม
   var need = Math.max(0, Math.min(Number(n) || 0, keep.length + cand.length) - keep.length);
   return keep.concat(cand.slice(0, need));
-}
-function pickEventOfficers(pool, n, opts) {
+}function pickEventOfficers(pool, n, opts) {
   opts = opts || {};
   var rng = opts.rng || Math.random, counts = opts.counts || {}, ex = {}, keep = (opts.keep || []).slice();
   (opts.exclude || []).concat(keep).forEach(function (no) { ex[no] = true; });
@@ -2342,92 +2348,198 @@ function pickEventOfficers(pool, n, opts) {
   if (opts.fair) cand.sort(function (a, b) { return (counts[a] || 0) - (counts[b] || 0); });   // sort เสถียร → เท่ากันคงลำดับสุ่ม
   var need = Math.max(0, Math.min(Number(n) || 0, keep.length + cand.length) - keep.length);
   return keep.concat(cand.slice(0, need));
-}
-function swapEventOfficer(pool, chosen, outNo, opts) {
+}function swapEventOfficer(pool, chosen, outNo, opts) {
   opts = opts || {};
   var rest = (chosen || []).filter(function (no) { return no !== outNo; });
   var pick = pickEventOfficers(pool, 1, { fair: opts.fair, counts: opts.counts, rng: opts.rng, exclude: (opts.exclude || []).concat(chosen || []) });
   if (!pick.length) return (chosen || []).slice();
   var i = (chosen || []).indexOf(outNo), out = (chosen || []).slice(); out[i] = pick[0];
   return i < 0 ? rest.concat(pick) : out;
+}function fillEventPoints(pool, points, opts) {
+  opts = opts || {};
+  var out = (points || []).map(function (p) { return Object.assign({}, p, { officers: (p.officers || []).slice(0, Math.max(0, Number(p.need) || 0)) }); });
+  var taken = []; out.forEach(function (p) { taken = taken.concat(p.officers); });
+  var total = 0; out.forEach(function (p) { total += Math.max(0, (Number(p.need) || 0) - p.officers.length); });
+  var pick = pickEventOfficers(pool, total, { fair: opts.fair, counts: opts.counts, rng: opts.rng, exclude: (opts.exclude || []).concat(taken) });
+  var k = 0, progress = true;
+  while (k < pick.length && progress) {
+    progress = false;
+    for (var i = 0; i < out.length && k < pick.length; i++) if (out[i].officers.length < (Number(out[i].need) || 0)) { out[i].officers.push(pick[k++]); progress = true; }
+  }
+  return out;
+}function eventPointOfficers(points) { var a = []; (points || []).forEach(function (p) { (p.officers || []).forEach(function (no) { if (a.indexOf(no) < 0) a.push(no); }); }); return a; }
+// ย้ายคนไปจุดอื่น (เอาออกจากจุดเดิมก่อน)
+function moveEventOfficer(points, no, toId) {
+  return (points || []).map(function (p) { var o = (p.officers || []).filter(function (x) { return x !== no; }); if (p.id === toId) o.push(no); return Object.assign({}, p, { officers: o }); });
 }
-        let EV = { events: [], counts: {}, roster: [], exclude: [], chosen: [], editId: '' };
+function swapEventPointOfficer(pool, points, pointId, outNo, opts) {
+  opts = opts || {};
+  var all = eventPointOfficers(points);
+  var pick = pickEventOfficers(pool, 1, { fair: opts.fair, counts: opts.counts, rng: opts.rng, exclude: (opts.exclude || []).concat(all) });
+  if (!pick.length) return points;
+  return (points || []).map(function (p) { if (p.id !== pointId) return p; return Object.assign({}, p, { officers: (p.officers || []).map(function (x) { return x === outNo ? pick[0] : x; }) }); });
+}
+
+        /* [accordion] หน้าผู้บังคับบัญชา: พับการ์ด (จำสถานะไว้ในเครื่อง) */
+        const ACC_SUM = {
+            'cmd-event-card': () => { const a = (EV.events || []).filter(e => e.status !== 'cancelled'); return `งาน ${a.length} รายการ · กำลังจัด ${EV.points.length} จุด / ${eventPointOfficers(EV.points).length} คน`; },
+            'ev-info': () => { const n = (document.getElementById('ev-name') || {}).value; return n ? n : 'ยังไม่ใส่ชื่องาน'; },
+            'ev-rand': () => ((document.getElementById('ev-fair') || {}).checked ? 'กระจายงานให้เท่ากัน: เปิด' : 'กระจายงานให้เท่ากัน: ปิด'),
+            'ev-points': () => { const need = EV.points.reduce((a, p) => a + (Number(p.need) || 0), 0); return `${EV.points.length} จุด · จัดแล้ว ${eventPointOfficers(EV.points).length}/${need} คน`; },
+            'ev-list': () => { const a = (EV.events || []).filter(e => e.status !== 'cancelled'); return `${a.length} งาน · เช็กอินแล้ว ${(EV.checkins || []).length} คน`; },
+            'cmd-leave-card': () => { const n = document.querySelectorAll('#cmd-leave-list > *').length, b = (document.getElementById('cmd-leave-new') || {}).textContent || ''; return `${n} รายการ${b.trim() ? ' · ใหม่ ' + b.trim() : ''}`; },
+            'cmd-incident-card': () => `${document.querySelectorAll('#cmd-incident-list > *').length} รายการ`,
+            'meeting-panel': () => `${document.querySelectorAll('#ann-list > *').length} รายการ`,
+            'cpnotes-section': () => `${((document.getElementById('cpnotes-count') || {}).textContent || '0').trim()} รายการ`
+        };
+        function accKey(el) { return el.getAttribute('data-acc') || el.id; }
+        function accMake(el, title, top) {
+            if (el.classList.contains('acc')) return; const key = accKey(el); if (!key) return;
+            const body = document.createElement('div'); body.className = 'acc-body'; while (el.firstChild) body.appendChild(el.firstChild);
+            const head = document.createElement('button'); head.type = 'button'; head.className = 'acc-head'; head.setAttribute('aria-expanded', 'false');
+            head.innerHTML = `<span class="acc-t"></span><span class="acc-c"><i class="fa-solid fa-chevron-down"></i></span>`;
+            head.querySelector('.acc-t').textContent = title; const s = document.createElement('span'); s.className = 'acc-s'; head.querySelector('.acc-t').appendChild(s);
+            el.appendChild(head); el.appendChild(body); el.classList.add('acc', top ? 'acc-top' : 'acc-sub');
+            let open = false; try { open = localStorage.getItem('acc:' + key) === '1'; } catch (e) { }
+            accSet(el, open, true);
+            head.addEventListener('click', () => accSet(el, !el.classList.contains('acc-open')));
+        }
+        function accSet(el, open, noSave) {
+            el.classList.toggle('acc-open', !!open); const h = el.querySelector(':scope > .acc-head'); if (h) h.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (!noSave) try { localStorage.setItem('acc:' + accKey(el), open ? '1' : '0'); } catch (e) { }
+        }
+        function accOpen(key) { const el = document.querySelector(`[data-acc="${key}"],#${key}`); if (el && el.classList.contains('acc')) accSet(el, true); }
+        function accInit() {
+            const tab = document.getElementById('tab-commander'); if (!tab) return;
+            [...tab.children].forEach((c, i) => { if (i === 0 || !c.classList.contains('glass-panel')) return;
+                if (!c.id) { if (c.querySelector('#cmd-incident-list')) c.id = 'cmd-incident-card'; else { const t0 = (c.querySelector('h2') || {}).textContent || ''; if (!t0.trim()) return; c.id = 'acc-' + [...t0.trim()].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7).toString(36); } }
+                const h = c.querySelector('h2'); accMake(c, h ? h.textContent.replace(/\s+/g, ' ').trim() : c.id, true); });
+            tab.querySelectorAll('[data-acc]').forEach(el => accMake(el, el.getAttribute('data-acc-title') || '', false));
+            accSummaries();
+        }
+        function accSummaries() { document.querySelectorAll('#tab-commander .acc').forEach(el => { const f = ACC_SUM[accKey(el)], s = el.querySelector(':scope > .acc-head .acc-s'); if (s) { let t = ''; try { t = f ? f() : ''; } catch (e) { } s.textContent = t; } }); }
+        document.addEventListener('DOMContentLoaded', accInit); if (document.readyState !== 'loading') accInit();
+        setInterval(() => { accInit(); }, 1500);
+        let EV = { events: [], counts: {}, roster: [], exclude: [], checkins: [], points: [], editId: '' };
         const evFmtDate = d => { try { return new Date(d + 'T00:00:00+07:00').toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit', timeZone: 'Asia/Bangkok' }); } catch (e) { return d; } };
+        const evNewPoint = i => ({ id: 'P' + Date.now().toString(36) + i, name: 'จุดที่ ' + (i + 1), lat: '', lng: '', radius: 100, need: 3, officers: [] });
         async function loadEvents() {
             const r = await api('listEvents', {}, { silent: true }); if (!r || r.status !== 'success') return;
-            Object.assign(EV, r.data); renderEvents();
+            Object.assign(EV, r.data); if (!EV.points.length) EV.points = [evNewPoint(0)]; renderEvents();
         }
         function evName(no) { const s = EV.roster.find(x => x.no === no); return s ? s.name : no; }
+        function evOpts() { return { fair: document.getElementById('ev-fair').checked, counts: eventCounts(EV.events, EV.editId), exclude: EV.exclude }; }
+        function evCiCount(eid, pid) { return (EV.checkins || []).filter(c => c.eventId === eid && c.pointId === pid).length; }
         function renderEvents() {
             const sel = document.getElementById('ev-copy'); if (!sel) return;
-            sel.innerHTML = '<option value="">— ไม่คัดลอก —</option>' + EV.events.map(e => `<option value="${esc(e.id)}">${esc(evFmtDate(e.date))} · ${esc(e.name)} (${e.officers.length} คน)${e.status === 'cancelled' ? ' · ยกเลิกแล้ว' : ''}</option>`).join('');
-            document.getElementById('ev-roster-count').textContent = EV.roster.length;
-            renderEvChosen(); renderEvRoster();
-            document.getElementById('ev-list').innerHTML = EV.events.length ? EV.events.map(e => `<div class="rounded-2xl border ${e.status === 'cancelled' ? 'border-slate-700 opacity-60' : 'border-fuchsia-400/30'} bg-slate-900/50 p-4 mb-2">
+            sel.innerHTML = '<option value="">— ไม่คัดลอก —</option>' + EV.events.map(e => `<option value="${esc(e.id)}">${esc(evFmtDate(e.date))} · ${esc(e.name)} (${(e.points || []).length} จุด · ${e.officers.length} คน)${e.status === 'cancelled' ? ' · ยกเลิกแล้ว' : ''}</option>`).join('');
+            renderEvPoints();
+            document.getElementById('ev-list').innerHTML = EV.events.length ? EV.events.map(e => { const pts = e.points || [], ci = pts.reduce((a, p) => a + evCiCount(e.id, p.id), 0);
+                return `<div class="rounded-2xl border ${e.status === 'cancelled' ? 'border-slate-700 opacity-60' : 'border-fuchsia-400/30'} bg-slate-900/50 p-4 mb-2">
                 <p class="text-lg font-bold text-white">${esc(e.name)} ${e.status === 'cancelled' ? '<span class="text-rose-300 text-base">(ยกเลิกแล้ว)</span>' : ''}</p>
-                <p class="text-base text-slate-300">${esc(evFmtDate(e.date))} · ${esc(e.start)}${e.end ? '–' + esc(e.end) : ''} น. · ${esc(e.place || '-')}</p>
-                <p class="text-base text-slate-200 mt-1">👮 ${e.officers.length} คน: ${esc(e.officers.map(evName).join(', '))}</p>
+                <p class="text-base text-slate-300">${esc(evFmtDate(e.date))} · ${esc(e.start)}${e.end ? '–' + esc(e.end) : ''} น. · ${esc(e.place || '-')} · 👮 ${e.officers.length} คน · ✅ เช็กอินแล้ว ${ci} คน</p>
+                ${pts.length ? `<div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">${pts.map(p => { const n = evCiCount(e.id, p.id); return `<div class="rounded-xl bg-slate-800/70 p-3"><p class="text-base font-bold text-white">📍 ${esc(p.name)} <span class="ml-1 px-2 py-0.5 rounded-full text-sm ${n >= p.officers.length && n ? 'bg-emerald-500 text-slate-900' : 'bg-amber-400 text-slate-900'}">เช็กอิน ${n}/${p.officers.length}</span>${p.officers.length < p.need ? ` <span class="text-rose-300 text-sm">ขาด ${p.need - p.officers.length} คน</span>` : ''}</p><p class="text-sm text-slate-300">${esc(p.officers.map(no => evName(no) + ((EV.checkins || []).some(c => c.eventId === e.id && c.no === no) ? ' ✅' : '')).join(', '))}</p></div>`; }).join('')}</div>` : `<p class="text-base text-slate-200 mt-1">👮 ${esc(e.officers.map(evName).join(', '))}</p>`}
                 ${e.status === 'cancelled' ? '' : `<div class="flex gap-2 mt-2"><button type="button" data-ev-edit="${esc(e.id)}" class="bg-sky-700 hover:bg-sky-600 text-white px-4 py-2.5 rounded-xl text-base font-bold"><i class="fa-solid fa-pen mr-1"></i> แก้ไข</button><button type="button" data-ev-cancel="${esc(e.id)}" class="bg-rose-700 hover:bg-rose-600 text-white px-4 py-2.5 rounded-xl text-base font-bold"><i class="fa-solid fa-ban mr-1"></i> ยกเลิกงาน</button></div>`}
-            </div>`).join('') : '<p class="text-lg text-slate-400">ยังไม่มีงาน</p>';
+            </div>`; }).join('') : '<p class="text-lg text-slate-400">ยังไม่มีงาน</p>';
         }
-        function renderEvChosen() {
-            const box = document.getElementById('ev-chosen'); if (!box) return;
-            box.innerHTML = EV.chosen.length ? `<p class="text-lg font-bold text-white mb-2">เลือกแล้ว ${EV.chosen.length} คน</p><div class="grid grid-cols-1 md:grid-cols-2 gap-2">${EV.chosen.map((no, i) => `<div class="flex items-center gap-2 rounded-xl bg-fuchsia-500/15 border border-fuchsia-400/40 p-3"><span class="w-8 text-center text-lg font-bold text-fuchsia-200">${i + 1}</span><div class="flex-1"><p class="text-lg font-bold text-white">${esc(evName(no))}</p><p class="text-sm text-slate-300">${esc(no)} · เคยไปงาน ${EV.counts[no] || 0} ครั้ง</p></div><button type="button" data-ev-swap="${esc(no)}" class="bg-amber-500 hover:bg-amber-400 text-slate-900 px-3 py-3 rounded-xl text-base font-bold"><i class="fa-solid fa-right-left mr-1"></i>สลับคน</button><button type="button" data-ev-remove="${esc(no)}" class="bg-slate-700 hover:bg-rose-600 text-white px-3 py-3 rounded-xl text-base font-bold" aria-label="เอาออก"><i class="fa-solid fa-xmark"></i></button></div>`).join('')}</div>` : '<p class="text-lg text-slate-400">ยังไม่ได้เลือกใคร — กด "สุ่มเลือก" หรือเลือกเองจากรายชื่อ</p>';
+        function renderEvPoints() {
+            const box = document.getElementById('ev-points'); if (!box) return;
+            const all = eventPointOfficers(EV.points), need = EV.points.reduce((a, p) => a + (Number(p.need) || 0), 0);
+            document.getElementById('ev-total').textContent = `${EV.points.length} จุด · จัดแล้ว ${all.length} / ต้องการ ${need} คน`;
+            const free = EV.roster.filter(s => !all.includes(s.no));
+            box.innerHTML = EV.points.map((p, i) => `<div class="ev-point rounded-2xl border-2 ${p.officers.length >= p.need ? 'border-emerald-400/50' : 'border-amber-400/50'} bg-slate-900/60 p-4" data-pi="${i}">
+                <div class="grid grid-cols-12 gap-2 items-end">
+                    <div class="col-span-12 md:col-span-4"><label class="block text-sm text-slate-300">ชื่อจุด</label><input data-pf="name" value="${esc(p.name)}" class="glass-input rounded-xl p-3 text-lg w-full"></div>
+                    <div class="col-span-6 md:col-span-2"><label class="block text-sm text-slate-300">ละติจูด</label><input data-pf="lat" inputmode="decimal" value="${esc(p.lat)}" class="glass-input rounded-xl p-3 text-base w-full"></div>
+                    <div class="col-span-6 md:col-span-2"><label class="block text-sm text-slate-300">ลองจิจูด</label><input data-pf="lng" inputmode="decimal" value="${esc(p.lng)}" class="glass-input rounded-xl p-3 text-base w-full"></div>
+                    <div class="col-span-4 md:col-span-1"><label class="block text-sm text-slate-300">รัศมี ม.</label><input data-pf="radius" type="number" min="10" max="2000" value="${esc(p.radius)}" class="glass-input rounded-xl p-3 text-lg w-full"></div>
+                    <div class="col-span-4 md:col-span-1"><label class="block text-sm text-slate-300">ต้องการ</label><input data-pf="need" type="number" min="1" max="200" value="${esc(p.need)}" class="glass-input rounded-xl p-3 text-lg w-full font-bold"></div>
+                    <div class="col-span-4 md:col-span-2 flex gap-1"><button type="button" data-ev-here="${i}" title="ใช้ตำแหน่งปัจจุบัน" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl text-lg"><i class="fa-solid fa-location-crosshairs"></i></button><button type="button" data-ev-delpoint="${i}" title="ลบจุด" class="flex-1 bg-rose-700 hover:bg-rose-600 text-white py-3 rounded-xl text-lg"><i class="fa-solid fa-trash"></i></button></div>
+                </div>
+                <p class="text-lg font-bold mt-3 ${p.officers.length >= p.need ? 'text-emerald-300' : 'text-amber-300'}">👮 ${p.officers.length}/${esc(p.need)} คน ${validLatLng(p.lat, p.lng) ? `· <a class="underline text-sky-300" target="_blank" rel="noopener" href="${mapsUrl(p.lat, p.lng)}">ดูหมุด</a>` : '· <span class="text-rose-300">ยังไม่ได้ปักหมุด</span>'}</p>
+                <div class="space-y-2 mt-2">${p.officers.map(no => `<div class="flex flex-wrap items-center gap-2 rounded-xl bg-fuchsia-500/15 border border-fuchsia-400/40 p-2.5"><div class="flex-1 min-w-[160px]"><p class="text-lg font-bold text-white">${esc(evName(no))}</p><p class="text-sm text-slate-300">${esc(no)} · เคยไปงาน ${EV.counts[no] || 0} ครั้ง</p></div>
+                    <select data-ev-move="${esc(no)}" class="glass-input rounded-xl p-2.5 text-base"><option value="">ย้ายไปจุด…</option>${EV.points.filter(q => q.id !== p.id).map(q => `<option value="${esc(q.id)}">${esc(q.name)}</option>`).join('')}</select>
+                    <button type="button" data-ev-swap="${esc(no)}" data-pid="${esc(p.id)}" class="bg-amber-500 hover:bg-amber-400 text-slate-900 px-3 py-2.5 rounded-xl text-base font-bold"><i class="fa-solid fa-right-left mr-1"></i>สลับคน</button>
+                    <button type="button" data-ev-remove="${esc(no)}" class="bg-slate-700 hover:bg-rose-600 text-white px-3 py-2.5 rounded-xl text-base font-bold" aria-label="เอาออก"><i class="fa-solid fa-xmark"></i></button></div>`).join('')}</div>
+                <select data-ev-add="${esc(p.id)}" class="glass-input rounded-xl p-3 text-lg w-full mt-2"><option value="">＋ เพิ่มคนเข้าจุดนี้ (เลือกจากรายชื่อที่ยังว่าง ${free.length} คน)</option>${free.map(s => `<option value="${esc(s.no)}">${esc(s.name)} (${esc(s.no)}) · เคยไป ${EV.counts[s.no] || 0} ครั้ง${EV.exclude.includes(s.no) ? ' · บัญชีทดสอบ' : ''}</option>`).join('')}</select>
+            </div>`).join('');
         }
-        function renderEvRoster() {
-            const box = document.getElementById('ev-roster'); if (!box) return;
-            const q = (document.getElementById('ev-filter').value || '').trim();
-            box.innerHTML = EV.roster.filter(s => !q || s.name.includes(q) || s.no.includes(q)).map(s => `<label class="flex items-center gap-3 rounded-xl bg-slate-900/60 border border-white/10 p-3 cursor-pointer"><input type="checkbox" data-ev-pick="${esc(s.no)}" ${EV.chosen.includes(s.no) ? 'checked' : ''} class="w-7 h-7 accent-fuchsia-500"><span class="flex-1"><span class="block text-lg text-white">${esc(s.name)}</span><span class="text-sm text-slate-400">${esc(s.no)} · เคยไปงาน ${EV.counts[s.no] || 0} ครั้ง${EV.exclude.includes(s.no) ? ' · บัญชีทดสอบ (ไม่ถูกสุ่ม)' : ''}</span></span></label>`).join('');
-        }
-        function evCounts() { return eventCounts(EV.events, EV.editId); }
         function evRandom(all) {
-            const n = Number(document.getElementById('ev-n').value);
-            if (!Number.isInteger(n) || n < 1) return Swal.fire({ icon: 'warning', title: 'ใส่จำนวนคนก่อน', confirmButtonText: 'ตกลง', ...SWAL_DARK });
-            EV.chosen = pickEventOfficers(EV.roster, n, { fair: document.getElementById('ev-fair').checked, counts: evCounts(), exclude: EV.exclude });
-            renderEvChosen(); renderEvRoster();
+            const bad = EV.points.findIndex(p => !(Number(p.need) >= 1)); if (bad >= 0) return Swal.fire({ icon: 'warning', title: 'จุดที่ ' + (bad + 1) + ': ใส่จำนวนคนที่ต้องการ', confirmButtonText: 'ตกลง', ...SWAL_DARK });
+            const pts = all ? EV.points.map(p => Object.assign({}, p, { officers: [] })) : EV.points;
+            EV.points = fillEventPoints(EV.roster, pts.map(p => Object.assign({}, p, { need: Number(p.need) })), evOpts());
+            renderEvPoints(); accOpen('ev-points'); accSummaries();
         }
-        function evUseHere() {
-            if (!navigator.geolocation) return;
-            navigator.geolocation.getCurrentPosition(p => { document.getElementById('ev-lat').value = p.coords.latitude.toFixed(6); document.getElementById('ev-lng').value = p.coords.longitude.toFixed(6); }, () => Swal.fire({ icon: 'warning', title: 'อ่านตำแหน่งไม่ได้', confirmButtonText: 'ตกลง', ...SWAL_DARK }), { enableHighAccuracy: true, timeout: 15000 });
-        }
+        function evAddPoint() { EV.points.push(evNewPoint(EV.points.length)); renderEvPoints(); }
         function evFill(e, keepId) {
             EV.editId = keepId ? e.id : '';
             const set = (id, v) => { document.getElementById(id).value = v == null ? '' : v; };
-            set('ev-name', e.name); set('ev-date', keepId ? e.date : ''); set('ev-start', e.start); set('ev-end', e.end); set('ev-place', e.place); set('ev-lat', e.lat == null ? '' : e.lat); set('ev-lng', e.lng == null ? '' : e.lng);
-            EV.chosen = e.officers.filter(no => EV.roster.some(s => s.no === no)); document.getElementById('ev-n').value = EV.chosen.length || 5;
-            renderEvChosen(); renderEvRoster();
+            set('ev-name', e.name); set('ev-date', keepId ? e.date : ''); set('ev-start', e.start); set('ev-end', e.end); set('ev-place', e.place);
+            const ok = no => EV.roster.some(s => s.no === no);
+            EV.points = (e.points && e.points.length ? e.points : [Object.assign(evNewPoint(0), { name: e.place || 'จุดหลัก', lat: e.lat, lng: e.lng, need: e.officers.length || 1, officers: e.officers })]).map(p => Object.assign({}, p, { lat: p.lat == null ? '' : p.lat, lng: p.lng == null ? '' : p.lng, officers: (p.officers || []).filter(ok) }));
+            renderEvPoints(); accOpen('ev-points'); accOpen('ev-info');
         }
-        function evNew() { EV.editId = ''; EV.chosen = []; ['ev-name', 'ev-date', 'ev-start', 'ev-end', 'ev-place', 'ev-lat', 'ev-lng'].forEach(id => { document.getElementById(id).value = ''; }); document.getElementById('ev-copy').value = ''; renderEvChosen(); renderEvRoster(); }
+        function evNew() { EV.editId = ''; EV.points = [evNewPoint(0)]; ['ev-name', 'ev-date', 'ev-start', 'ev-end', 'ev-place'].forEach(id => { document.getElementById(id).value = ''; }); document.getElementById('ev-copy').value = ''; renderEvPoints(); }
         async function evSave() {
             const v = id => document.getElementById(id).value.trim();
             if (!v('ev-name') || !v('ev-date') || !v('ev-start')) return Swal.fire({ icon: 'warning', title: 'ข้อมูลยังไม่ครบ', text: 'ใส่ชื่องาน วันที่ และเวลาเริ่ม', confirmButtonText: 'ตกลง', ...SWAL_DARK });
-            if (!EV.chosen.length) return Swal.fire({ icon: 'warning', title: 'ยังไม่ได้เลือกเจ้าหน้าที่', confirmButtonText: 'ตกลง', ...SWAL_DARK });
+            const bad = EV.points.findIndex(p => !p.name || !validLatLng(p.lat, p.lng)); if (bad >= 0) return Swal.fire({ icon: 'warning', title: 'จุดที่ ' + (bad + 1) + ' ยังไม่ครบ', text: 'ใส่ชื่อจุด และพิกัด (กดปุ่มเป้าเล็งเพื่อใช้ตำแหน่งปัจจุบัน)', confirmButtonText: 'ตกลง', ...SWAL_DARK });
+            if (!eventPointOfficers(EV.points).length) return Swal.fire({ icon: 'warning', title: 'ยังไม่ได้จัดคน', confirmButtonText: 'ตกลง', ...SWAL_DARK });
+            const short = EV.points.filter(p => p.officers.length < Number(p.need));
+            if (short.length) { const r = await Swal.fire({ icon: 'warning', title: 'บางจุดคนยังไม่ครบ', text: short.map(p => p.name + ' ขาด ' + (p.need - p.officers.length)).join(' · '), showCancelButton: true, confirmButtonText: 'บันทึกต่อ', cancelButtonText: 'กลับไปแก้', ...SWAL_DARK }); if (!r.isConfirmed) return; }
             swalLoading({ title: 'กำลังบันทึก...', allowOutsideClick: false });
-            const r = await api('saveEvent', { id: EV.editId, name: v('ev-name'), date: v('ev-date'), start: v('ev-start'), end: v('ev-end'), place: v('ev-place'), lat: v('ev-lat'), lng: v('ev-lng'), officers: EV.chosen });
+            const r = await api('saveEvent', { id: EV.editId, name: v('ev-name'), date: v('ev-date'), start: v('ev-start'), end: v('ev-end'), place: v('ev-place'),
+                points: EV.points.map(p => ({ id: p.id, name: p.name, lat: Number(p.lat), lng: Number(p.lng), radius: Number(p.radius), need: Number(p.need), officers: p.officers })) });
             if (!r || r.status !== 'success') return swalError('บันทึกงานไม่สำเร็จ', r);
-            Object.assign(EV, r.data); const n = EV.chosen.length; evNew(); renderEvents();
-            Swal.fire({ icon: 'success', title: 'บันทึกงานแล้ว', text: n + ' คน — เจ้าหน้าที่จะเห็นงานในหน้าของตัวเอง', timer: 2200, showConfirmButton: false, ...SWAL_DARK });
+            Object.assign(EV, r.data); const n = eventPointOfficers(EV.points).length; evNew(); renderEvents();
+            Swal.fire({ icon: 'success', title: 'บันทึกงานแล้ว', text: n + ' คน — เจ้าหน้าที่จะเห็นจุดของตัวเองในหน้าของตน', timer: 2200, showConfirmButton: false, ...SWAL_DARK });
         }
         document.addEventListener('click', async e => {
-            const sw = e.target.closest('[data-ev-swap]'), rm = e.target.closest('[data-ev-remove]'), ed = e.target.closest('[data-ev-edit]'), cc = e.target.closest('[data-ev-cancel]');
-            if (sw) { EV.chosen = swapEventOfficer(EV.roster, EV.chosen, sw.dataset.evSwap, { fair: document.getElementById('ev-fair').checked, counts: evCounts(), exclude: EV.exclude }); renderEvChosen(); renderEvRoster(); }
-            else if (rm) { EV.chosen = EV.chosen.filter(x => x !== rm.dataset.evRemove); renderEvChosen(); renderEvRoster(); }
+            const sw = e.target.closest('[data-ev-swap]'), rm = e.target.closest('[data-ev-remove]'), ed = e.target.closest('[data-ev-edit]'), cc = e.target.closest('[data-ev-cancel]'), hr = e.target.closest('[data-ev-here]'), dp = e.target.closest('[data-ev-delpoint]');
+            if (sw) { EV.points = swapEventPointOfficer(EV.roster, EV.points, sw.dataset.pid, sw.dataset.evSwap, evOpts()); renderEvPoints(); }
+            else if (rm) { EV.points = moveEventOfficer(EV.points, rm.dataset.evRemove, ''); renderEvPoints(); }
+            else if (dp) { const i = Number(dp.dataset.evDelpoint); if (EV.points.length <= 1) return; EV.points.splice(i, 1); renderEvPoints(); }
+            else if (hr) { const i = Number(hr.dataset.evHere); if (!navigator.geolocation) return; navigator.geolocation.getCurrentPosition(pos => { EV.points[i].lat = pos.coords.latitude.toFixed(6); EV.points[i].lng = pos.coords.longitude.toFixed(6); renderEvPoints(); }, () => Swal.fire({ icon: 'warning', title: 'อ่านตำแหน่งไม่ได้', confirmButtonText: 'ตกลง', ...SWAL_DARK }), { enableHighAccuracy: true, timeout: 15000 }); }
             else if (ed) { const ev = EV.events.find(x => x.id === ed.dataset.evEdit); if (ev) { evFill(ev, true); document.getElementById('cmd-event-card').scrollIntoView({ behavior: 'smooth' }); } }
             else if (cc) { const ok = await Swal.fire({ icon: 'warning', title: 'ยกเลิกงานนี้?', showCancelButton: true, confirmButtonText: 'ยกเลิกงาน', cancelButtonText: 'ไม่', ...SWAL_DARK }); if (!ok.isConfirmed) return; const r = await api('cancelEvent', { id: cc.dataset.evCancel }); if (r && r.status === 'success') { Object.assign(EV, r.data); renderEvents(); } }
         });
         document.addEventListener('change', e => {
-            const pk = e.target.closest('[data-ev-pick]');
-            if (pk) { const no = pk.dataset.evPick; EV.chosen = pk.checked ? EV.chosen.concat(EV.chosen.includes(no) ? [] : [no]) : EV.chosen.filter(x => x !== no); renderEvChosen(); }
-            if (e.target.id === 'ev-copy') { const ev = EV.events.find(x => x.id === e.target.value); if (ev) evFill(ev, false); }
+            const mv = e.target.closest('[data-ev-move]'), ad = e.target.closest('[data-ev-add]');
+            if (mv && mv.value) { EV.points = moveEventOfficer(EV.points, mv.dataset.evMove, mv.value); renderEvPoints(); }
+            else if (ad && ad.value) { EV.points = moveEventOfficer(EV.points, ad.value, ad.dataset.evAdd); renderEvPoints(); }
+            else if (e.target.id === 'ev-copy') { const ev = EV.events.find(x => x.id === e.target.value); if (ev) evFill(ev, false); }
+            else if (e.target.closest('[data-pf]')) renderEvPoints();
         });
-        document.addEventListener('input', e => { if (e.target.id === 'ev-filter') renderEvRoster(); });
-        // เจ้าหน้าที่: การ์ดเล็ก "งานอีเวนต์ของฉัน" (แสดงเมื่อมีงานเท่านั้น)
+        document.addEventListener('input', e => {
+            const f = e.target.closest('#ev-points [data-pf]'); if (!f) return;
+            const p = EV.points[Number(f.closest('.ev-point').dataset.pi)]; if (!p) return;
+            p[f.dataset.pf] = (f.dataset.pf === 'radius' || f.dataset.pf === 'need') ? Number(f.value) : f.value;
+        });
+        // เจ้าหน้าที่: การ์ดเล็ก "งานอีเวนต์ของฉัน" — เห็นเฉพาะจุดของตน + ปุ่มเช็กอิน (กดได้เมื่ออยู่ในรัศมี ; เซิร์ฟเวอร์ตรวจซ้ำ)
+        function evMyDistance(pt) { if (!pt || !lastFix || !validLatLng(pt.lat, pt.lng)) return null; return Math.round(haversine(lastFix.lat, lastFix.lng, Number(pt.lat), Number(pt.lng))); }
+        function evInRadius(pt) { const d = evMyDistance(pt); if (d === null) return false; const acc = Math.min(Number(lastFix.accuracy) || 0, 30); return d - acc <= pt.radius; }
         function renderMyEvents() {
             const box = document.getElementById('officer-event-card'); if (!box) return;
             const list = (appData.myEvents || []).slice().sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start));
             box.classList.toggle('hidden', !list.length);
-            box.innerHTML = list.length ? `<p class="text-lg font-bold text-fuchsia-100 mb-2"><i class="fa-solid fa-flag mr-1"></i> งานอีเวนต์ที่ได้รับมอบหมาย</p>` + list.map(e => `<div class="rounded-xl bg-slate-900/60 p-3 mb-2"><p class="text-xl font-bold text-white">${esc(e.name)}</p><p class="text-lg text-slate-200">📅 ${esc(evFmtDate(e.date))} · ⏰ ${esc(e.start)}${e.end ? '–' + esc(e.end) : ''} น.</p>${e.place ? `<p class="text-lg text-slate-200">📍 ${esc(e.place)}</p>` : ''}${validLatLng(e.lat, e.lng) ? `<a href="${mapsUrl(e.lat, e.lng)}" target="_blank" rel="noopener" class="inline-block mt-2 bg-sky-600 text-white px-4 py-2.5 rounded-xl text-lg font-bold"><i class="fa-solid fa-map-location-dot mr-1"></i> เปิดแผนที่จุดนัดพบ</a>` : ''}</div>`).join('') : '';
+            const html = list.length ? `<p class="text-lg font-bold text-fuchsia-100 mb-2"><i class="fa-solid fa-flag mr-1"></i> งานอีเวนต์ที่ได้รับมอบหมาย</p>` + list.map(e => { const pt = e.point, d = evMyDistance(pt), inR = evInRadius(pt);
+                return `<div class="rounded-xl bg-slate-900/60 p-3 mb-2"><p class="text-xl font-bold text-white">${esc(e.name)}</p><p class="text-lg text-slate-200">📅 ${esc(evFmtDate(e.date))} · ⏰ ${esc(e.start)}${e.end ? '–' + esc(e.end) : ''} น.</p>
+                ${pt ? `<p class="text-xl font-bold text-amber-200 mt-1">📍 จุดของคุณ: ${esc(pt.name)}</p>` : (e.place ? `<p class="text-lg text-slate-200">📍 ${esc(e.place)}</p>` : '')}
+                ${pt && validLatLng(pt.lat, pt.lng) ? `<a href="${mapsUrl(pt.lat, pt.lng)}" target="_blank" rel="noopener" class="inline-block mt-2 bg-sky-600 text-white px-4 py-3 rounded-xl text-lg font-bold"><i class="fa-solid fa-map-location-dot mr-1"></i> เปิดแผนที่จุด</a>` : ''}
+                ${pt ? (e.checkedInAt ? `<p class="mt-3 text-xl font-bold text-emerald-300"><i class="fa-solid fa-circle-check mr-1"></i> เช็กอินแล้ว ${esc(new Date(e.checkedInAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' }))} น.</p>`
+                    : `<button type="button" data-ev-checkin="${esc(e.id)}" ${inR ? '' : 'disabled'} class="mt-3 w-full py-4 rounded-2xl text-xl font-bold text-white ${inR ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-slate-600 opacity-60 cursor-not-allowed'}"><i class="fa-solid fa-location-arrow mr-2"></i> ${inR ? 'เช็กอินที่จุดนี้' : 'ต้องอยู่ในรัศมีจุดจึงจะเช็กอินได้'}</button><p class="text-base text-slate-300 mt-1 text-center">${d === null ? 'กำลังหาตำแหน่ง GPS…' : `ห่างจุด ${d} ม. · รัศมี ${esc(pt.radius)} ม.`}</p>`) : ''}</div>`; }).join('') : '';
+            if (box.innerHTML !== html) box.innerHTML = html;
         }
+        setInterval(() => { if (currentRole() === 'officer' && (appData.myEvents || []).length) renderMyEvents(); }, 3000);
+        document.addEventListener('click', async e => {
+            const b = e.target.closest('[data-ev-checkin]'); if (!b || b.disabled) return;
+            const fix = await obtainFix(); if (!fix) return;
+            swalLoading({ title: 'กำลังเช็กอิน...', allowOutsideClick: false });
+            const r = await api('eventCheckIn', { eventId: b.dataset.evCheckin, lat: fix.lat, lng: fix.lng, accuracy: fix.accuracy });
+            if (!r || r.status !== 'success') return swalError('เช็กอินไม่สำเร็จ', r);
+            Object.assign(appData, r.data); renderMyEvents();
+            Swal.fire({ icon: 'success', title: 'เช็กอินแล้ว', html: `<p style="font-size:22px">จุด ${esc(r.data.record.point)}<br>เวลา ${esc(r.data.record.time.slice(0, 5))} น.</p>`, confirmButtonText: 'ตกลง', ...SWAL_DARK });
+        });
         function renderOfficerPanel() {
             const me = appData.me, st = appData.myStatus;
             if (!me) return;
@@ -5440,8 +5552,37 @@ function swapEventOfficer(pool, chosen, outNo, opts) {
   var i = (chosen || []).indexOf(outNo), out = (chosen || []).slice(); out[i] = pick[0];
   return i < 0 ? rest.concat(pick) : out;
 }
+// ---------- [event] งานหลายจุด (เช่น มาราธอน): เติมคนให้ครบทุกจุด ----------
+// points: [{ id, name, need, officers: [] }] ; คนเดิมในแต่ละจุดคงไว้ ; หนึ่งคนอยู่ได้จุดเดียวในงานเดียวกัน
+// เติมแบบวนทีละจุด (round-robin) ตามลำดับที่ pickEventOfficers ให้ (fair = คนไปงานน้อยก่อน) → คนที่ไปน้อยกระจายทุกจุด
+function fillEventPoints(pool, points, opts) {
+  opts = opts || {};
+  var out = (points || []).map(function (p) { return Object.assign({}, p, { officers: (p.officers || []).slice(0, Math.max(0, Number(p.need) || 0)) }); });
+  var taken = []; out.forEach(function (p) { taken = taken.concat(p.officers); });
+  var total = 0; out.forEach(function (p) { total += Math.max(0, (Number(p.need) || 0) - p.officers.length); });
+  var pick = pickEventOfficers(pool, total, { fair: opts.fair, counts: opts.counts, rng: opts.rng, exclude: (opts.exclude || []).concat(taken) });
+  var k = 0, progress = true;
+  while (k < pick.length && progress) {
+    progress = false;
+    for (var i = 0; i < out.length && k < pick.length; i++) if (out[i].officers.length < (Number(out[i].need) || 0)) { out[i].officers.push(pick[k++]); progress = true; }
+  }
+  return out;
+}
+function eventPointOfficers(points) { var a = []; (points || []).forEach(function (p) { (p.officers || []).forEach(function (no) { if (a.indexOf(no) < 0) a.push(no); }); }); return a; }
+// ย้ายคนไปจุดอื่น (เอาออกจากจุดเดิมก่อน)
+function moveEventOfficer(points, no, toId) {
+  return (points || []).map(function (p) { var o = (p.officers || []).filter(function (x) { return x !== no; }); if (p.id === toId) o.push(no); return Object.assign({}, p, { officers: o }); });
+}
+// สลับคนในจุด: คนใหม่ต้องไม่อยู่จุดใดในงานนี้
+function swapEventPointOfficer(pool, points, pointId, outNo, opts) {
+  opts = opts || {};
+  var all = eventPointOfficers(points);
+  var pick = pickEventOfficers(pool, 1, { fair: opts.fair, counts: opts.counts, rng: opts.rng, exclude: (opts.exclude || []).concat(all) });
+  if (!pick.length) return points;
+  return (points || []).map(function (p) { if (p.id !== pointId) return p; return Object.assign({}, p, { officers: (p.officers || []).map(function (x) { return x === outNo ? pick[0] : x; }) }); });
+}
 // ===== END SHARED CORE =====
- return { evaluateDutyStatus, computeStats, computeMonthlyReport, buildDailyStatus, buildSlotDay, computeDutyDate, eventCounts }; })();
+ return { evaluateDutyStatus, computeStats, computeMonthlyReport, buildDailyStatus, buildSlotDay, computeDutyDate, eventCounts, eventPointOfficers, haversineMeters, insideRadius }; })();
   const pad = n => String(n).padStart(2, '0');
   const bkk = () => { const d = new Date(Date.now() + 7 * 3600000); return { date: d.toISOString().slice(0, 10), time: pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) }; };
   const iso = (minAgo) => new Date(Date.now() - minAgo * 60000).toISOString();
@@ -5495,24 +5636,31 @@ function swapEventOfficer(pool, chosen, outNo, opts) {
       unknownOfficers: Object.values(g).flat().filter(e => !e.known) };
   }
 
-  /* [event] กำลังพลสมมติเพิ่ม + งานอีเวนต์ตัวอย่าง */
+  /* [event] กำลังพลสมมติเพิ่ม + งานตัวอย่าง (มาราธอน 5 จุด) */
   (function () {
     const fn = ['นายสมศักดิ์','นายบุญมี','นายวีระ','นายชาตรี','นายณรงค์','นายสมพร','นายปกรณ์','นายอำนาจ','นายเกียรติ','นายมานพ','นายสุเมธ','นายชัยวัฒน์','นายพิทักษ์','นายวินัย','นายศักดา','นายเฉลิม','นายไพโรจน์','นายสมหมาย','นายทวี','นายบรรจง','นายประยุทธ'];
     const ln = ['ตัวอย่าง','สมมติ','ทดลอง','เดโม'], sh = [['08:00','16:00'],['16:00','00:00'],['00:00','08:00']];
     fn.forEach((f, i) => DB.students.push(mkS('91' + String(i + 1).padStart(2, '0'), f + ' ' + ln[i % 4], sh[i % 3][0], sh[i % 3][1], [], false, [0, 6])));
     DB.students.push(mkS('9999', 'บัญชีทดสอบ (ผู้ดูแล)', '08:30', '16:30', [], false, []));
-    const ev = (id, name, date, s, e2, place, lat, lng, offs, status) => ({ id, createdAt: date + 'T08:00:00+07:00', createdBy: 'ผบ.ตัวอย่าง', name, date, start: s, end: e2, place, lat, lng, officers: offs, status: status || 'active', note: '' });
+    const P = (id, name, lat, lng, radius, need, officers) => ({ id, name, lat, lng, radius, need, officers });
+    const ev = (id, name, date, s, e2, place, points, status) => ({ id, createdAt: date + 'T08:00:00+07:00', createdBy: 'ผบ.ตัวอย่าง', name, date, start: s, end: e2, place, lat: null, lng: null, points, officers: CORE.eventPointOfficers(points), status: status || 'active', note: '' });
     DB.events = [
-      ev('e1', 'งานวิ่งมาราธอนชายหาด (ตัวอย่าง)', addD(N.date, -20), '04:30', '10:00', 'ชายหาดพัทยากลาง', 12.9350, 100.8830, ['9001', '9002', '9101', '9102', '9103', '9104']),
-      ev('e2', 'งานลอยกระทง (ตัวอย่าง)', addD(N.date, -10), '17:00', '23:00', 'ลานคนเมือง', 12.9300, 100.8800, ['9001', '9003', '9105', '9106', '9107', '9108', '9109']),
-      ev('e3', 'คอนเสิร์ตริมหาด (ตัวอย่าง)', addD(N.date, -3), '18:00', '23:30', 'ชายหาดพัทยาใต้', null, null, ['9001', '9002', '9110', '9111']),
-      ev('e4', 'งานเทศกาลอาหาร (ตัวอย่าง)', addD(N.date, 2), '16:00', '21:00', 'ถนนเลียบชายหาด', 12.9330, 100.8790, ['9001', '9112', '9113', '9114', '9115'])];
+      ev('e1', 'งานลอยกระทง (ตัวอย่าง)', addD(N.date, -10), '17:00', '23:00', 'ลานคนเมือง', [P('p1', 'ลานคนเมือง', 12.9300, 100.8800, 100, 4, ['9002', '9101', '9102', '9103'])]),
+      ev('e2', 'มินิมาราธอน (ตัวอย่าง ครั้งก่อน)', addD(N.date, -30), '04:30', '10:00', 'ชายหาดพัทยา', [
+        P('m1', 'จุดปล่อยตัว ลานโพธิ์', 12.9236, 100.8825, 100, 3, ['9003', '9104', '9105']), P('m2', 'จุดให้น้ำ 1 ซอย 6', 12.9427, 100.8847, 80, 2, ['9106', '9107']),
+        P('m3', 'จุดกลับตัว ท่าเรือเก่า', 12.9275, 100.8747, 80, 2, ['9108', '9109']), P('m4', 'จุดให้น้ำ 2 พัทยากลาง', 12.9350, 100.8830, 80, 2, ['9110', '9111']), P('m5', 'เส้นชัย ชายหาด', 12.9300, 100.8770, 120, 3, ['9112', '9113', '9114'])]),
+      ev('e3', 'พัทยามาราธอน (ตัวอย่าง)', N.date, '04:30', '23:00', 'ชายหาดพัทยา', [
+        P('k1', 'จุดปล่อยตัว ลานโพธิ์', 12.9236, 100.8825, 100, 4, ['9001', '9115', '9116', '9117']), P('k2', 'จุดให้น้ำ 1 ซอย 6', 12.9427, 100.8847, 80, 2, ['9118', '9119']),
+        P('k3', 'จุดกลับตัว ท่าเรือเก่า', 12.9275, 100.8747, 80, 2, ['9120', '9121']), P('k4', 'จุดให้น้ำ 2 พัทยากลาง', 12.9350, 100.8830, 80, 2, ['9004', '9011']), P('k5', 'เส้นชัย ชายหาด', 12.9300, 100.8770, 120, 3, ['9012', '9013', '9021'])])];
+    DB.evci = [{ eventId: 'e3', pointId: 'k1', no: '9115', ts: N.date + 'T04:10:00+07:00' }, { eventId: 'e3', pointId: 'k1', no: '9116', ts: N.date + 'T04:12:00+07:00' }, { eventId: 'e3', pointId: 'k2', no: '9118', ts: N.date + 'T04:20:00+07:00' }, { eventId: 'e3', pointId: 'k2', no: '9119', ts: N.date + 'T04:21:00+07:00' }, { eventId: 'e3', pointId: 'k5', no: '9012', ts: N.date + 'T04:25:00+07:00' }];
   })();
-  const EVLIST = () => ({ events: DB.events.slice().sort((a, b) => (b.date + b.start).localeCompare(a.date + a.start)), counts: CORE.eventCounts(DB.events), exclude: ['9999'], roster: DB.students.map(s => ({ no: s.no, name: s.name, shiftIn: s.shiftIn, shiftOut: s.shiftOut })) });
+  const EVLIST = () => ({ checkins: DB.evci, events: DB.events.slice().sort((a, b) => (b.date + b.start).localeCompare(a.date + a.start)), counts: CORE.eventCounts(DB.events), exclude: ['9999'], roster: DB.students.map(s => ({ no: s.no, name: s.name, shiftIn: s.shiftIn, shiftOut: s.shiftOut })) });
+  const MYEV = m => DB.events.filter(e => e.status !== 'cancelled' && e.date >= addD(N.date, -1) && e.officers.includes(m.no)).map(e => { const pt = e.points.find(p => p.officers.includes(m.no)); const ci = DB.evci.find(c => c.eventId === e.id && c.no === m.no);
+    return { id: e.id, name: e.name, date: e.date, start: e.start, end: e.end, place: e.place, point: pt ? { id: pt.id, name: pt.name, lat: pt.lat, lng: pt.lng, radius: pt.radius } : null, checkedInAt: ci ? ci.ts : '' }; });
   const ROLES = {
     commanderLogin: 'public', commanderList: 'public', login: 'public', officerLogin: 'public', ping: 'public', todayStats: 'public', driveCheck: 'public', lineHandoff: 'public',
     saveIncident: 'commander', assignIncident: 'commander', updateIncidentStatus: 'commander', createAnnouncement: 'commander', cancelAnnouncement: 'commander',
-    getData: 'officer admin commander', listEvents: 'commander admin', saveEvent: 'commander admin', cancelEvent: 'commander admin', getImage: 'officer admin commander', listAnnouncements: 'commander admin', listCheckpointNotes: 'commander admin',
+    getData: 'officer admin commander', listEvents: 'commander admin', saveEvent: 'commander admin', cancelEvent: 'commander admin', eventCheckIn: 'officer', getImage: 'officer admin commander', listAnnouncements: 'commander admin', listCheckpointNotes: 'commander admin',
     getLiveMap: 'admin commander', getRoute: 'admin commander', getStats: 'admin commander', getMonthlyReport: 'admin commander', getDailyStatus: 'admin commander', ackLeave: 'admin commander', getHistory: 'admin commander', ackUrgentExit: 'admin commander',
     savePin: 'officer', myLeaveRequests: 'officer', officerAddLeave: 'officer', officerCancelLeave: 'officer', todayStatsDetail: 'admin commander', officerLogout: 'officer', officerCheckIn: 'officer', slotCheck: 'officer', submitCheckpointNote: 'officer', patrolCheckOut: 'officer', patrolUrgentExit: 'officer', officerUpdateTask: 'officer', getMyAnnouncements: 'officer', ackAnnouncement: 'officer'
   };   // อื่น ๆ = admin เท่านั้น (จุดตรวจ/กำลังพล/ตั้งค่า/ลบรายงาน/วันลา/PIN/LINE)
@@ -5533,7 +5681,7 @@ function swapEventOfficer(pool, chosen, outNo, opts) {
   function officerData() {
     const m = me(), st = CORE.evaluateDutyStatus(m, N.date, DB.logs.filter(l => l.no === m.no), N.date, N.time, null);
     return { role: 'officer', version: 'DEMO', settings: DB.settings, checkpoints: DB.checkpoints, line: { enabled: true, mode: 'line_pin' }, authMethod: 'PIN', uiTexts: {},
-      incidents: DB.incidents, myTasks: DB.incidents.filter(i => i.assignedNo === m.no), announcements: [], myEvents: DB.events.filter(e => e.status !== 'cancelled' && e.date >= addD(N.date, -1) && e.officers.includes(m.no)), me: m, currentDutyDate: N.date, myStatus: st,
+      incidents: DB.incidents, myTasks: DB.incidents.filter(i => i.assignedNo === m.no), announcements: [], myEvents: MYEV(m), me: m, currentDutyDate: N.date, myStatus: st,
       myLogs: DB.logs.filter(l => l.no === m.no), myPatrol: [], openCheckpoint: null, myUrgentExits: [], myCheckpointNotes: [], myLeave: [], mySlots: [], slotGrace: 10,
       myWeeklyOff: m.weeklyOff, todayWeeklyOff: false, workOnOffToday: false, myPins: DB.pins.filter(p => p.no === m.no) };
   }
@@ -5551,10 +5699,14 @@ function swapEventOfficer(pool, chosen, outNo, opts) {
     switch (action) {
       case 'todayStats': return ok({ data: { date: '2026-10-26', time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Bangkok' }), onDuty: 12, expected: 15, incidents: 3, checkpointsDone: 8, checkpointsTotal: 10 } });
       case 'listEvents': return ok({ data: EVLIST() });
-      case 'saveEvent': { if (!p.name || !p.date || !p.start || !(p.officers || []).length) return no('ข้อมูลไม่ครบ', 'BAD_REQUEST'); let e0 = p.id ? DB.events.find(x => x.id === p.id) : null;
-        const rec = { id: e0 ? e0.id : 'e' + Date.now(), createdAt: new Date().toISOString(), createdBy: 'ผบ.ตัวอย่าง', name: p.name, date: p.date, start: p.start, end: p.end || '', place: p.place || '', lat: p.lat === '' ? null : Number(p.lat), lng: p.lng === '' ? null : Number(p.lng), officers: p.officers.slice(), status: 'active', note: '' };
+      case 'saveEvent': { const pts = (p.points || []).map(x => Object.assign({}, x, { officers: (x.officers || []).slice() })); const offs = CORE.eventPointOfficers(pts); if (!p.name || !p.date || !p.start || !offs.length) return no('ข้อมูลไม่ครบ', 'BAD_REQUEST');
+        let e0 = p.id ? DB.events.find(x => x.id === p.id) : null;
+        const rec = { id: e0 ? e0.id : 'e' + Date.now(), createdAt: new Date().toISOString(), createdBy: 'ผบ.ตัวอย่าง', name: p.name, date: p.date, start: p.start, end: p.end || '', place: p.place || '', lat: null, lng: null, points: pts, officers: offs, status: 'active', note: '' };
         if (e0) Object.assign(e0, rec); else DB.events.push(rec); return ok({ data: EVLIST() }); }
       case 'cancelEvent': { const e0 = DB.events.find(x => x.id === p.id); if (e0) e0.status = 'cancelled'; return ok({ data: EVLIST() }); }
+      case 'eventCheckIn': { const m0 = me(), e0 = DB.events.find(x => x.id === p.eventId); const pt = e0 && e0.points.find(q => q.officers.includes(m0.no)); if (!pt) return no('ไม่พบจุดของคุณ', 'NOT_FOUND');
+        const d = Math.round(CORE.haversineMeters(p.lat, p.lng, pt.lat, pt.lng)); if (!CORE.insideRadius(d, p.accuracy, pt.radius)) return no('อยู่นอกรัศมีจุด "' + pt.name + '" (ห่าง ' + d + ' ม.)', 'OUT_OF_RADIUS');
+        DB.evci.push({ eventId: e0.id, pointId: pt.id, no: m0.no, ts: new Date().toISOString() }); const od = officerData(); return ok({ data: Object.assign({ record: { eventId: e0.id, point: pt.name, distance: d, time: new Date().toLocaleTimeString('th-TH', { hour12: false, timeZone: 'Asia/Bangkok' }) } }, od) }); }
       case 'ping': return ok({ message: 'pong', version: 'DEMO', line: LINE_INFO, uiTexts: {} });
       case 'driveCheck': return ok({ data: { ok: true } });
       case 'login': return p.password ? ok({ data: issue('admin', 'admin', 'แอดมิน') }) : no('รหัสผ่านไม่ถูกต้อง', 'LOGIN_FAILED');
@@ -5633,9 +5785,10 @@ function swapEventOfficer(pool, chosen, outNo, opts) {
   };
 })();
 
+
 (function(){ const q=new URLSearchParams(location.search).get('as'); if(!q) return; window.addEventListener('load',()=>setTimeout(async()=>{ if(q==='admin'){ const r=await callAPI('login',{password:'demo'}); setSession(r.data); await afterLogin(); switchTab('tab-admin', document.querySelector('[data-tab="tab-admin"]')); } else if(q==='commander'){ const r=await callAPI('commanderLogin',{id:'c1',password:'1111'}); setSession(r.data); await afterLogin(); } else { demoRole('officer'); } },1200)); })();
 
-(function(){ if(new URLSearchParams(location.search).get('as')!=='commander') return; window.addEventListener('load',()=>setTimeout(()=>{ switchTab('tab-commander', document.querySelector('[data-tab="tab-commander"]')); setTimeout(()=>{ const el=document.getElementById('cmd-event-card'); if(el) el.scrollIntoView({block:'start'}); },800); },3500)); })();
+(function(){ if(new URLSearchParams(location.search).get('as')!=='commander') return; window.addEventListener('load',()=>setTimeout(()=>{ switchTab('tab-commander', document.querySelector('[data-tab="tab-commander"]')); },3500)); })();
 
 </script>
 </body>
