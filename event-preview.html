@@ -338,7 +338,7 @@
 .acc-top>.acc-body>h2:first-child,.acc-top>.acc-body>p.acc-hide{display:none}
 </style>
 </head>
-<body class="p-2 md:p-6 flex flex-col items-center overflow-x-hidden"><div id="demo-banner" style="position:sticky;top:0;z-index:20000;background:#facc15;color:#111;font-weight:800;text-align:center;padding:8px;font-size:17px;font-family:Sarabun,sans-serif">ตัวอย่าง "จัดเจ้าหน้าที่ไปงานอีเวนต์ หลายจุด" (DEMO · ข้อมูลสมมติ · ไม่เชื่อมระบบจริง) · <a href="?as=commander" style="text-decoration:underline">ผู้บังคับบัญชา</a> · <a href="?as=officer" style="text-decoration:underline">เจ้าหน้าที่</a></div>
+<body class="p-2 md:p-6 flex flex-col items-center overflow-x-hidden"><div id="demo-banner" style="position:sticky;top:0;z-index:20000;background:#facc15;color:#111;font-weight:800;text-align:center;padding:8px;font-size:17px;font-family:Sarabun,sans-serif">ตัวอย่าง "จัดเจ้าหน้าที่ไปงานอีเวนต์ หลายจุด + ดาวน์โหลด Excel" (DEMO · ข้อมูลสมมติ · ไม่เชื่อมระบบจริง) · <a href="?as=commander" style="text-decoration:underline">ผู้บังคับบัญชา</a> · <a href="?as=officer" style="text-decoration:underline">เจ้าหน้าที่</a></div>
 
     <div id="app-header" class="w-full max-w-7xl glass-panel rounded-3xl p-6 pt-14 md:p-8 mb-6 fade-in relative border-t-4 border-t-accent-500">
         <div id="status-badge" class="absolute top-3 right-3 md:top-4 md:right-4 flex items-center space-x-2 bg-black/50 px-4 py-2 rounded-full text-xs font-bold border border-white/10 shadow-lg">
@@ -2380,7 +2380,7 @@ function swapEventPointOfficer(pool, points, pointId, outNo, opts) {
   return (points || []).map(function (p) { if (p.id !== pointId) return p; return Object.assign({}, p, { officers: (p.officers || []).map(function (x) { return x === outNo ? pick[0] : x; }) }); });
 }
 
-        /* [accordion] หน้าผู้บังคับบัญชา: พับการ์ด (จำสถานะไว้ในเครื่อง) */
+        '[accordion] หน้าผู้บังคับบัญชา: พับการ์ด (จำสถานะไว้ในเครื่อง)';
         const ACC_SUM = {
             'cmd-event-card': () => { const a = (EV.events || []).filter(e => e.status !== 'cancelled'); return `งาน ${a.length} รายการ · กำลังจัด ${EV.points.length} จุด / ${eventPointOfficers(EV.points).length} คน`; },
             'ev-info': () => { const n = (document.getElementById('ev-name') || {}).value; return n ? n : 'ยังไม่ใส่ชื่องาน'; },
@@ -2420,6 +2420,50 @@ function swapEventPointOfficer(pool, points, pointId, outNo, opts) {
         function accSummaries() { document.querySelectorAll('#tab-commander .acc').forEach(el => { const f = ACC_SUM[accKey(el)], s = el.querySelector(':scope > .acc-head .acc-s'); if (s) { let t = ''; try { t = f ? f() : ''; } catch (e) { } s.textContent = t; } }); }
         document.addEventListener('DOMContentLoaded', accInit); if (document.readyState !== 'loading') accInit();
         setInterval(() => { accInit(); }, 1500);
+
+        '[event-xlsx] ดาวน์โหลดใบรายชื่อ (Excel) สร้างในเครื่อง ไม่ต้องเพิ่มสิทธิ์';
+        const EXCELJS_URL = 'https:\/\/cdn.jsdelivr.net\/npm\/exceljs@4.4.0\/dist\/exceljs.min.js';
+        function loadExcelJs() { if (window.ExcelJS) return Promise.resolve(window.ExcelJS); return new Promise((ok, no) => { const s = document.createElement('script'); s.src = EXCELJS_URL; s.onload = () => ok(window.ExcelJS); s.onerror = () => no(new Error('โหลดตัวสร้าง Excel ไม่ได้')); document.head.appendChild(s); }); }
+        const evTimeOf = ts => { try { return new Date(ts).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Bangkok' }) + ' น.'; } catch (e) { return ''; } };
+        function evDateLong(d) { try { return new Date(d + 'T00:00:00+07:00').toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' }); } catch (e) { return d; } }
+        async function evBuildWorkbook(ev, checkins, nameOf) {
+            const ExcelJS = await loadExcelJs(); const wb = new ExcelJS.Workbook(); wb.creator = 'SMART SAFETY';
+            const ws = wb.addWorksheet('รายชื่อ', { pageSetup: { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0, horizontalCentered: true, margins: { left: 0.5, right: 0.5, top: 0.6, bottom: 0.7, header: 0.3, footer: 0.3 } } });
+            const F = (sz, b) => ({ name: 'TH Sarabun New', size: sz, bold: !!b });
+            const thin = { style: 'thin', color: { argb: 'FF000000' } }, B = { top: thin, left: thin, bottom: thin, right: thin };
+            ws.columns = [{ width: 7 }, { width: 12 }, { width: 30 }, { width: 26 }, { width: 14 }, { width: 20 }];
+            const title = (txt, sz) => { const r = ws.addRow([txt]); ws.mergeCells(r.number, 1, r.number, 6); r.getCell(1).font = F(sz, true); r.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' }; r.height = 30; return r; };
+            title('หน่วยงาน เทศกิจเมืองพัทยา', 18); title('บัญชีรายชื่อเจ้าหน้าที่ปฏิบัติหน้าที่ ' + ev.name, 18);
+            title('วัน' + evDateLong(ev.date).replace(/^วัน/, '') + '  เวลา ' + ev.start + (ev.end ? ' – ' + ev.end : '') + ' น.', 18);
+            title('สถานที่ ' + (ev.place || '-') + '   รวม ' + (ev.points || []).length + ' จุด  ' + (ev.officers || []).length + ' คน', 18);
+            ws.addRow([]);
+            const hr = ws.addRow(['ลำดับ', 'รหัส', 'ชื่อ-สกุล', 'จุด/หน้าที่', 'เวลาเช็กอิน', 'ลายมือชื่อ']); hr.height = 30;
+            hr.eachCell(c => { c.font = F(18, true); c.border = B; c.alignment = { horizontal: 'center', vertical: 'middle' }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBFBFBF' } }; });
+            ws.pageSetup.printTitlesRow = hr.number + ':' + hr.number; ws.views = [{ state: 'frozen', ySplit: hr.number }];
+            let n = 0;
+            (ev.points || []).forEach((p, pi) => {
+                const ph = ws.addRow(['จุดที่ ' + (pi + 1) + '  ' + p.name + '   (ต้องการ ' + p.need + ' คน · จัดแล้ว ' + p.officers.length + ' คน)']); ws.mergeCells(ph.number, 1, ph.number, 6); ph.height = 28;
+                for (let c = 1; c <= 6; c++) { const x = ph.getCell(c); x.border = B; x.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDEBF7' } }; }
+                ph.getCell(1).font = F(18, true); ph.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                p.officers.forEach(no => { n++; const ci = (checkins || []).find(c => c.eventId === ev.id && c.no === no);
+                    const r = ws.addRow([n, no, nameOf(no), p.name, ci ? evTimeOf(ci.ts) : '', '']); r.height = 26;
+                    r.eachCell({ includeEmpty: true }, (c, col) => { c.font = F(16); c.border = B; c.alignment = { vertical: 'middle', horizontal: [1, 2, 5].includes(col) ? 'center' : 'left', wrapText: col === 4, indent: [3, 4].includes(col) ? 1 : 0 }; }); });
+            });
+            ws.addRow([]); ws.addRow([]);
+            const sig = (txt, b) => { const r = ws.addRow(['', '', '', txt]); ws.mergeCells(r.number, 4, r.number, 6); r.getCell(4).font = F(16); r.getCell(4).alignment = { horizontal: 'center' }; r.height = 26; };
+            sig('ลงชื่อ ......................................................'); sig('( ...................................................... )'); sig('ตำแหน่ง ผู้บังคับบัญชา'); sig('วันที่ ........ / ........ / ........');
+            ws.headerFooter.oddFooter = '&L&"TH Sarabun New"&16' + ev.name + '&R&"TH Sarabun New"&16หน้า &P / &N';
+            return wb;
+        }
+        async function evDownloadXlsx(id) {
+            const ev = EV.events.find(x => x.id === id); if (!ev) return;
+            swalLoading({ title: 'กำลังสร้างไฟล์ Excel...', allowOutsideClick: false });
+            try { const wb = await evBuildWorkbook(ev, EV.checkins, evName); const buf = await wb.xlsx.writeBuffer();
+                const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+                a.download = ('รายชื่อ ' + ev.name + ' ' + ev.date).replace(/[\\\/:*?"<>|]/g, '-') + '.xlsx'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); Swal.close(); }
+            catch (e) { Swal.fire({ icon: 'error', title: 'สร้างไฟล์ไม่สำเร็จ', text: String(e.message || e), confirmButtonText: 'ตกลง', ...SWAL_DARK }); }
+        }
+        document.addEventListener('click', e => { const b = e.target.closest('[data-ev-xlsx]'); if (b) evDownloadXlsx(b.dataset.evXlsx); });
         let EV = { events: [], counts: {}, roster: [], exclude: [], checkins: [], points: [], editId: '' };
         const evFmtDate = d => { try { return new Date(d + 'T00:00:00+07:00').toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit', timeZone: 'Asia/Bangkok' }); } catch (e) { return d; } };
         const evNewPoint = i => ({ id: 'P' + Date.now().toString(36) + i, name: 'จุดที่ ' + (i + 1), lat: '', lng: '', radius: 100, need: 3, officers: [] });
@@ -2439,7 +2483,7 @@ function swapEventPointOfficer(pool, points, pointId, outNo, opts) {
                 <p class="text-lg font-bold text-white">${esc(e.name)} ${e.status === 'cancelled' ? '<span class="text-rose-300 text-base">(ยกเลิกแล้ว)</span>' : ''}</p>
                 <p class="text-base text-slate-300">${esc(evFmtDate(e.date))} · ${esc(e.start)}${e.end ? '–' + esc(e.end) : ''} น. · ${esc(e.place || '-')} · 👮 ${e.officers.length} คน · ✅ เช็กอินแล้ว ${ci} คน</p>
                 ${pts.length ? `<div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">${pts.map(p => { const n = evCiCount(e.id, p.id); return `<div class="rounded-xl bg-slate-800/70 p-3"><p class="text-base font-bold text-white">📍 ${esc(p.name)} <span class="ml-1 px-2 py-0.5 rounded-full text-sm ${n >= p.officers.length && n ? 'bg-emerald-500 text-slate-900' : 'bg-amber-400 text-slate-900'}">เช็กอิน ${n}/${p.officers.length}</span>${p.officers.length < p.need ? ` <span class="text-rose-300 text-sm">ขาด ${p.need - p.officers.length} คน</span>` : ''}</p><p class="text-sm text-slate-300">${esc(p.officers.map(no => evName(no) + ((EV.checkins || []).some(c => c.eventId === e.id && c.no === no) ? ' ✅' : '')).join(', '))}</p></div>`; }).join('')}</div>` : `<p class="text-base text-slate-200 mt-1">👮 ${esc(e.officers.map(evName).join(', '))}</p>`}
-                ${e.status === 'cancelled' ? '' : `<div class="flex gap-2 mt-2"><button type="button" data-ev-edit="${esc(e.id)}" class="bg-sky-700 hover:bg-sky-600 text-white px-4 py-2.5 rounded-xl text-base font-bold"><i class="fa-solid fa-pen mr-1"></i> แก้ไข</button><button type="button" data-ev-cancel="${esc(e.id)}" class="bg-rose-700 hover:bg-rose-600 text-white px-4 py-2.5 rounded-xl text-base font-bold"><i class="fa-solid fa-ban mr-1"></i> ยกเลิกงาน</button></div>`}
+                ${e.status === 'cancelled' ? '' : `<div class="flex gap-2 mt-2"><button type="button" data-ev-edit="${esc(e.id)}" class="bg-sky-700 hover:bg-sky-600 text-white px-4 py-2.5 rounded-xl text-base font-bold"><i class="fa-solid fa-pen mr-1"></i> แก้ไข</button><button type="button" data-ev-cancel="${esc(e.id)}" class="bg-rose-700 hover:bg-rose-600 text-white px-4 py-2.5 rounded-xl text-base font-bold"><i class="fa-solid fa-ban mr-1"></i> ยกเลิกงาน</button><button type="button" data-ev-xlsx="${esc(e.id)}" class="bg-emerald-700 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-base font-bold"><i class="fa-solid fa-file-excel mr-1"></i> ดาวน์โหลด Excel</button></div>`}
             </div>`; }).join('') : '<p class="text-lg text-slate-400">ยังไม่มีงาน</p>';
         }
         function renderEvPoints() {
