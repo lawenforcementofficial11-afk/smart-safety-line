@@ -326,7 +326,7 @@
         }
 </style>
 </head>
-<body class="p-2 md:p-6 flex flex-col items-center overflow-x-hidden"><div id="demo-banner" style="position:sticky;top:0;z-index:20000;background:#facc15;color:#111;font-weight:800;text-align:center;padding:8px;font-size:17px;font-family:Sarabun,sans-serif">ตัวอย่าง "แม่แบบตามผลัด" (DEMO · ข้อมูลสมมติ · ไม่เชื่อมระบบจริง) · <a href="?as=admin#shift-tpl-admin" style="text-decoration:underline">เปิดการ์ดแม่แบบ</a> · <a href="?as=commander" style="text-decoration:underline">ผู้บังคับบัญชา</a></div>
+<body class="p-2 md:p-6 flex flex-col items-center overflow-x-hidden"><div id="demo-banner" style="position:sticky;top:0;z-index:20000;background:#facc15;color:#111;font-weight:800;text-align:center;padding:8px;font-size:17px;font-family:Sarabun,sans-serif">ตัวอย่าง "แม่แบบตามผลัด + เตือนลืมเข้า/ออกเวร" (DEMO · ข้อมูลสมมติ · ไม่เชื่อมระบบจริง) · <a href="?as=admin#shift-tpl-admin" style="text-decoration:underline">เปิดการ์ดแม่แบบ</a> · <a href="?as=admin#remind-admin" style="text-decoration:underline">เตือน LINE</a> · <a href="?as=commander" style="text-decoration:underline">ผู้บังคับบัญชา</a></div>
 
     <div id="app-header" class="w-full max-w-7xl glass-panel rounded-3xl p-6 pt-14 md:p-8 mb-6 fade-in relative border-t-4 border-t-accent-500">
         <div id="status-badge" class="absolute top-3 right-3 md:top-4 md:right-4 flex items-center space-x-2 bg-black/50 px-4 py-2 rounded-full text-xs font-bold border border-white/10 shadow-lg">
@@ -926,6 +926,20 @@
                     <button onclick="saveShiftTemplate()" id="tpl-save" class="flex-1 bg-accent-600 hover:bg-accent-500 text-white py-4 rounded-xl text-lg font-bold shadow-lg"><i class="fa-solid fa-save mr-2"></i> บันทึกแม่แบบผลัดนี้</button>
                 </div>
                 <div id="tpl-unmatched" class="mt-5"></div>
+            </div>
+
+            <!-- [remind-demo] เตือนลืมเข้า/ออกเวร -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-amber-400" id="remind-admin">
+                <h2 class="text-xl md:text-2xl font-bold mb-2 text-white flex items-center gap-2"><div class="bg-amber-500/20 p-2 rounded-lg mr-1"><i class="fa-solid fa-bell text-amber-300"></i></div> เตือนลืมเข้าเวร / ออกเวร (LINE)</h2>
+                <ul class="text-base text-slate-200 mb-4 space-y-1 leading-relaxed">
+                    <li>⏰ ยังไม่กด "เข้าเวร" → เตือนเมื่อเลยเวลาเข้าเวร <b>15 นาที</b></li>
+                    <li>🏁 ยังไม่กด "ออกเวร" → เตือน<b>ตรงเวลาออกเวร</b> และอีกครั้งเมื่อเลย <b>30 นาที</b></li>
+                    <li>📝 เลย <b>60 นาที</b> ยังไม่ออก → ระบบบันทึกออกเวร ณ เวลาออกเวร พร้อมหมายเหตุ <b class="text-amber-300">"ไม่ได้เช็กอินออก (ระบบปิดให้)"</b> (ไม่นับเป็นปกติ)</li>
+                    <li class="text-slate-400 text-sm">ข้ามวันหยุด/วันลา · แต่ละเรื่องเตือนครั้งเดียวต่อวันเวร</li>
+                </ul>
+                <div id="remind-token" class="mb-3"></div>
+                <button onclick="loadReminderLog()" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-500 text-white px-6 py-4 rounded-xl text-lg font-bold mb-3"><i class="fa-solid fa-rotate mr-2"></i> ดูประวัติการเตือน 7 วัน</button>
+                <div id="remind-log"></div>
             </div>
 
             <!-- วันลา / วันหยุด -->
@@ -2548,6 +2562,15 @@
             else slotCheck(id, act);
         });
 
+        // ---------- [remind-demo] ประวัติการเตือน ----------
+        const REMIND_KIND = { remindIn: '⏰ เตือนเข้าเวร', remindOut1: '🏁 เตือนออกเวร', remindOut2: '⚠️ เตือนออกเวร (ครั้งที่ 2)', autoClose: '📝 ระบบปิดเวรให้' };
+        function remindResultText(r) { return (r.indexOf('closed') >= 0 ? 'บันทึกออกเวรแล้ว · ' : '') + (r.indexOf('line:200') >= 0 ? 'ส่ง LINE แล้ว' : r.indexOf('no-line') >= 0 ? 'ยังไม่ผูก LINE' : r.indexOf('no-token') >= 0 ? 'ยังไม่ตั้งค่า LINE' : 'ส่ง LINE ไม่สำเร็จ'); }
+        async function loadReminderLog() {
+            const res = await api('getReminderLog', {}); if (!res || res.status !== 'success') return swalError('โหลดประวัติไม่สำเร็จ', res);
+            const d = res.data;
+            document.getElementById('remind-token').innerHTML = d.hasToken ? '<p class="text-base text-emerald-300"><i class="fa-solid fa-circle-check mr-1"></i> เชื่อม LINE แล้ว</p>' : '<p class="text-base text-rose-300 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ยังไม่ได้ตั้งค่า LINE สำหรับส่งข้อความ — ระบบยังปิดเวรอัตโนมัติได้ แต่ส่งข้อความไม่ได้</p>';
+            document.getElementById('remind-log').innerHTML = d.list.length ? `<div class="overflow-x-auto"><table class="w-full text-base"><thead><tr class="text-slate-400 text-sm"><th class="p-2 text-left">เวลา</th><th class="p-2 text-left">เจ้าหน้าที่</th><th class="p-2 text-left">เรื่อง</th><th class="p-2 text-left">ผล</th></tr></thead><tbody>${d.list.map(x => `<tr class="border-t border-white/5 ${x.kind === 'autoClose' ? 'bg-amber-500/10' : ''}"><td class="p-2 font-mono">${esc(new Date(x.ts).toLocaleString('th-TH', { timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}</td><td class="p-2">${esc(x.name || x.no)}</td><td class="p-2 font-bold">${esc(REMIND_KIND[x.kind] || x.kind)}</td><td class="p-2">${esc(remindResultText(x.result))}</td></tr>`).join('')}</tbody></table></div>` : '<p class="text-lg text-slate-400">ยังไม่มีการเตือนใน 7 วันที่ผ่านมา</p>';
+        }
         // ---------- [shift-demo] แม่แบบช่วงเวลาตามผลัด ----------
         let tplShift = 'morning', tplDraft = null, tplDirty = false;
         function tplMin(t) { const m = String(t || '').match(/^(\d{2}):(\d{2})$/); return m ? (+m[1]) * 60 + (+m[2]) : NaN; }
@@ -3161,7 +3184,7 @@
                 + card('เช็คอินจุดตรวจ', r.patrolCount, 'text-cyan-300') + card('อัตรามาปฏิบัติงาน', r.attendanceRate === null ? '-' : r.attendanceRate + '%', 'text-indigo-300');
             document.getElementById('person-tbody').innerHTML = d.days.map(x => { const st = personStatus(x); return `<tr class="person-row">
                 <td class="p-3 font-bold">${esc(fmtDayFull(x.date))}</td><td class="p-3 text-slate-400">${esc(x.shiftIn)}–${esc(x.shiftOut)}</td>
-                <td class="p-3 text-center font-mono">${esc(x.checkIn || '-')}</td><td class="p-3 text-center font-mono">${esc(x.checkOut || (x.outState === 'missing' ? 'ไม่ลงออก' : '-'))}</td>
+                <td class="p-3 text-center font-mono">${esc(x.checkIn || '-')}</td><td class="p-3 text-center font-mono">${x.autoClosed ? `<span class="text-amber-300 font-bold">${esc(x.checkOut)} · ไม่ได้เช็กอินออก (ระบบปิดให้)</span>` : esc(x.checkOut || (x.outState === 'missing' ? 'ไม่ลงออก' : '-'))}</td>
                 <td class="p-3 text-center ${x.lateMinutes ? 'text-amber-300 font-bold' : 'text-slate-500'}">${x.lateMinutes || '-'}</td><td class="p-3 ${st[1]}">${esc(st[0])}</td>
                 <td class="p-3 text-center">${x.patrolCount || '-'}${x.outOfRadius ? ` <span class="text-xs text-rose-300">(นอกรัศมี ${x.outOfRadius})</span>` : ''}</td>
                 <td class="p-3 whitespace-normal text-sm text-slate-300">${esc(x.notes || '')}${x.urgent ? ` <span class="text-rose-300">· ออกเคสด่วน ${x.urgent}</span>` : ''}</td></tr>`; }).join('')
@@ -5066,6 +5089,7 @@ function evaluateDutyStatus(student, dutyDate, personLogs, nowDate, nowTime, lea
   if (checkOut) {
     var cout = String(checkOut.time).substring(0, 5);
     r.checkOutTime = cout; r.outState = 'done'; r.outText = '✔ ออกแล้ว (' + cout + ')';
+    if (checkOut.authMethod === AUTO_CLOSE_TAG) { r.outState = 'missing'; r.autoClosed = true; r.outText = '⚠️ ไม่ได้เช็กอินออก (ระบบปิดให้ ' + cout + ')'; }
   } else if (!checkIn && leaveEntry) {
     r.outState = 'leave'; r.outText = '—';
   } else if (nowRel < inMin) {
@@ -5421,8 +5445,50 @@ function preShiftMsg(shiftIn) {
   var hhmm = String(shiftIn).slice(0, 5);
   return 'ยังไม่ถึงเวลาเข้าเวร — เช็กอินได้ตั้งแต่ ' + hhmm + ' น.' + (timeToMinutes(shiftIn) === 0 ? ' (ผลัดดึกเริ่ม 00:00 น. กรุณากดหลังเที่ยงคืน)' : '');
 }
+
+// ---------- [remind-demo] เตือนลืมเข้าเวร/ออกเวร + ปิดเวรอัตโนมัติ ----------
+var REMIND_RULES = { IN_AFTER_MIN: 15, OUT_AT_MIN: 0, OUT_AGAIN_MIN: 30, AUTO_CLOSE_MIN: 60 };
+var AUTO_CLOSE_TAG = 'ไม่ได้เช็กอินออก (ระบบปิดให้)';
+// ทุกการกระทำที่ "ถึงเวลา" ณ now: remindIn / remindOut1 / remindOut2 / autoClose (ตัดรายการที่อยู่ใน sent แล้ว)
+// ดูวันเวรเมื่อวานและวันนี้ (ครอบคลุมผลัดบ่าย 16–00 และผลัดดึก 00–08) ; ข้ามวันหยุด/ลา
+function planReminders(students, logs, leaves, nowDate, nowTime, sent) {
+  var R = REMIND_RULES, out = [], lv = indexLeaves(leaves || [], students || []), done = sent || {};
+  var nowT = timeToMinutes(nowTime);
+  (students || []).forEach(function (s) {
+    var inMin = timeToMinutes(s.shiftIn), outMin = timeToMinutes(s.shiftOut);
+    if (isNaN(inMin) || isNaN(outMin)) return;
+    var outRel = outMin <= inMin ? outMin + 1440 : outMin;
+    [addDaysToDateStr(nowDate, -1), nowDate].forEach(function (dd) {
+      var nowRel = daysBetweenDateStr(dd, nowDate) * 1440 + nowT;
+      var mine = (logs || []).filter(function (l) { return l.no === s.no && l.dutyDate === dd; });
+      var hasIn = mine.some(function (l) { return l.type === 'เข้าเวร'; }), hasOut = mine.some(function (l) { return l.type === 'ออกเวร'; });
+      var add = function (kind) { var key = kind + '|' + s.no + '|' + dd; if (!done[key]) out.push({ kind: kind, key: key, no: s.no, name: s.name, dutyDate: dd, shiftIn: s.shiftIn, shiftOut: s.shiftOut }); };
+      if (!hasIn) {
+        var off = leaveAt(lv, s.no, dd);
+        if (!off && nowRel >= inMin + R.IN_AFTER_MIN && nowRel < outRel) add('remindIn');
+        return;
+      }
+      if (hasOut) return;
+      if (nowRel >= outRel + R.AUTO_CLOSE_MIN && nowRel < outRel + 720) add('autoClose');
+      else if (nowRel >= outRel + R.OUT_AGAIN_MIN && nowRel < outRel + R.AUTO_CLOSE_MIN) add('remindOut2');
+      else if (nowRel >= outRel + R.OUT_AT_MIN && nowRel < outRel + R.OUT_AGAIN_MIN) add('remindOut1');
+    });
+  });
+  return out;
+}
+// วัน/เวลาปฏิทินของเวลาออกเวรของวันเวรหนึ่ง (ผลัดบ่าย 16–00 → วันถัดไป 00:00)
+function shiftOutCalendar(dutyDate, shiftIn, shiftOut) {
+  var i = timeToMinutes(shiftIn), o = timeToMinutes(shiftOut);
+  return { date: o <= i ? addDaysToDateStr(dutyDate, 1) : dutyDate, time: String(shiftOut).slice(0, 5) };
+}
+function reminderText(a) {
+  if (a.kind === 'remindIn') return '⏰ ' + a.name + '\nยังไม่ได้กด "เข้าเวร"\nเวรเริ่ม ' + a.shiftIn + ' น.\nกรุณาเปิดแอปแล้วกด "เข้าเวร" ครับ';
+  if (a.kind === 'remindOut1') return '🏁 ' + a.name + '\nถึงเวลาออกเวร ' + a.shiftOut + ' น.\nอย่าลืมกด "ออกเวร" ครับ';
+  if (a.kind === 'remindOut2') return '⚠️ ' + a.name + '\nยังไม่ได้กด "ออกเวร"\nถ้าไม่กดภายใน 30 นาที ระบบจะปิดให้ และบันทึกว่า "ไม่ได้เช็กอินออก"';
+  return '📝 ' + a.name + '\nระบบปิดเวรให้แล้ว (เวลา ' + a.shiftOut + ' น.)\nบันทึกว่า "ไม่ได้เช็กอินออก"';
+}
 // ===== END SHARED CORE =====
- return { evaluateDutyStatus, computeStats, computeMonthlyReport, buildDailyStatus, buildSlotDay, computeDutyDate, effectiveSchedule, shiftKeyOf, validateShiftSlots, SHIFT_DEFS }; })();
+ return { evaluateDutyStatus, computeStats, computeMonthlyReport, buildDailyStatus, buildSlotDay, computeDutyDate, effectiveSchedule, shiftKeyOf, validateShiftSlots, SHIFT_DEFS, REMIND_RULES, reminderText }; })();
   const pad = n => String(n).padStart(2, '0');
   const bkk = () => { const d = new Date(Date.now() + 7 * 3600000); return { date: d.toISOString().slice(0, 10), time: pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) }; };
   const iso = (minAgo) => new Date(Date.now() - minAgo * 60000).toISOString();
@@ -5490,12 +5556,28 @@ function preShiftMsg(shiftIn) {
       T('night', B, '00:00', '02:00'), T('night', A, '02:30', '05:00'), T('night', C, '06:00', '08:00')];
     DB.schedule = [{ id: 'p1', no: '9002', checkpoint: B, start: '09:00', end: '12:00', days: [], since: Y2 }];
   })();
+
+  /* [remind-demo] ประวัติการเตือนสมมติ + ปิดเวรอัตโนมัติ 1 ราย */
+  (function () {
+    const s = DB.students.find(x => x.no === '9013');
+    DB.logs = DB.logs.filter(l => !(l.no === '9013' && l.dutyDate === Y));
+    DB.logs.push(Object.assign(lg(Y, '16:03', s, 'เข้าเวร'), { dutyDate: Y }), Object.assign(lg(N.date, '00:00', s, 'ออกเวร'), { dutyDate: Y, authMethod: 'ไม่ได้เช็กอินออก (ระบบปิดให้)', lat: '', lng: '' }));
+    const at = (d, t) => d + 'T' + t + ':00+07:00';
+    DB.remind = [
+      { ts: at(N.date, '08:15'), kind: 'remindIn', no: '9003', name: 'นายวิชัย รอบคอบ', dutyDate: N.date, result: 'line:200' },
+      { ts: at(N.date, '08:15'), kind: 'remindIn', no: '9104', name: 'นายบุญมี สมมติ', dutyDate: N.date, result: 'no-line' },
+      { ts: at(N.date, '08:00'), kind: 'remindOut1', no: '9301', name: 'นายสมศักดิ์ ตัวอย่าง', dutyDate: N.date, result: 'line:200' },
+      { ts: at(N.date, '01:00'), kind: 'autoClose', no: '9013', name: 'นายธีระ รักงาน', dutyDate: Y, result: 'closed+line:200' },
+      { ts: at(N.date, '00:30'), kind: 'remindOut2', no: '9013', name: 'นายธีระ รักงาน', dutyDate: Y, result: 'line:200' },
+      { ts: at(N.date, '00:00'), kind: 'remindOut1', no: '9013', name: 'นายธีระ รักงาน', dutyDate: Y, result: 'line:200' },
+      { ts: at(Y, '16:15'), kind: 'remindIn', no: '9012', name: 'นายสุรชัย กล้าหาญ', dutyDate: Y, result: 'line:200' }];
+  })();
   const EFF = () => CORE.effectiveSchedule(DB.students, DB.schedule, DB.tpl);
   const SHIFT_INFO = () => ({ shifts: CORE.SHIFT_DEFS, templates: DB.tpl, unmatched: DB.students.filter(s => !CORE.shiftKeyOf(s.shiftIn, s.shiftOut)).map(s => ({ no: s.no, name: s.name, shiftIn: s.shiftIn, shiftOut: s.shiftOut })) });
   const ROLES = {
     commanderLogin: 'public', commanderList: 'public', login: 'public', officerLogin: 'public', ping: 'public', todayStats: 'public', driveCheck: 'public', lineHandoff: 'public',
     saveIncident: 'commander', assignIncident: 'commander', updateIncidentStatus: 'commander', createAnnouncement: 'commander', cancelAnnouncement: 'commander',
-    getData: 'officer admin commander', getImage: 'officer admin commander', listAnnouncements: 'commander admin', listCheckpointNotes: 'commander admin',
+    getData: 'officer admin commander', getReminderLog: 'admin commander', getImage: 'officer admin commander', listAnnouncements: 'commander admin', listCheckpointNotes: 'commander admin',
     getLiveMap: 'admin commander', getRoute: 'admin commander', getStats: 'admin commander', getMonthlyReport: 'admin commander', getDailyStatus: 'admin commander', ackLeave: 'admin commander', getHistory: 'admin commander', ackUrgentExit: 'admin commander',
     savePin: 'officer', myLeaveRequests: 'officer', officerAddLeave: 'officer', officerCancelLeave: 'officer', todayStatsDetail: 'admin commander', officerLogout: 'officer', officerCheckIn: 'officer', slotCheck: 'officer', submitCheckpointNote: 'officer', patrolCheckOut: 'officer', patrolUrgentExit: 'officer', officerUpdateTask: 'officer', getMyAnnouncements: 'officer', ackAnnouncement: 'officer'
   };   // อื่น ๆ = admin เท่านั้น (จุดตรวจ/กำลังพล/ตั้งค่า/ลบรายงาน/วันลา/PIN/LINE)
@@ -5584,6 +5666,7 @@ function preShiftMsg(shiftIn) {
       case 'issueBindCode': { const s = DB.students.find(x => x.no === p.no); if (!s) return no('ไม่พบรหัสเจ้าหน้าที่', 'NOT_FOUND'); if (s.lineLinked) return no('เจ้าหน้าที่คนนี้ผูก LINE แล้ว', 'ALREADY_LINKED'); const code = String(100000 + Math.floor(Math.random() * 900000)); const exp = new Date(Date.now() + 7 * 864e5).toISOString(); DB.bind[s.no] = exp; DB.audit.unshift({ ts: new Date().toISOString(), actor: 'แอดมิน (รหัสกลาง)', action: 'issueBindCode', target: s.no, detail: 'ออกรหัสผูก LINE' }); return ok({ data: { no: s.no, name: s.name, code, expiresAt: exp, liffUrl: '' } }); }
       case 'ackLeave': { let n = 0; DB.leave.forEach(l => { if (l.no === p.no && l.source === 'SELF' && l.date >= p.from && l.date <= (p.to || p.from) && !l.ackAt) { l.ackAt = new Date().toISOString(); l.ackBy = role === 'admin' ? 'แอดมิน (รหัสกลาง)' : label(b_tok); n++; } }); if (!n) return no('ไม่พบใบลาที่ยังไม่รับทราบ', 'NOT_FOUND'); DB.audit.unshift({ ts: new Date().toISOString(), actor: role === 'admin' ? 'แอดมิน (รหัสกลาง)' : label(b_tok), action: 'ackLeave', target: p.no + ' ' + p.from, detail: 'รับทราบ ' + n + ' วัน' }); return ok({ data: DB.leave, acked: n }); }
       case 'copySlotSchedule': { const mine = DB.schedule.filter(x => x.no === p.from); if (!mine.length) return no('ต้นแบบยังไม่มีช่วงเวลา', 'BAD_REQUEST'); let to = p.to || []; if (p.shift) to = DB.students.filter(s => s.shiftIn + '-' + s.shiftOut === p.shift).map(s => s.no); to = to.filter(n => n !== p.from); const set = new Set(to); DB.schedule = DB.schedule.filter(x => !set.has(x.no)); to.forEach(n => mine.forEach((x, i) => DB.schedule.push(Object.assign({}, x, { no: n, id: n + '|' + i, since: N.date })))); DB.audit.unshift({ ts: new Date().toISOString(), actor: 'แอดมิน (รหัสกลาง)', action: 'copySlotSchedule', target: p.from + ' → ' + to.join(','), detail: mine.length + ' ช่วง/คน' }); return ok({ data: { schedule: EFF(), copied: to.length } }); }
+      case 'getReminderLog': return ok({ data: { list: DB.remind, hasToken: true, rules: CORE.REMIND_RULES } });
       case 'saveShiftTemplate': { const v = CORE.validateShiftSlots(p.shift, p.slots || []); if (v.errors.length) return no(v.errors.join(' · '), 'BAD_REQUEST');
         DB.tpl = DB.tpl.filter(t => t.shift !== p.shift).concat((p.slots || []).map(x => ({ shift: p.shift, checkpoint: x.checkpoint, start: x.start, end: x.end, days: [], since: N.date })));
         return ok({ data: Object.assign({ schedule: EFF(), warnings: v.warnings }, SHIFT_INFO()) }); }
