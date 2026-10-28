@@ -338,7 +338,7 @@
 .acc-top>.acc-body>h2:first-child,.acc-top>.acc-body>p.acc-hide{display:none}
 </style>
 </head>
-<body class="p-2 md:p-6 flex flex-col items-center overflow-x-hidden"><div id="demo-banner" style="position:sticky;top:0;z-index:20000;background:#facc15;color:#111;font-weight:800;text-align:center;padding:8px;font-size:17px;font-family:Sarabun,sans-serif">ตัวอย่าง "จัดเจ้าหน้าที่ไปงานอีเวนต์ หลายจุด + ดาวน์โหลด Excel" (DEMO · ข้อมูลสมมติ · ไม่เชื่อมระบบจริง) · <a href="?as=commander" style="text-decoration:underline">ผู้บังคับบัญชา</a> · <a href="?as=officer" style="text-decoration:underline">เจ้าหน้าที่</a></div>
+<body class="p-2 md:p-6 flex flex-col items-center overflow-x-hidden"><div id="demo-banner" style="position:sticky;top:0;z-index:20000;background:#facc15;color:#111;font-weight:800;text-align:center;padding:8px;font-size:17px;font-family:Sarabun,sans-serif">ตัวอย่าง "จัดเจ้าหน้าที่ไปงานอีเวนต์ · เปลี่ยนคนจากรายชื่อ" (DEMO · ข้อมูลสมมติ · ไม่เชื่อมระบบจริง) · <a href="?as=commander" style="text-decoration:underline">ผู้บังคับบัญชา</a> · <a href="?as=officer" style="text-decoration:underline">เจ้าหน้าที่</a></div>
 
     <div id="app-header" class="w-full max-w-7xl glass-panel rounded-3xl p-6 pt-14 md:p-8 mb-6 fade-in relative border-t-4 border-t-accent-500">
         <div id="status-badge" class="absolute top-3 right-3 md:top-4 md:right-4 flex items-center space-x-2 bg-black/50 px-4 py-2 rounded-full text-xs font-bold border border-white/10 shadow-lg">
@@ -2379,6 +2379,17 @@ function swapEventPointOfficer(pool, points, pointId, outNo, opts) {
   if (!pick.length) return points;
   return (points || []).map(function (p) { if (p.id !== pointId) return p; return Object.assign({}, p, { officers: (p.officers || []).map(function (x) { return x === outNo ? pick[0] : x; }) }); });
 }
+function replaceEventPointOfficer(points, pointId, outNo, inNo) {
+  var from = null;
+  (points || []).forEach(function (p) { if ((p.officers || []).indexOf(inNo) >= 0) from = p.id; });
+  if (!inNo || inNo === outNo || from === pointId) return points;
+  return (points || []).map(function (p) {
+    if (p.id === pointId) return Object.assign({}, p, { officers: (p.officers || []).map(function (x) { return x === outNo ? inNo : x; }) });
+    if (from && p.id === from) return Object.assign({}, p, { officers: (p.officers || []).map(function (x) { return x === inNo ? outNo : x; }) });
+    return p;
+  });
+}
+
 
         '[accordion] หน้าผู้บังคับบัญชา: พับการ์ด (จำสถานะไว้ในเครื่อง)';
         const ACC_SUM = {
@@ -2464,6 +2475,42 @@ function swapEventPointOfficer(pool, points, pointId, outNo, opts) {
             catch (e) { Swal.fire({ icon: 'error', title: 'สร้างไฟล์ไม่สำเร็จ', text: String(e.message || e), confirmButtonText: 'ตกลง', ...SWAL_DARK }); }
         }
         document.addEventListener('click', e => { const b = e.target.closest('[data-ev-xlsx]'); if (b) evDownloadXlsx(b.dataset.evXlsx); });
+
+        '[event] เลือกคนจากรายชื่อมาแทน (ค้นหาได้) — คนในจุดอื่นของงานนี้ = สลับจุดกัน';
+        let evPick = null;
+        function evPickRows() {
+            const q = (document.getElementById('evp-q').value || '').trim().toLowerCase(), cnt = eventCounts(EV.events, EV.editId), pt = EV.points.find(x => x.id === evPick.pid) || {};
+            const where = no => EV.points.find(x => (x.officers || []).includes(no));
+            const list = EV.roster.filter(s => !q || (s.no + ' ' + s.name).toLowerCase().includes(q)).map(s => ({ s, w: where(s.no), c: cnt[s.no] || 0 }))
+                .sort((a, b) => (a.w ? 1 : 0) - (b.w ? 1 : 0) || a.c - b.c || a.s.no.localeCompare(b.s.no));
+            document.getElementById('evp-list').innerHTML = list.length ? list.map(({ s, w, c }) => { const same = w && w.id === pt.id;
+                return `<button type="button" data-evp="${esc(s.no)}" ${same ? 'disabled' : ''} class="w-full text-left flex items-center gap-3 rounded-2xl border-2 p-4 mb-2 ${same ? 'border-slate-700 bg-slate-800/60 opacity-50 cursor-not-allowed' : w ? 'border-sky-400/50 bg-sky-900/40 hover:bg-sky-800/60' : 'border-white/15 bg-slate-800 hover:bg-slate-700'}">
+                    <div class="flex-1 min-w-0"><p class="text-xl font-bold text-white break-words">${esc(s.name)}</p><p class="text-base text-slate-300">รหัส ${esc(s.no)} · เคยไปงาน <b class="text-amber-200">${c}</b> ครั้ง</p>
+                    ${w ? `<p class="text-base font-bold ${same ? 'text-slate-400' : 'text-sky-200'}">${same ? 'อยู่จุดนี้แล้ว' : '📍 อยู่ ' + esc(w.name) + ' → กดเพื่อสลับจุดกัน'}</p>` : ''}</div>
+                    <span class="flex-none text-lg font-bold px-4 py-3 rounded-xl ${same ? 'bg-slate-700 text-slate-400' : w ? 'bg-sky-600 text-white' : 'bg-emerald-600 text-white'}">${same ? '—' : w ? 'สลับ' : 'เลือก'}</span></button>`; }).join('') : '<p class="text-xl text-slate-400 text-center p-6">ไม่พบชื่อที่ค้นหา</p>';
+        }
+        function evOpenPicker(pid, outNo) {
+            evPick = { pid, outNo }; const pt = EV.points.find(x => x.id === pid) || {};
+            let m = document.getElementById('evp-modal');
+            if (!m) { m = document.createElement('div'); m.id = 'evp-modal'; m.className = 'fixed inset-0 z-[10050] bg-black/80 flex items-end sm:items-center justify-center'; document.body.appendChild(m);
+                m.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-evp-close]')) return evClosePicker(); const b = e.target.closest('[data-evp]'); if (b && !b.disabled) evPickChoose(b.dataset.evp); });
+                m.addEventListener('input', e => { if (e.target.id === 'evp-q') evPickRows(); }); }
+            m.innerHTML = `<div class="w-full sm:max-w-xl max-h-[92vh] flex flex-col rounded-t-3xl sm:rounded-3xl bg-slate-900 border border-white/15 shadow-2xl">
+                <div class="p-5 border-b border-white/10"><div class="flex items-start gap-3"><div class="flex-1"><p class="text-2xl font-bold text-white">เลือกคนมาแทน</p>
+                <p class="text-lg text-slate-300 mt-1">แทน <b class="text-amber-200">${esc(evName(outNo))}</b> ที่ ${esc(pt.name || '')}</p></div>
+                <button type="button" data-evp-close class="flex-none w-14 h-14 rounded-2xl bg-slate-700 hover:bg-rose-600 text-white text-2xl" aria-label="ปิด"><i class="fa-solid fa-xmark"></i></button></div>
+                <input id="evp-q" type="search" placeholder="🔍 พิมพ์ชื่อ หรือรหัส" class="glass-input rounded-2xl p-4 text-xl w-full mt-4" autocomplete="off">
+                <p class="text-base text-slate-400 mt-2">เรียง: คนว่าง ที่เคยไปงานน้อยก่อน · สีฟ้า = อยู่จุดอื่นของงานนี้ (กดเพื่อสลับจุดกัน)</p></div>
+                <div id="evp-list" class="p-4 overflow-y-auto flex-1"></div>
+                <div class="p-4 border-t border-white/10"><button type="button" data-evp-close class="w-full bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-2xl text-xl font-bold">ยกเลิก</button></div></div>`;
+            m.classList.remove('hidden'); evPickRows();
+        }
+        function evClosePicker() { const m = document.getElementById('evp-modal'); if (m) m.classList.add('hidden'); evPick = null; }
+        function evPickChoose(no) {
+            if (!evPick) return; const out = evPick.outNo, w = EV.points.find(x => (x.officers || []).includes(no));
+            EV.points = replaceEventPointOfficer(EV.points, evPick.pid, evPick.outNo, no); evClosePicker(); renderEvPoints();
+            Swal.fire({ toast: true, position: 'top', icon: 'success', title: w ? 'สลับจุดแล้ว: ' + evName(no) + ' ⇄ ' + evName(out) : 'เปลี่ยนเป็น ' + evName(no) + ' แล้ว', showConfirmButton: false, timer: 2200, ...SWAL_DARK });
+        }
         let EV = { events: [], counts: {}, roster: [], exclude: [], checkins: [], points: [], editId: '' };
         const evFmtDate = d => { try { return new Date(d + 'T00:00:00+07:00').toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit', timeZone: 'Asia/Bangkok' }); } catch (e) { return d; } };
         const evNewPoint = i => ({ id: 'P' + Date.now().toString(36) + i, name: 'จุดที่ ' + (i + 1), lat: '', lng: '', radius: 100, need: 3, officers: [] });
@@ -2503,7 +2550,7 @@ function swapEventPointOfficer(pool, points, pointId, outNo, opts) {
                 <p class="text-lg font-bold mt-3 ${p.officers.length >= p.need ? 'text-emerald-300' : 'text-amber-300'}">👮 ${p.officers.length}/${esc(p.need)} คน ${validLatLng(p.lat, p.lng) ? `· <a class="underline text-sky-300" target="_blank" rel="noopener" href="${mapsUrl(p.lat, p.lng)}">ดูหมุด</a>` : '· <span class="text-rose-300">ยังไม่ได้ปักหมุด</span>'}</p>
                 <div class="space-y-2 mt-2">${p.officers.map(no => `<div class="flex flex-wrap items-center gap-2 rounded-xl bg-fuchsia-500/15 border border-fuchsia-400/40 p-2.5"><div class="flex-1 min-w-[160px]"><p class="text-lg font-bold text-white">${esc(evName(no))}</p><p class="text-sm text-slate-300">${esc(no)} · เคยไปงาน ${EV.counts[no] || 0} ครั้ง</p></div>
                     <select data-ev-move="${esc(no)}" class="glass-input rounded-xl p-2.5 text-base"><option value="">ย้ายไปจุด…</option>${EV.points.filter(q => q.id !== p.id).map(q => `<option value="${esc(q.id)}">${esc(q.name)}</option>`).join('')}</select>
-                    <button type="button" data-ev-swap="${esc(no)}" data-pid="${esc(p.id)}" class="bg-amber-500 hover:bg-amber-400 text-slate-900 px-3 py-2.5 rounded-xl text-base font-bold"><i class="fa-solid fa-right-left mr-1"></i>สลับคน</button>
+<button type="button" data-ev-swap="${esc(no)}" data-pid="${esc(p.id)}" class="bg-amber-500 hover:bg-amber-400 text-slate-900 px-4 py-2.5 rounded-xl text-base font-bold"><i class="fa-solid fa-list mr-1"></i>เปลี่ยนคน</button><button type="button" data-ev-reswap="${esc(no)}" data-pid="${esc(p.id)}" title="สุ่มคนว่างมาแทน" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-2 rounded-lg text-sm font-bold"><i class="fa-solid fa-shuffle mr-1"></i>สุ่มใหม่</button>
                     <button type="button" data-ev-remove="${esc(no)}" class="bg-slate-700 hover:bg-rose-600 text-white px-3 py-2.5 rounded-xl text-base font-bold" aria-label="เอาออก"><i class="fa-solid fa-xmark"></i></button></div>`).join('')}</div>
                 <select data-ev-add="${esc(p.id)}" class="glass-input rounded-xl p-3 text-lg w-full mt-2"><option value="">＋ เพิ่มคนเข้าจุดนี้ (เลือกจากรายชื่อที่ยังว่าง ${free.length} คน)</option>${free.map(s => `<option value="${esc(s.no)}">${esc(s.name)} (${esc(s.no)}) · เคยไป ${EV.counts[s.no] || 0} ครั้ง${EV.exclude.includes(s.no) ? ' · บัญชีทดสอบ' : ''}</option>`).join('')}</select>
             </div>`).join('');
@@ -2540,7 +2587,9 @@ function swapEventPointOfficer(pool, points, pointId, outNo, opts) {
         }
         document.addEventListener('click', async e => {
             const sw = e.target.closest('[data-ev-swap]'), rm = e.target.closest('[data-ev-remove]'), ed = e.target.closest('[data-ev-edit]'), cc = e.target.closest('[data-ev-cancel]'), hr = e.target.closest('[data-ev-here]'), dp = e.target.closest('[data-ev-delpoint]');
-            if (sw) { EV.points = swapEventPointOfficer(EV.roster, EV.points, sw.dataset.pid, sw.dataset.evSwap, evOpts()); renderEvPoints(); }
+            const rs = e.target.closest('[data-ev-reswap]');
+            if (rs) { EV.points = swapEventPointOfficer(EV.roster, EV.points, rs.dataset.pid, rs.dataset.evReswap, evOpts()); renderEvPoints(); }
+            else if (sw) { evOpenPicker(sw.dataset.pid, sw.dataset.evSwap); }
             else if (rm) { EV.points = moveEventOfficer(EV.points, rm.dataset.evRemove, ''); renderEvPoints(); }
             else if (dp) { const i = Number(dp.dataset.evDelpoint); if (EV.points.length <= 1) return; EV.points.splice(i, 1); renderEvPoints(); }
             else if (hr) { const i = Number(hr.dataset.evHere); if (!navigator.geolocation) return; navigator.geolocation.getCurrentPosition(pos => { EV.points[i].lat = pos.coords.latitude.toFixed(6); EV.points[i].lng = pos.coords.longitude.toFixed(6); renderEvPoints(); }, () => Swal.fire({ icon: 'warning', title: 'อ่านตำแหน่งไม่ได้', confirmButtonText: 'ตกลง', ...SWAL_DARK }), { enableHighAccuracy: true, timeout: 15000 }); }
