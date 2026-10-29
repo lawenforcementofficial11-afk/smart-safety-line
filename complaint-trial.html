@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <style>
 body{background:#eef2f7;color:#0f1b33;font-family:'Sarabun',sans-serif;font-size:18px}
@@ -19,7 +20,11 @@ body{background:#eef2f7;color:#0f1b33;font-family:'Sarabun',sans-serif;font-size
 .lbl{display:block;font-weight:700;color:#0b2a5b;margin-bottom:.35rem;font-size:1.1rem}
 .chip{white-space:nowrap;display:inline-flex;align-items:center;gap:.45rem;padding:.3rem .85rem;border-radius:6px;font-weight:700;font-size:1.02rem;border:1.5px solid}
 .s-new{background:#e8eef7;color:#1e3a8a;border-color:#64748b}.s-assigned{background:#f3e8ff;color:#5b21b6;border-color:#7c3aed}.s-onsite{background:#fff1e6;color:#9a3412;border-color:#ea580c}
-.s-done{background:#e7f6ec;color:#166534;border-color:#16a34a}.s-overdue{background:#fdecec;color:#991b1b;border-color:#dc2626}.s-rejected{background:#e5e7eb;color:#374151;border-color:#4b5563}
+.s-done{background:#e7f6ec;color:#166534;border-color:#16a34a}.s-overdue{background:#fdecec;color:#991b1b;border-color:#dc2626}.s-rejected{background:#e5e7eb;color:#374151;border-color:#4b5563}.s-forwarded{background:#e6f6f4;color:#115e59;border-color:#0d9488}
+.s-near{background:#fff7d6;color:#854d0e;border-color:#ca8a04}.s-esc{background:#fde8f1;color:#9d174d;border-color:#db2777}
+.star{font-size:2.6rem;color:#cbd5e1;cursor:pointer;padding:0 .2rem;background:none;border:0}.star.on{color:#c9a227}
+.alertbar{border-radius:12px;padding:1rem 1.2rem;display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;font-size:1.15rem;font-weight:700}
+.nbadge{background:#dc2626;color:#fff;border-radius:999px;padding:0 .55rem;font-size:.85rem;margin-left:.2rem}
 .cat{width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.35rem;background:#e8eef7;color:#0b2a5b;border:1px solid #c7d2e3;flex:none}
 .catbtn{display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:1rem .5rem;border:2px solid #d5dce6;border-radius:12px;background:#fff;font-weight:700;font-size:1.05rem;text-align:center;min-height:120px;cursor:pointer}
 .catbtn.on{border-color:#0b2a5b;background:#eaf0fa;box-shadow:inset 0 0 0 2px #c9a227}
@@ -39,18 +44,25 @@ body{background:#eef2f7;color:#0f1b33;font-family:'Sarabun',sans-serif;font-size
 .dark{background:linear-gradient(135deg,#020617,#0f172a,#1e3a8a);color:#f8fafc}
 .glass{background:rgba(15,23,42,.78);border:1px solid rgba(255,255,255,.12);border-radius:22px}
 #print-area{display:none}
-@media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}#print-area{display:block;position:absolute;left:0;top:0;width:100%}}
+@media print{body:not(.rpt) *{visibility:hidden}body:not(.rpt) #print-area,body:not(.rpt) #print-area *{visibility:visible}body:not(.rpt) #print-area{display:block;position:absolute;left:0;top:0;width:100%}body.rpt .noprint{display:none!important}body.rpt{background:#fff}body.rpt #app{padding:0;max-width:none}}
+.rp{font-family:"TH Sarabun New","Sarabun",sans-serif;font-size:16pt;color:#000;background:#fff;max-width:210mm;margin:0 auto;padding:12mm 14mm;line-height:1.35}
+.rp h1,.rp h3{font-size:18pt;font-weight:700;margin:0}.rp h3{margin:10pt 0 4pt;border-bottom:1.5pt solid #0b2a5b;color:#0b2a5b}
+.rp table{width:100%;border-collapse:collapse;font-size:16pt}.rp th{font-size:18pt;font-weight:700;background:#dbe3ef;border:1px solid #000;padding:1pt 4pt}.rp td{border:1px solid #000;padding:1pt 4pt}
+.rp .bar{height:12pt;background:#0b2a5b;display:inline-block;vertical-align:middle}.rp .sec{break-inside:avoid}
+@media screen{.rp{box-shadow:0 2px 12px rgba(0,0,0,.15);margin-top:12px}}
+@page{size:A4 portrait;margin:10mm}
+*{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 #app.wide{max-width:1600px}@media(min-width:1600px){body{font-size:20px}}
 .leaflet-container{font-family:'Sarabun',sans-serif}
 </style></head>
 <body>
-<div style="background:#facc15;color:#111;font-weight:800;text-align:center;padding:6px;font-size:16px">ฉบับทดลอง · ข้อมูลจำลองเพื่อการนำเสนอ · ชื่อบุคคลเป็นชื่อสมมติ · ไม่เชื่อมต่อระบบจริง · <button onclick="resetDemo()" style="text-decoration:underline">ล้างข้อมูลตัวอย่าง</button></div>
-<header class="navy text-white" id="hdr"><div class="max-w-6xl mx-auto px-4 pt-4 flex items-center gap-4">
+<div id="demobar" class="noprint" style="background:#facc15;color:#111;font-weight:800;text-align:center;padding:6px;font-size:16px">ฉบับทดลอง · ข้อมูลจำลองเพื่อการนำเสนอ · ชื่อบุคคลเป็นชื่อสมมติ · ไม่เชื่อมต่อระบบจริง · <button onclick="resetDemo()" style="text-decoration:underline">ล้างข้อมูลตัวอย่าง</button></div>
+<header class="navy text-white noprint" id="hdr"><div class="max-w-6xl mx-auto px-4 pt-4 flex items-center gap-4">
 <div class="w-16 h-16 rounded-full border-2 bd-gold flex flex-col items-center justify-center text-[10px] leading-tight text-center flex-none" style="border-style:dashed;color:#e9d48a">ตรา<br>หน่วยงาน<br>(ใส่โลโก้)</div>
 <div class="flex-1"><p class="text-2xl font-extrabold tracking-wide">เทศกิจเมืองพัทยา</p><p class="text-base" style="color:#e9d48a">ระบบรับเรื่องร้องเรียน / ร้องทุกข์</p></div></div>
 <nav class="max-w-6xl mx-auto px-4 mt-3 flex flex-wrap gap-1" id="nav"></nav><div style="height:4px;background:#c9a227"></div></header>
 <main id="app" class="max-w-6xl mx-auto p-4 md:p-6"></main>
-<footer class="text-center text-sm text-slate-500 py-6" id="ftr">เทศกิจเมืองพัทยา · ระบบรับเรื่องร้องเรียน (ตัวอย่าง) · ข้อมูลส่วนบุคคลได้รับการคุ้มครองตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562</footer>
+<footer class="text-center text-sm text-slate-500 py-6" id="ftr" class="noprint">เทศกิจเมืองพัทยา · ระบบรับเรื่องร้องเรียน (ตัวอย่าง) · ข้อมูลส่วนบุคคลได้รับการคุ้มครองตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562</footer>
 <div id="print-area"></div>
 <div id="modal-root"></div>
 <script>
@@ -72,8 +84,13 @@ const ST = {
   onsite: { name: 'ลงพื้นที่ / ดำเนินการ', icon: 'fa-solid fa-person-walking-arrow-right', color: '#ea580c' },
   done: { name: 'เสร็จสิ้น', icon: 'fa-solid fa-circle-check', color: '#16a34a' },
   overdue: { name: 'เกินกำหนด', icon: 'fa-solid fa-clock', color: '#dc2626' },
-  rejected: { name: 'ยุติ / ไม่รับเรื่อง', icon: 'fa-solid fa-ban', color: '#4b5563' } };
-const ST_ORDER = ['new', 'assigned', 'onsite', 'done', 'overdue', 'rejected'];
+  rejected: { name: 'ยุติ / ไม่รับเรื่อง', icon: 'fa-solid fa-ban', color: '#4b5563' },
+  forwarded: { name: 'ส่งต่อหน่วยงานอื่น', icon: 'fa-solid fa-share-from-square', color: '#0d9488' } };
+const ST_ORDER = ['new', 'assigned', 'onsite', 'done', 'overdue', 'forwarded', 'rejected'];
+const AGENCIES = ['กองช่าง', 'กองสาธารณสุขและสิ่งแวดล้อม', 'สถานีตำรวจในพื้นที่', 'การไฟฟ้าในพื้นที่', 'การประปาในพื้นที่', 'สำนักงานขนส่ง / จราจร'];
+const FWD_ST = ['ส่งเรื่องแล้ว รอหน่วยงานตอบรับ', 'หน่วยงานรับเรื่องแล้ว อยู่ระหว่างดำเนินการ', 'หน่วยงานแจ้งดำเนินการแล้วเสร็จ'];
+const ESC_LV = ['', 'หัวหน้าชุดปฏิบัติการ', 'หัวหน้าฝ่ายเทศกิจ', 'ผู้อำนวยการสำนักงาน (ผู้บริหาร)'];
+const ACTOR = { system: 'ระบบอัตโนมัติ', citizen: 'ผู้ร้อง (ประชาชน)', commander: 'หัวหน้าชุดปฏิบัติการ (นามสมมติ: นายวีระ สุจริต)', exec: 'ผู้บริหาร (นามสมมติ)', admin: 'ผู้ดูแลระบบ' };
 const PRI = { normal: { name: 'ปกติ', f: 1 }, urgent: { name: 'ด่วน', f: 0.5 }, critical: { name: 'ด่วนมาก', f: 0.25 } };
 const ZONES = [{ id: 'z1', name: 'นาเกลือ', lat: 12.9580, lng: 100.8950 }, { id: 'z2', name: 'พัทยาเหนือ-กลาง', lat: 12.9400, lng: 100.8880 }, { id: 'z3', name: 'พัทยาใต้', lat: 12.9230, lng: 100.8760 }, { id: 'z4', name: 'จอมเทียน', lat: 12.8880, lng: 100.8740 }, { id: 'z5', name: 'เกาะล้าน', lat: 12.9150, lng: 100.7800 }];
 const OFFICERS = [['9001', 'นายสมชาย ใจดี'], ['9002', 'นางสาวมาลี ทองคำ'], ['9003', 'นายวิชัย รอบคอบ'], ['9004', 'นายอนันต์ ตั้งใจ'], ['9005', 'นางสาวกานดา เรียบร้อย'], ['9006', 'นายประเสริฐ มั่นคง'], ['9007', 'นายสุรชัย กล้าหาญ'], ['9008', 'นายธีระ รักงาน'], ['9009', 'นายกิตติ ขยันดี'], ['9010', 'นางสาวพิมพ์ใจ ซื่อตรง'], ['9011', 'นายชาตรี พร้อมเพรียง'], ['9012', 'นายวีระ อดทน']].map(x => ({ no: x[0], name: x[1] }));
@@ -101,7 +118,7 @@ function effStatus(c, now) { now = now || Date.now(); if (['new', 'assigned', 'o
 function chip(s, extra) { const t = ST[s]; return '<span class="chip s-' + s + '"><i class="' + t.icon + '"></i>' + t.name + (extra || '') + '</span>'; }
 function refNo(seq, ts) { return 'รอ.' + (bkk(ts).y + 543) + '/' + String(seq).padStart(6, '0'); }
 
-const KEY = 'cmp-trial-v3';
+const KEY = 'cmp-trial-v4';
 const PH = (cat, k, v) => 'complaint-photos/' + cat + '-' + k + v + '.jpg';
 const PLACES = {
   z1: [['ตลาดนาเกลือ', 12.9618, 100.8935], ['ถนนนาเกลือ ซอย 12', 12.9582, 100.8962], ['หาดวงศ์อมาตย์', 12.9570, 100.8872], ['ถนนพัทยา-นาเกลือ', 12.9548, 100.8992]],
@@ -150,18 +167,59 @@ function seed() {
   }
   L.sort((a, b) => a.created - b.created).forEach((c, k) => { c.seq = 101 + k; c.ref = refNo(c.seq, c.created); });
   const meCases = L.filter(c => ['assigned', 'onsite'].includes(c.status) && !c.result).slice(0, 3); meCases.forEach(c => { c.officers = [ME].concat(c.officers.filter(x => x !== ME)).slice(0, 2); });
-  return { list: L, seq: 101 + L.length };
+  seedExtras(L, now);
+  return { list: L, seq: 101 + L.length, perm: { execPii: false } };
 }
+function seedExtras(L, now) {
+  const R = rng(777), pick = a => a[Math.floor(R() * a.length)];
+  const mk = (p, merged) => { const t = Math.min(now - 1800000, p.created + (2 + R() * 30) * 3600000), dl = (R() - .5) * 0.0008, dg = (R() - .5) * 0.0008;
+    const c = { seq: 0, created: t, cat: p.cat, desc: p.desc.replace(/^[^ ]+/, m => m) + ' (แจ้งซ้ำ)', zone: p.zone, lat: p.lat + dl, lng: p.lng + dg, phone: R() < .5 ? '08x-xxx-' + String(Math.floor(R() * 9000) + 1000) : '', name: pick(['ประชาชน (นามสมมติ)', 'ผู้ร้อง (นามสมมติ)', '']), photos: p.photos.slice(), status: 'new', pri: 'normal', due: t + catOf(p.cat).sla * DAY, officers: [], hist: [{ s: 'new', ts: t, note: 'รับเรื่องผ่านช่องทางออนไลน์' }], result: null, dupSeed: merged ? p : null, dupOf: p };
+    L.push(c); return c; };
+  const doneP = L.filter(c => c.status === 'done' && c.created > now - 40 * DAY).slice(0, 3), openP = L.filter(c => ['assigned', 'onsite'].includes(c.status) && !c.officers.includes(ME)).slice(0, 2);
+  doneP.forEach(p => mk(p, true)); mk(doneP[0], true); openP.forEach(p => mk(p, false));
+  L.filter(c => c.status === 'done' && ['light', 'other', 'walk'].includes(c.cat)).slice(0, 5).forEach((c, k) => {
+    const ag = c.cat === 'light' ? 'การไฟฟ้าในพื้นที่' : c.cat === 'walk' ? 'กองช่าง' : pick(['กองสาธารณสุขและสิ่งแวดล้อม', 'สถานีตำรวจในพื้นที่']);
+    const t0 = c.hist.find(h => h.s === 'onsite').ts + 3600000, st = k < 2 ? 2 : k < 4 ? 1 : 0;
+    c.status = 'forwarded'; c.closed = undefined; c.result = null; c.hist = c.hist.filter(h => h.s !== 'done');
+    c.fwd = { agency: ag, ts: t0, no: 'ที่ พท. ' + (1200 + c.seq) + '/2569', state: st, log: [{ st: 0, ts: t0 }] };
+    if (st >= 1) c.fwd.log.push({ st: 1, ts: t0 + (6 + R() * 30) * 3600000 }); if (st >= 2) c.fwd.log.push({ st: 2, ts: t0 + (50 + R() * 90) * 3600000 });
+    c.fwd.log.forEach(x => { if (x.ts > now) x.ts = now - 3600000; });
+    c.hist.push({ s: 'forwarded', ts: t0, note: 'ส่งต่อ ' + ag + ' เนื่องจากอยู่ในอำนาจหน้าที่ของหน่วยงานดังกล่าว' }); });
+  L.sort((a, b) => a.created - b.created).forEach((c, k) => { c.seq = 101 + k; c.ref = refNo(c.seq, c.created); });
+  L.forEach(c => { if (c.dupOf) { const p = c.dupOf; delete c.dupOf; if (c.dupSeed) { c.mergedInto = p.seq; p.reporters = (p.reporters || []).concat([c.seq]); c.hist.push({ s: 'new', ts: c.created + 3600000, note: 'รวมกับเรื่องเลขที่ ' + p.ref }); } delete c.dupSeed; } });
+  L.filter(c => c.status === 'done').forEach(c => { if (R() < .82) { const x = R(), st = x < .46 ? 5 : x < .8 ? 4 : x < .92 ? 3 : x < .97 ? 2 : 1;
+    c.rating = { stars: st, comment: R() < .5 ? pick({ 5: ['ดำเนินการรวดเร็ว ขอบคุณมากครับ', 'ประทับใจ เจ้าหน้าที่สุภาพ', 'แก้ไขได้ตรงจุด'], 4: ['ดำเนินการดี แต่ใช้เวลาพอสมควร', 'ขอบคุณที่ช่วยแก้ไข'], 3: ['พอใช้ อยากให้ติดตามต่อเนื่อง'], 2: ['ปัญหากลับมาอีก อยากให้ตรวจบ่อยขึ้น'], 1: ['ยังไม่ได้รับการแก้ไขตามที่แจ้ง'] }[st]) : '', ts: Math.min(now - 600000, c.closed + (2 + R() * 40) * 3600000) }; } });
+  L.forEach(c => { c.audit = []; c.hist.forEach(h => { const m = { new: ['system', 'รับเรื่อง', h.note], assigned: ['commander', 'มอบหมายเจ้าหน้าที่', h.note], onsite: ['officer', 'บันทึกการลงพื้นที่ (ยืนยัน GPS)', 'ระยะห่างจากจุด ' + (h.gps || '-') + ' ม.'], done: ['commander', 'ปิดเรื่อง', h.note], rejected: ['commander', 'ยุติ / ไม่รับเรื่อง', h.note], forwarded: ['commander', 'ส่งต่อหน่วยงานอื่น', h.note] }[h.s];
+      if (h.note.indexOf('รวมกับเรื่อง') === 0) m[0] = 'commander', m[1] = 'รวมเรื่องซ้ำ';
+      c.audit.push({ ts: h.ts, who: m[0] === 'officer' ? (c.officers[0] || ME) : m[0], act: m[1], detail: m[2] }); });
+    if (c.result) c.audit.push({ ts: c.result.ts, who: c.result.by, act: 'ส่งรายงานผล', detail: c.result.note });
+    if (c.fwd) c.fwd.log.slice(1).forEach(x => c.audit.push({ ts: x.ts, who: 'commander', act: 'ปรับสถานะการส่งต่อ', detail: FWD_ST[x.st] }));
+    if (c.rating) c.audit.push({ ts: c.rating.ts, who: 'citizen', act: 'ประเมินความพึงพอใจ', detail: c.rating.stars + ' ดาว' });
+    c.audit.sort((a, b) => a.ts - b.ts); });
+}
+function whoName(w) { return ACTOR[w] || (OFFICERS.find(o => o.no === w) ? offName(w) + ' (เจ้าหน้าที่)' : w); }
+function logA(c, who, act, detail) { (c.audit = c.audit || []).push({ ts: Date.now(), who, act, detail: detail || '' }); }
+function live() { return DB.list.filter(c => !c.mergedInto); }
+function isOpen(c) { return ['new', 'assigned', 'onsite'].includes(c.status); }
+function nearDue(c, now) { now = now || Date.now(); return isOpen(c) && c.due > now && c.due - now < DAY; }
+function escLevel(c, now) { now = now || Date.now(); if (!isOpen(c) || now <= c.due) return 0; return now - c.due > 2 * DAY ? 3 : 2; }
+function applyEsc() { const now = Date.now(); let ch = false; DB.list.forEach(c => { if (c.mergedInto) return; const lv = escLevel(c, now); c.esc = c.esc || [];
+    for (let k = 2; k <= lv; k++) if (!c.esc.some(e => e.lv === k)) { const ts = k === 2 ? c.due : c.due + 2 * DAY; c.esc.push({ lv: k, ts }); (c.audit = c.audit || []).push({ ts, who: 'system', act: 'ยกระดับเรื่องอัตโนมัติ (ระดับ ' + k + ')', detail: 'เกินกำหนด แจ้ง' + ESC_LV[k] }); c.audit.sort((a, b) => a.ts - b.ts); ch = true; } }); if (ch) save(); }
+function dupCands(c) { return DB.list.filter(x => x !== c && !x.mergedInto && x.cat === c.cat && !['rejected', 'forwarded'].includes(x.status) && Math.abs(x.created - c.created) <= 2 * DAY && hav(x.lat, x.lng, c.lat, c.lng) <= 100 && x.created <= c.created); }
+function maskName(n) { if (!n) return 'ไม่ประสงค์ออกนาม'; return n.slice(0, 1) + '•••••' + (n.includes('(') ? ' (นามสมมติ)' : ''); }
+function maskPhone(p) { return p ? p.slice(0, 3) + '-xxx-xx' + p.slice(-2) : ''; }
+function reporterCount(c) { return 1 + (c.reporters || []).length; }
 let DB = null;
-function load() { try { DB = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { DB = null; } if (!DB || !DB.list) { DB = seed(); save(); } }
+function load() { try { DB = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { DB = null; } if (!DB || !DB.list) { DB = seed(); save(); } DB.perm = DB.perm || { execPii: false }; applyEsc(); }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { } }
-function resetDemo() { localStorage.removeItem(KEY); localStorage.removeItem('cmp-rate'); location.reload(); }
+function resetDemo() { Object.keys(localStorage).filter(k => k.indexOf('cmp-trial') === 0).forEach(k => localStorage.removeItem(k)); localStorage.removeItem(KEY); localStorage.removeItem('cmp-rate'); location.reload(); }
 function byRef(r) { r = String(r || '').replace(/\s+/g, '').replace(/^รอ/, 'รอ'); return DB.list.find(c => c.ref === r || c.ref.replace('รอ.', '') === r || String(c.seq) === r.replace(/^0+/, '')); }
 
-const VIEWS = [['home', 'หน้าแรก', 'fa-solid fa-house'], ['citizen', 'ยื่นเรื่องร้องเรียน', 'fa-solid fa-pen-to-square'], ['track', 'ติดตามเรื่อง', 'fa-solid fa-magnifying-glass'], ['commander', 'ผู้บังคับบัญชา', 'fa-solid fa-inbox'], ['officer', 'เจ้าหน้าที่', 'fa-solid fa-user-shield'], ['exec', 'ผู้บริหาร', 'fa-solid fa-chart-column']];
+const VIEWS = [['home', 'หน้าแรก', 'fa-solid fa-house'], ['citizen', 'ยื่นเรื่องร้องเรียน', 'fa-solid fa-pen-to-square'], ['track', 'ติดตามเรื่อง', 'fa-solid fa-magnifying-glass'], ['commander', 'ผู้บังคับบัญชา', 'fa-solid fa-inbox'], ['officer', 'เจ้าหน้าที่', 'fa-solid fa-user-shield'], ['exec', 'ผู้บริหาร', 'fa-solid fa-chart-column'], ['audit', 'บันทึกการใช้งาน', 'fa-solid fa-clipboard-list'], ['report', 'รายงานประจำเดือน', 'fa-solid fa-file-pdf']];
 const Q = new URLSearchParams(location.search);
 let VIEW = Q.get('as') || 'home';
-function nav() { $('nav').innerHTML = VIEWS.map(v => '<a class="tab ' + (v[0] === VIEW ? 'on' : '') + '" href="?as=' + v[0] + '"><i class="' + v[2] + '"></i>' + v[1] + '</a>').join(''); }
+function alertCounts(list) { const now = Date.now(); return { over: list.filter(c => effStatus(c, now) === 'overdue').length, near: list.filter(c => nearDue(c, now)).length, esc3: list.filter(c => escLevel(c, now) === 3).length }; }
+function nav() { const a = alertCounts(live()); $('nav').innerHTML = VIEWS.map(v => '<a class="tab ' + (v[0] === VIEW ? 'on' : '') + '" href="?as=' + v[0] + '"><i class="' + v[2] + '"></i>' + v[1] + (v[0] === 'commander' && a.over + a.near ? '<span class="nbadge" title="เกินกำหนด/ใกล้ครบกำหนด">' + (a.over + a.near) + '</span>' : '') + '</a>').join(''); }
 function modal(html) { $('modal-root').innerHTML = '<div class="modal" id="mdl"><div>' + html + '</div></div>'; $('mdl').addEventListener('click', e => { if (e.target.id === 'mdl' || e.target.closest('[data-close]')) closeModal(); }); }
 function closeModal() { $('modal-root').innerHTML = ''; }
 function toast(msg, ok) { const t = document.createElement('div'); t.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[3000] px-6 py-4 rounded-xl text-lg font-bold shadow-xl ' + (ok === false ? 'bg-red-700 text-white' : 'bg-green-800 text-white'); t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); }
@@ -211,8 +269,17 @@ function submitComplaint() {
   const now = Date.now(), cat = catOf(F.cat), seq = DB.seq++;
   const c = { seq, ref: refNo(seq, now), created: now, cat: F.cat, desc: desc + ($('f-place').value.trim() ? ' (' + $('f-place').value.trim() + ')' : ''), zone: nearestZone(F.lat, F.lng), lat: F.lat, lng: F.lng, phone, name: $('f-name').value.trim(),
     photos: F.photos.length ? F.photos : [img(cat.name, '#475569')], status: 'new', pri: 'normal', due: now + cat.sla * DAY, officers: [], hist: [{ s: 'new', ts: now, note: 'รับเรื่องผ่านช่องทางออนไลน์' }], result: null };
-  DB.list.push(c); save(); showReceiptView(c);
+  DB.list.push(c); logA(c, 'citizen', 'ยื่นเรื่องร้องเรียน', catOf(c.cat).name); save();
+  const d = dupCands(c);
+  if (!d.length) return showReceiptView(c);
+  const p = d[d.length - 1];
+  modal('<div class="navy text-white px-5 py-4"><p class="text-2xl font-extrabold"><i class="fa-solid fa-clone gold"></i> พบเรื่องลักษณะเดียวกันใกล้เคียง</p></div><div class="p-5 text-lg"><p>มีผู้แจ้งเรื่องประเภท <b>' + esc(catOf(p.cat).name) + '</b> ในรัศมีประมาณ ' + Math.round(hav(p.lat, p.lng, c.lat, c.lng)) + ' เมตร ภายใน 48 ชั่วโมง</p><div class="row my-4" style="border-left-color:' + ST[effStatus(p)].color + ';cursor:default"><div class="flex-1"><p class="mono font-bold text-[#0b2a5b]">' + esc(p.ref) + '</p><p>' + esc(p.desc) + '</p><p class="text-base text-slate-600">ผู้แจ้งแล้ว ' + reporterCount(p) + ' ราย</p></div>' + chip(effStatus(p)) + '</div><p>ท่านต้องการร่วมแจ้งกับเรื่องเดิมเพื่อให้เจ้าหน้าที่ดำเนินการในคราวเดียว หรือยื่นเป็นเรื่องใหม่</p>'
+    + '<div class="grid sm:grid-cols-2 gap-3 mt-5"><button class="btn b-pri" id="d-merge"><i class="fa-solid fa-code-merge"></i>ร่วมแจ้งกับเรื่องเดิม</button><button class="btn b-out" id="d-new"><i class="fa-solid fa-file-circle-plus"></i>ยื่นเป็นเรื่องใหม่</button></div></div>');
+  $('d-merge').onclick = () => { mergeCase(c, p, 'citizen'); closeModal(); showReceiptView(c); };
+  $('d-new').onclick = () => { closeModal(); showReceiptView(c); };
 }
+function mergeCase(c, p, who) { c.mergedInto = p.seq; p.reporters = (p.reporters || []).concat([c.seq]); c.hist.push({ s: 'new', ts: Date.now(), note: 'รวมกับเรื่องเลขที่ ' + p.ref });
+  logA(c, who, 'รวมเรื่องซ้ำ', 'รวมเข้ากับเรื่อง ' + p.ref); logA(p, who, 'รับรวมเรื่องซ้ำ', 'เรื่อง ' + c.ref + ' · ผู้แจ้งรวม ' + reporterCount(p) + ' ราย'); save(); }
 function receiptHtml(c, forPrint) {
   const cat = catOf(c.cat);
   return '<div style="max-width:720px;margin:0 auto;font-family:Sarabun,sans-serif;color:#0f1b33;border:1.5px solid #0b2a5b">'
@@ -228,14 +295,14 @@ function showReceiptView(c) {
   window.scrollTo(0, 0);
   $('app').innerHTML = '<section class="card p-6 max-w-3xl mx-auto"><div class="text-center mb-4"><div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center text-3xl s-done border-2"><i class="fa-solid fa-check"></i></div>'
     + '<p class="text-2xl font-extrabold text-[#0b2a5b] mt-3">ระบบได้รับเรื่องของท่านแล้ว</p><p class="text-lg text-slate-600">เลขที่รับเรื่อง</p><p class="mono text-4xl font-extrabold text-[#0b2a5b]">' + esc(c.ref) + '</p></div>'
-    + receiptHtml(c) + '<div class="grid sm:grid-cols-3 gap-3 mt-5"><button class="btn b-pri" onclick="printReceipt(\'' + esc(c.ref) + '\')"><i class="fa-solid fa-print"></i>พิมพ์ใบรับเรื่อง</button>'
+    + (c.mergedInto ? '<div class="alertbar s-forwarded border-2 mb-4"><i class="fa-solid fa-code-merge"></i>เรื่องของท่านได้รวมกับเรื่องเลขที่ ' + esc(DB.list.find(x => x.seq === c.mergedInto).ref) + ' ท่านสามารถติดตามผลได้ด้วยเลขที่ของท่านตามปกติ</div>' : '') + receiptHtml(c) + '<div class="grid sm:grid-cols-3 gap-3 mt-5"><button class="btn b-pri" onclick="printReceipt(\'' + esc(c.ref) + '\')"><i class="fa-solid fa-print"></i>พิมพ์ใบรับเรื่อง</button>'
     + '<a class="btn b-out" href="' + esc(trackUrl(c.ref)) + '"><i class="fa-solid fa-magnifying-glass"></i>ติดตามสถานะ</a><button class="btn b-out" id="cp-link"><i class="fa-regular fa-copy"></i>คัดลอกลิงก์</button></div></section>';
   $('cp-link').onclick = () => { try { navigator.clipboard.writeText(trackUrl(c.ref)); toast('คัดลอกลิงก์แล้ว'); } catch (e) { } };
 }
 
 function timelineHtml(c, publicView) {
   const es = effStatus(c), steps = ['new', 'assigned', 'onsite', 'done'];
-  if (c.status === 'rejected') return '<ol class="tl">' + c.hist.map(h => '<li><span class="dot s-' + h.s + '"><i class="' + ST[h.s].icon + '"></i></span><p class="font-bold text-lg">' + ST[h.s].name + '</p><p class="text-base text-slate-600">' + esc(fDT(h.ts)) + '</p><p class="text-base">' + esc(h.note) + '</p></li>').join('') + '</ol>';
+  if (c.status === 'rejected' || c.status === 'forwarded') return '<ol class="tl">' + c.hist.map(h => '<li><span class="dot s-' + h.s + '"><i class="' + ST[h.s].icon + '"></i></span><p class="font-bold text-lg">' + ST[h.s].name + '</p><p class="text-base text-slate-600">' + esc(fDT(h.ts)) + '</p><p class="text-base">' + esc(publicView && h.s === 'assigned' ? 'มอบหมายเจ้าหน้าที่เทศกิจผู้รับผิดชอบแล้ว' : h.note) + '</p></li>').join('') + (c.fwd ? '<li><span class="dot s-forwarded"><i class="fa-solid fa-building-flag"></i></span><p class="font-bold text-lg">สถานะที่หน่วยงานปลายทาง</p><p class="text-base">' + esc(c.fwd.agency) + ' · ' + esc(FWD_ST[c.fwd.state]) + '</p><p class="text-base text-slate-600">ปรับปรุงล่าสุด ' + esc(fDT(c.fwd.log[c.fwd.log.length - 1].ts)) + '</p></li>' : '') + '</ol>';
   return '<ol class="tl">' + steps.map(s => { const h = c.hist.find(x => x.s === s), cur = !h && es === 'overdue' && steps.indexOf(s) === steps.indexOf(c.status) + 1;
     const note = h ? (publicView && s === 'assigned' ? 'มอบหมายเจ้าหน้าที่เทศกิจผู้รับผิดชอบแล้ว' : h.note.replace(/\s*\(.*\)$/, '')) : (cur ? 'เกินกำหนดแล้วเสร็จ (' + esc(fDate(c.due)) + ') อยู่ระหว่างเร่งรัด' : 'รอดำเนินการ');
     return '<li class="' + (h ? '' : 'todo') + '"' + (cur ? ' style="opacity:1"' : '') + '><span class="dot s-' + (h ? s : cur ? 'overdue' : s) + '"><i class="' + (cur ? ST.overdue.icon : ST[s].icon) + '"></i></span><p class="font-bold text-lg">' + ST[s].name + '</p>' + (h ? '<p class="text-base text-slate-600">' + esc(fDT(h.ts)) + '</p>' : '') + '<p class="text-base">' + note + '</p></li>'; }).join('') + '</ol>';
@@ -244,23 +311,45 @@ function viewTrack() {
   const r = Q.get('ref') || '';
   $('app').innerHTML = '<section class="card p-5 max-w-3xl mx-auto"><h2><i class="fa-solid fa-magnifying-glass gold"></i>ติดตามสถานะเรื่องร้องเรียน</h2><label class="lbl" for="t-ref">เลขที่รับเรื่อง</label><div class="flex flex-col sm:flex-row gap-3"><input id="t-ref" class="inp mono text-2xl" placeholder="รอ.2569/000142" value="' + esc(r) + '"><button class="btn b-pri" id="t-go"><i class="fa-solid fa-magnifying-glass"></i>ตรวจสอบ</button></div>'
     + '<p class="text-base text-slate-600 mt-2">ตัวอย่างเลขที่: ' + trackExamples().map(x => '<button class="underline text-[#0b2a5b] font-bold mr-2" data-ex="' + x + '">' + x + '</button>').join('') + '</p></section><div id="t-out" class="max-w-3xl mx-auto mt-6"></div>';
-  const go = () => { const c = byRef($('t-ref').value); if (!c) { $('t-out').innerHTML = '<section class="card p-5 text-lg"><i class="fa-solid fa-circle-exclamation text-red-700"></i> ไม่พบเลขที่รับเรื่องนี้ กรุณาตรวจสอบอีกครั้ง</section>'; return; }
+  const go = () => { let c = byRef($('t-ref').value), mergedNote = ''; if (c && c.mergedInto) { const p = DB.list.find(x => x.seq === c.mergedInto); mergedNote = '<div class="alertbar s-forwarded border-2 mb-4"><i class="fa-solid fa-code-merge"></i>เรื่อง ' + esc(c.ref) + ' ได้รวมกับเรื่องเลขที่ ' + esc(p.ref) + ' (ผู้แจ้งรวม ' + reporterCount(p) + ' ราย) แสดงสถานะของเรื่องหลักด้านล่าง</div>'; c = p; } if (!c) { $('t-out').innerHTML = '<section class="card p-5 text-lg"><i class="fa-solid fa-circle-exclamation text-red-700"></i> ไม่พบเลขที่รับเรื่องนี้ กรุณาตรวจสอบอีกครั้ง</section>'; return; }
     const es = effStatus(c), cat = catOf(c.cat);
-    $('t-out').innerHTML = '<section class="card p-5"><div class="flex flex-wrap items-start gap-4 mb-4"><span class="cat"><i class="' + cat.icon + '"></i></span><div class="flex-1"><p class="mono text-2xl font-extrabold text-[#0b2a5b]">' + esc(c.ref) + '</p><p class="text-lg">' + esc(cat.name) + ' · พื้นที่' + esc(zoneOf(c.zone).name) + '</p><p class="text-base text-slate-600">ยื่นเรื่องเมื่อ ' + esc(fLong(c.created)) + '</p></div><div>' + chip(es) + '</div></div>'
+    $('t-out').innerHTML = '<section class="card p-5">' + mergedNote + '<div class="flex flex-wrap items-start gap-4 mb-4"><span class="cat"><i class="' + cat.icon + '"></i></span><div class="flex-1"><p class="mono text-2xl font-extrabold text-[#0b2a5b]">' + esc(c.ref) + '</p><p class="text-lg">' + esc(cat.name) + ' · พื้นที่' + esc(zoneOf(c.zone).name) + '</p><p class="text-base text-slate-600">ยื่นเรื่องเมื่อ ' + esc(fLong(c.created)) + '</p></div><div>' + chip(es) + '</div></div>'
       + '<p class="text-lg mb-4"><b>รายละเอียด:</b> ' + esc(c.desc) + '</p><h2><i class="fa-solid fa-timeline gold"></i>ลำดับการดำเนินการ</h2>' + timelineHtml(c, true)
       + (c.status === 'done' && c.result ? '<h2 class="mt-2"><i class="fa-solid fa-clipboard-check gold"></i>ผลการดำเนินการ</h2><p class="text-lg mb-3">' + esc(c.result.note) + '</p><div class="flex flex-wrap gap-3">' + (c.result.before || []).map(p => '<figure><img class="rounded-lg border" style="width:260px;height:195px;object-fit:cover" src="' + p + '"><figcaption class="text-base text-slate-600">ภาพก่อนดำเนินการ</figcaption></figure>').join('') + c.result.after.map(p => '<figure><img class="rounded-lg border" style="width:260px;height:195px;object-fit:cover" src="' + p + '"><figcaption class="text-base text-slate-600">ภาพหลังดำเนินการ</figcaption></figure>').join('') + '</div><p class="text-base text-slate-600 mt-3">ดำเนินการโดย เจ้าหน้าที่เทศกิจเมืองพัทยา · ปิดเรื่องเมื่อ ' + esc(fLong(c.closed)) + '</p>' : '')
       + (c.status === 'rejected' ? '<p class="text-lg mt-2"><b>เหตุผล:</b> ' + esc(c.rejectReason || '') + '</p>' : '')
+      + (c.status === 'done' ? '<div id="t-rate" class="mt-5"></div>' : '')
       + '<div class="mt-5"><button class="btn b-out" onclick="printReceipt(\'' + esc(c.ref) + '\')"><i class="fa-solid fa-print"></i>พิมพ์ใบรับเรื่อง</button></div></section>'; };
-  $('t-go').onclick = go; $('t-ref').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
-  document.querySelectorAll('[data-ex]').forEach(b => b.onclick = () => { $('t-ref').value = b.dataset.ex; go(); });
-  if (r) go();
+  const rateBox = c => { const el = $('t-rate'); if (!el) return; const stars = n => [1, 2, 3, 4, 5].map(i => '<i class="fa-solid fa-star star ' + (i <= n ? 'on' : '') + '"></i>').join('');
+    if (c.rating) { el.innerHTML = '<div class="rounded-xl border-2 p-4" style="border-color:#c9a227;background:#fffbea"><p class="lbl">ผลการประเมินความพึงพอใจของท่าน</p><div>' + stars(c.rating.stars) + '</div><p class="text-lg">' + esc(c.rating.comment || '') + '</p><p class="text-base text-slate-600">ประเมินเมื่อ ' + esc(fDT(c.rating.ts)) + ' · ขอขอบคุณที่ร่วมประเมิน</p></div>'; return; }
+    let n = 0; el.innerHTML = '<div class="rounded-xl border-2 p-4" style="border-color:#c9a227;background:#fffbea"><p class="lbl text-xl">โปรดประเมินความพึงพอใจต่อการดำเนินการ</p><div id="r-st" role="radiogroup">' + [1, 2, 3, 4, 5].map(i => '<button type="button" class="star" data-s="' + i + '" aria-label="' + i + ' ดาว"><i class="fa-solid fa-star"></i></button>').join('') + '<span id="r-lb" class="text-lg font-bold ml-2"></span></div>'
+      + '<label class="lbl mt-3" for="r-cm">ข้อเสนอแนะเพิ่มเติม (ไม่บังคับ)</label><textarea id="r-cm" rows="2" maxlength="300" class="inp"></textarea><button class="btn b-gold mt-3 w-full sm:w-auto" id="r-ok"><i class="fa-solid fa-paper-plane"></i>ส่งผลการประเมิน</button></div>';
+    const LB = ['', 'ควรปรับปรุงมาก', 'ควรปรับปรุง', 'ปานกลาง', 'พึงพอใจ', 'พึงพอใจมาก'];
+    el.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { n = +b.dataset.s; el.querySelectorAll('[data-s]').forEach(x => x.classList.toggle('on', +x.dataset.s <= n)); $('r-lb').textContent = LB[n]; });
+    $('r-ok').onclick = () => { if (!n) return toast('กรุณาเลือกจำนวนดาว', false); c.rating = { stars: n, comment: $('r-cm').value.trim(), ts: Date.now() }; logA(c, 'citizen', 'ประเมินความพึงพอใจ', n + ' ดาว'); save(); toast('ขอบคุณสำหรับการประเมิน'); rateBox(c); }; };
+  const go0 = go; const go2 = () => { go0(); let c = byRef($('t-ref').value); if (c && c.mergedInto) c = DB.list.find(x => x.seq === c.mergedInto); if (c) rateBox(c); };
+  $('t-go').onclick = go2; $('t-ref').addEventListener('keydown', e => { if (e.key === 'Enter') go2(); });
+  document.querySelectorAll('[data-ex]').forEach(b => b.onclick = () => { $('t-ref').value = b.dataset.ex; go2(); });
+  if (r) go2();
 }
 
 let CF = { st: '', cat: '', zone: '', q: '' };
+function slaBanner(A, dupN, mine) {
+  if (!A.over && !A.near && !dupN) return '<div class="alertbar s-done border-2 mb-5"><i class="fa-solid fa-circle-check"></i>ไม่มีเรื่องเกินกำหนดหรือใกล้ครบกำหนด</div>';
+  return '<div class="alertbar mb-5 border-2" style="background:#fff;border-color:#dc2626"><i class="fa-solid fa-bell text-red-700 text-2xl"></i><span>การแจ้งเตือนกำหนดเวลา' + (mine ? 'ของท่าน' : '') + ':</span>'
+    + '<span class="chip s-overdue"><i class="fa-solid fa-clock"></i>เกินกำหนด ' + A.over + ' เรื่อง</span><span class="chip s-near"><i class="fa-solid fa-hourglass-half"></i>ใกล้ครบกำหนด (ภายใน 24 ชม.) ' + A.near + ' เรื่อง</span>'
+    + (A.esc3 ? '<span class="chip s-esc"><i class="fa-solid fa-arrow-up-right-dots"></i>ยกระดับถึงผู้บริหาร ' + A.esc3 + ' เรื่อง</span>' : '') + (dupN ? '<span class="chip s-forwarded"><i class="fa-solid fa-clone"></i>อาจเป็นเรื่องซ้ำ ' + dupN + ' เรื่อง</span>' : '') + '</div>';
+}
+function flags(c) { const now = Date.now(), lv = escLevel(c, now); let f = '';
+  if (nearDue(c, now)) f += ' <span class="chip s-near" style="font-size:.85rem"><i class="fa-solid fa-hourglass-half"></i>เหลือ ' + Math.max(1, Math.round((c.due - now) / 3600000)) + ' ชม.</span>';
+  if (lv) f += ' <span class="chip s-esc" style="font-size:.85rem"><i class="fa-solid fa-arrow-up-right-dots"></i>ยกระดับ: ' + ESC_LV[lv] + '</span>';
+  if (reporterCount(c) > 1) f += ' <span class="chip s-new" style="font-size:.85rem"><i class="fa-solid fa-users"></i>ผู้แจ้ง ' + reporterCount(c) + ' ราย</span>';
+  if (isOpen(c) && dupCands(c).length) f += ' <span class="chip s-forwarded" style="font-size:.85rem"><i class="fa-solid fa-clone"></i>อาจซ้ำ</span>';
+  if (c.fwd) f += ' <span class="chip s-forwarded" style="font-size:.85rem"><i class="fa-solid fa-building-flag"></i>' + esc(c.fwd.agency) + '</span>';
+  return f; }
 function viewCommander() {
   const opts = (arr, cur) => arr.map(x => '<option value="' + x[0] + '"' + (x[0] === cur ? ' selected' : '') + '>' + x[1] + '</option>').join('');
-  const counts = {}; ST_ORDER.forEach(s => counts[s] = 0); DB.list.forEach(c => counts[effStatus(c)]++);
-  $('app').innerHTML = '<section class="card p-5 mb-6"><h2><i class="fa-solid fa-inbox gold"></i>กล่องรับเรื่องร้องเรียน</h2><div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">'
+  const counts = {}; ST_ORDER.forEach(s => counts[s] = 0); live().forEach(c => counts[effStatus(c)]++); const A = alertCounts(live()), dupN = live().filter(c => isOpen(c) && dupCands(c).length).length;
+  $('app').innerHTML = slaBanner(A, dupN) + '<section class="card p-5 mb-6"><h2><i class="fa-solid fa-inbox gold"></i>กล่องรับเรื่องร้องเรียน</h2><div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 mb-4">'
     + ST_ORDER.map(s => '<button class="rounded-lg border-2 p-3 text-left ' + (CF.st === s ? 'ring-4 ring-amber-300' : '') + '" style="border-color:' + ST[s].color + '" data-fst="' + s + '"><p class="text-base font-bold" style="color:' + ST[s].color + '"><i class="' + ST[s].icon + '"></i> ' + ST[s].name + '</p><p class="text-3xl font-extrabold">' + counts[s] + '</p></button>').join('') + '</div>'
     + '<div class="grid sm:grid-cols-4 gap-3"><select id="cf-st" class="inp"><option value="">ทุกสถานะ</option>' + opts(ST_ORDER.map(s => [s, ST[s].name]), CF.st) + '</select><select id="cf-cat" class="inp"><option value="">ทุกประเภท</option>' + opts(CATS.map(c => [c.id, c.name]), CF.cat) + '</select>'
     + '<select id="cf-zone" class="inp"><option value="">ทุกพื้นที่</option>' + opts(ZONES.map(z => [z.id, z.name]), CF.zone) + '</select><input id="cf-q" class="inp" placeholder="ค้นหาเลขที่ / คำ" value="' + esc(CF.q) + '"></div><div class="mt-4">' + legend() + '</div></section><div id="c-list" class="space-y-2"></div>';
@@ -270,33 +359,60 @@ function viewCommander() {
   renderInbox();
 }
 function renderInbox() {
-  const L2 = DB.list.filter(c => (!CF.st || effStatus(c) === CF.st) && (!CF.cat || c.cat === CF.cat) && (!CF.zone || c.zone === CF.zone) && (!CF.q || (c.ref + ' ' + c.desc).includes(CF.q)))
-    .sort((a, b) => { const w = s => ({ overdue: 0, new: 1, assigned: 2, onsite: 3, done: 4, rejected: 5 }[s]); return w(effStatus(a)) - w(effStatus(b)) || b.created - a.created; });
+  const L2 = live().filter(c => (!CF.st || effStatus(c) === CF.st) && (!CF.cat || c.cat === CF.cat) && (!CF.zone || c.zone === CF.zone) && (!CF.q || (c.ref + ' ' + c.desc).includes(CF.q)))
+    .sort((a, b) => { const w = s => ({ overdue: 0, new: 1, assigned: 2, onsite: 3, forwarded: 4, done: 5, rejected: 6 }[s]); return w(effStatus(a)) - w(effStatus(b)) || nearDue(b) - nearDue(a) || b.created - a.created; });
   $('c-list').innerHTML = L2.length ? L2.map(c => { const es = effStatus(c), cat = catOf(c.cat);
-    return '<div class="row" style="border-left-color:' + ST[es].color + '" data-open="' + c.seq + '"><span class="cat"><i class="' + cat.icon + '"></i></span><div class="flex-1 min-w-0"><p class="mono font-bold text-[#0b2a5b] text-lg">' + esc(c.ref) + (c.pri !== 'normal' ? ' <span class="chip s-overdue" style="font-size:.85rem">' + PRI[c.pri].name + '</span>' : '') + '</p><p class="text-lg truncate">' + esc(c.desc) + '</p>'
+    return '<div class="row" style="border-left-color:' + ST[es].color + '" data-open="' + c.seq + '"><span class="cat"><i class="' + cat.icon + '"></i></span><div class="flex-1 min-w-0"><p class="mono font-bold text-[#0b2a5b] text-lg">' + esc(c.ref) + (c.pri !== 'normal' ? ' <span class="chip s-overdue" style="font-size:.85rem">' + PRI[c.pri].name + '</span>' : '') + flags(c) + '</p><p class="text-lg truncate">' + esc(c.desc) + '</p>'
       + '<p class="text-base text-slate-600">' + esc(cat.name) + ' · ' + esc(zoneOf(c.zone).name) + ' · รับเรื่อง ' + esc(fDate(c.created)) + (c.officers.length ? ' · ' + esc(c.officers.map(offName).join(', ')) : '') + '</p></div><div class="text-right">' + chip(es) + '<p class="text-sm text-slate-600 mt-1">กำหนด ' + esc(fDate(c.due)) + '</p></div></div>'; }).join('') : '<section class="card p-6 text-center text-lg text-slate-600">ไม่พบรายการ</section>';
   document.querySelectorAll('[data-open]').forEach(r => r.onclick = () => openCase(+r.dataset.open));
 }
-function openCase(seq) {
-  const c = DB.list.find(x => x.seq === seq), es = effStatus(c), cat = catOf(c.cat);
-  modal('<div class="navy text-white px-5 py-4 flex items-center gap-3 sticky top-0 z-10"><div class="flex-1"><p class="mono text-2xl font-extrabold">' + esc(c.ref) + '</p><p style="color:#e9d48a">' + esc(cat.name) + ' · ' + esc(zoneOf(c.zone).name) + '</p></div>' + chip(es) + '<button data-close class="w-12 h-12 rounded-lg bg-white/10 text-2xl" aria-label="ปิด"><i class="fa-solid fa-xmark"></i></button></div>'
-    + '<div class="p-5 grid md:grid-cols-2 gap-5"><div><p class="text-lg mb-2"><b>รายละเอียด:</b> ' + esc(c.desc) + '</p><p class="text-base text-slate-600">รับเรื่อง ' + esc(fLong(c.created)) + '</p><p class="text-base text-slate-600">ผู้ร้อง: ' + esc(c.name || 'ไม่ประสงค์ออกนาม') + (c.phone ? ' · โทร ' + esc(c.phone) : '') + '</p>'
-    + '<div class="flex flex-wrap gap-2 my-3">' + c.photos.map(p => '<img class="thumb" src="' + p + '">').join('') + '</div><div id="m-map" style="height:220px" class="rounded-lg border"></div></div>'
-    + '<div><h2><i class="fa-solid fa-timeline gold"></i>ลำดับการดำเนินการ</h2>' + timelineHtml(c, false)
-    + (c.result ? '<div class="rounded-lg border border-green-600 bg-green-50 p-3 mb-3"><p class="font-bold text-green-800">รายงานผลจากเจ้าหน้าที่</p><p>' + esc(c.result.note) + '</p><div class="flex gap-2 mt-2">' + c.result.before.concat(c.result.after).map(p => '<img class="thumb" src="' + p + '">').join('') + '</div></div>' : '') + '</div></div>'
-    + (['done', 'rejected'].includes(c.status) ? '' : '<div class="px-5 pb-5"><div class="rounded-lg border border-slate-300 p-4"><p class="lbl">มอบหมาย / กำหนดเวลา</p><div class="grid sm:grid-cols-2 gap-3"><div><label class="text-base text-slate-600">ความเร่งด่วน</label><select id="m-pri" class="inp">' + Object.keys(PRI).map(k => '<option value="' + k + '"' + (k === c.pri ? ' selected' : '') + '>' + PRI[k].name + '</option>').join('') + '</select></div>'
+function personHtml(c, role) {
+  const full = role === 'commander' || role === 'admin' || (role === 'exec' && DB.perm.execPii && c._piiOk);
+  if (full) return '<p class="text-base text-slate-600">ผู้ร้อง: ' + esc(c.name || 'ไม่ประสงค์ออกนาม') + (c.phone ? ' · โทร ' + esc(c.phone) : '') + ' <span class="chip s-done" style="font-size:.8rem"><i class="fa-solid fa-eye"></i>แสดงข้อมูลเต็มตามสิทธิ์</span></p>';
+  return '<p class="text-base text-slate-600">ผู้ร้อง: ' + esc(maskName(c.name)) + (c.phone ? ' · โทร ' + esc(maskPhone(c.phone)) : '') + ' <span class="chip s-rejected" style="font-size:.8rem"><i class="fa-solid fa-eye-slash"></i>ปิดบังตามสิทธิ์ (PDPA)</span></p>'
+    + (role === 'exec' ? (DB.perm.execPii ? '<button class="btn b-out b-sm mt-1" id="m-pii"><i class="fa-solid fa-key"></i>ขอดูข้อมูลผู้ร้อง (บันทึกการเข้าถึง)</button>' : '<p class="text-sm text-slate-500">ผู้บริหารยังไม่ได้รับสิทธิ์ดูข้อมูลส่วนบุคคล กำหนดได้ที่หน้า "บันทึกการใช้งาน"</p>') : '');
+}
+function auditHtml(c) { return '<details class="mt-3 rounded-lg border border-slate-300 p-3"><summary class="text-lg font-bold text-[#0b2a5b] cursor-pointer"><i class="fa-solid fa-clipboard-list gold"></i> บันทึกการเปลี่ยนแปลง (' + (c.audit || []).length + ' รายการ)</summary><table class="w-full text-base mt-2 border-collapse"><thead><tr class="bg-slate-100"><th class="p-2 border text-left">วันเวลา</th><th class="p-2 border text-left">ผู้ดำเนินการ</th><th class="p-2 border text-left">การดำเนินการ</th></tr></thead><tbody>'
+  + (c.audit || []).slice().reverse().map(a => '<tr><td class="p-2 border whitespace-nowrap">' + esc(fDT(a.ts)) + '</td><td class="p-2 border">' + esc(whoName(a.who)) + '</td><td class="p-2 border"><b>' + esc(a.act) + '</b>' + (a.detail ? '<br>' + esc(a.detail) : '') + '</td></tr>').join('') + '</tbody></table></details>'; }
+function openCase(seq, role) {
+  role = role || 'commander'; const c = DB.list.find(x => x.seq === seq), es = effStatus(c), cat = catOf(c.cat), ro = role !== 'commander', dups = isOpen(c) ? dupCands(c) : [];
+  if (role === 'commander') { logA(c, 'commander', 'เปิดดูรายละเอียดเรื่อง', 'ข้อมูลผู้ร้องแสดงเต็มตามสิทธิ์ผู้บังคับบัญชา'); save(); }
+  modal('<div class="navy text-white px-5 py-4 flex items-center gap-3 sticky top-0 z-10"><div class="flex-1"><p class="mono text-2xl font-extrabold">' + esc(c.ref) + '</p><p style="color:#e9d48a">' + esc(cat.name) + ' · ' + esc(zoneOf(c.zone).name) + (ro ? ' · มุมมองผู้บริหาร (อ่านอย่างเดียว)' : '') + '</p></div>' + chip(es) + '<button data-close class="w-12 h-12 rounded-lg bg-white/10 text-2xl" aria-label="ปิด"><i class="fa-solid fa-xmark"></i></button></div>'
+    + '<div class="p-5 grid md:grid-cols-2 gap-5"><div><div class="mb-2">' + flags(c) + '</div><p class="text-lg mb-2"><b>รายละเอียด:</b> ' + esc(c.desc) + '</p><p class="text-base text-slate-600">รับเรื่อง ' + esc(fLong(c.created)) + ' · กำหนดแล้วเสร็จ ' + esc(fDate(c.due)) + '</p><div id="m-person">' + personHtml(c, role) + '</div>'
+    + (reporterCount(c) > 1 ? '<p class="text-base mt-1"><b>เรื่องที่รวมไว้:</b> ' + c.reporters.map(q => esc(DB.list.find(x => x.seq === q).ref)).join(', ') + '</p>' : '')
+    + '<div class="flex flex-wrap gap-2 my-3">' + c.photos.map(p => '<img class="thumb" src="' + p + '">').join('') + '</div><div id="m-map" style="height:220px" class="rounded-lg border"></div>'
+    + (dups.length && !ro ? '<div class="rounded-lg border-2 p-3 mt-3" style="border-color:#0d9488;background:#e6f6f4"><p class="font-bold text-teal-900"><i class="fa-solid fa-clone"></i> พบเรื่องประเภทเดียวกันในรัศมี 100 ม. ภายใน 48 ชม.</p>' + dups.map(d => '<div class="flex items-center gap-2 mt-2"><span class="mono font-bold flex-1">' + esc(d.ref) + ' · ' + Math.round(hav(d.lat, d.lng, c.lat, c.lng)) + ' ม.</span><button class="btn b-pri b-sm" data-merge="' + d.seq + '"><i class="fa-solid fa-code-merge"></i>รวมเข้ากับเรื่องนี้</button></div>').join('') + '</div>' : '')
+    + '</div><div><h2><i class="fa-solid fa-timeline gold"></i>ลำดับการดำเนินการ</h2>' + timelineHtml(c, false)
+    + ((c.esc || []).length ? '<div class="rounded-lg border-2 p-3 mb-3" style="border-color:#db2777;background:#fde8f1"><p class="font-bold" style="color:#9d174d"><i class="fa-solid fa-arrow-up-right-dots"></i> การยกระดับอัตโนมัติ</p>' + c.esc.map(e => '<p class="text-base">' + esc(fDT(e.ts)) + ' · ระดับ ' + e.lv + ' แจ้ง' + esc(ESC_LV[e.lv]) + '</p>').join('') + '</div>' : '')
+    + (c.rating ? '<div class="rounded-lg border-2 p-3 mb-3" style="border-color:#c9a227;background:#fffbea"><p class="font-bold">ความพึงพอใจผู้ร้อง: ' + '<i class="fa-solid fa-star gold"></i>'.repeat(c.rating.stars) + ' (' + c.rating.stars + '/5)</p>' + (c.rating.comment ? '<p>' + esc(c.rating.comment) + '</p>' : '') + '</div>' : '')
+    + (c.fwd ? '<div class="rounded-lg border-2 p-3 mb-3" style="border-color:#0d9488;background:#e6f6f4"><p class="font-bold text-teal-900"><i class="fa-solid fa-building-flag"></i> ส่งต่อ ' + esc(c.fwd.agency) + ' · ' + esc(c.fwd.no) + '</p>' + c.fwd.log.map(x => '<p class="text-base">' + esc(fDT(x.ts)) + ' · ' + esc(FWD_ST[x.st]) + '</p>').join('') + (!ro && c.fwd.state < 2 ? '<button class="btn b-out b-sm mt-2" id="m-fwdup"><i class="fa-solid fa-rotate"></i>บันทึก: ' + esc(FWD_ST[c.fwd.state + 1]) + '</button>' : '') + '</div>' : '')
+    + (c.result ? '<div class="rounded-lg border border-green-600 bg-green-50 p-3 mb-3"><p class="font-bold text-green-800">รายงานผลจากเจ้าหน้าที่</p><p>' + esc(c.result.note) + '</p><div class="flex gap-2 mt-2">' + c.result.before.concat(c.result.after).map(p => '<img class="thumb" src="' + p + '">').join('') + '</div></div>' : '') + auditHtml(c) + '</div></div>'
+    + (ro || ['done', 'rejected', 'forwarded'].includes(c.status) ? '' : '<div class="px-5 pb-5"><div class="rounded-lg border border-slate-300 p-4"><p class="lbl">มอบหมาย / กำหนดเวลา</p><div class="grid sm:grid-cols-2 gap-3"><div><label class="text-base text-slate-600">ความเร่งด่วน</label><select id="m-pri" class="inp">' + Object.keys(PRI).map(k => '<option value="' + k + '"' + (k === c.pri ? ' selected' : '') + '>' + PRI[k].name + '</option>').join('') + '</select></div>'
     + '<div><label class="text-base text-slate-600">กำหนดแล้วเสร็จ</label><input type="date" id="m-due" class="inp"></div></div><p class="text-base mt-3"><b>เจ้าหน้าที่ผู้รับผิดชอบ:</b> <span id="m-offs">' + esc(c.officers.map(offName).join(', ') || 'ยังไม่ได้มอบหมาย') + '</span></p>'
-    + '<div class="grid sm:grid-cols-3 gap-3 mt-4"><button class="btn b-gold" id="m-assign"><i class="fa-solid fa-user-plus"></i>เลือกเจ้าหน้าที่</button>' + (c.result ? '<button class="btn b-ok" id="m-close"><i class="fa-solid fa-check"></i>ปิดเรื่อง</button>' : '<button class="btn b-ok" disabled title="รอรายงานผลจากเจ้าหน้าที่"><i class="fa-solid fa-check"></i>ปิดเรื่อง</button>')
-    + '<button class="btn b-dan" id="m-reject"><i class="fa-solid fa-ban"></i>ไม่รับเรื่อง / ยุติ</button></div></div></div>'));
+    + '<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4"><button class="btn b-gold" id="m-assign"><i class="fa-solid fa-user-plus"></i>เลือกเจ้าหน้าที่</button>' + (c.result ? '<button class="btn b-ok" id="m-close"><i class="fa-solid fa-check"></i>ปิดเรื่อง</button>' : '<button class="btn b-ok" disabled title="รอรายงานผลจากเจ้าหน้าที่"><i class="fa-solid fa-check"></i>ปิดเรื่อง</button>')
+    + '<button class="btn" style="background:#0d9488;color:#fff" id="m-fwd"><i class="fa-solid fa-share-from-square"></i>ส่งต่อหน่วยงานอื่น</button><button class="btn b-dan" id="m-reject"><i class="fa-solid fa-ban"></i>ไม่รับเรื่อง / ยุติ</button></div></div></div>'));
   const mm = mkMap('m-map', c.lat, c.lng, 16); L.marker([c.lat, c.lng], { icon: pinIcon(es) }).addTo(mm); setTimeout(() => mm.invalidateSize(), 200);
+  const back = () => { closeModal(); if (VIEW === 'commander') viewCommander(); };
+  if ($('m-pii')) $('m-pii').onclick = () => { const why = prompt('ระบุเหตุผลในการเข้าถึงข้อมูลส่วนบุคคล (จะถูกบันทึก)', 'ตรวจสอบข้อร้องเรียนซ้ำซ้อน'); if (!why) return; c._piiOk = true; logA(c, 'exec', 'เข้าถึงข้อมูลส่วนบุคคลของผู้ร้อง', 'เหตุผล: ' + why); save(); $('m-person').innerHTML = personHtml(c, 'exec'); delete c._piiOk; save(); };
+  document.querySelectorAll('[data-merge]').forEach(b => b.onclick = () => { const d = DB.list.find(x => x.seq === +b.dataset.merge); const [child, parent] = d.created > c.created ? [d, c] : [c, d]; mergeCase(child, parent, 'commander'); toast('รวมเรื่องแล้ว · ผู้แจ้งรวม ' + reporterCount(parent) + ' ราย'); closeModal(); openCase(parent.seq); });
+  if ($('m-fwdup')) $('m-fwdup').onclick = () => { c.fwd.state++; c.fwd.log.push({ st: c.fwd.state, ts: Date.now() }); logA(c, 'commander', 'ปรับสถานะการส่งต่อ', FWD_ST[c.fwd.state]); save(); toast('บันทึกแล้ว'); closeModal(); openCase(c.seq, role); };
   if (!$('m-due')) return;
   const toISO = ts => { const b = bkk(ts); return b.y + '-' + String(b.m + 1).padStart(2, '0') + '-' + String(b.d).padStart(2, '0'); };
   $('m-due').value = toISO(c.due);
-  $('m-pri').onchange = () => { c.pri = $('m-pri').value; c.due = c.created + Math.max(0.25, catOf(c.cat).sla * PRI[c.pri].f) * DAY; $('m-due').value = toISO(c.due); save(); };
-  $('m-due').onchange = () => { const d = $('m-due').value; if (d) { c.due = Date.parse(d + 'T23:59:00+07:00'); save(); } };
+  $('m-pri').onchange = () => { const o = c.pri; c.pri = $('m-pri').value; c.due = c.created + Math.max(0.25, catOf(c.cat).sla * PRI[c.pri].f) * DAY; $('m-due').value = toISO(c.due); logA(c, 'commander', 'เปลี่ยนความเร่งด่วน', PRI[o].name + ' → ' + PRI[c.pri].name); save(); };
+  $('m-due').onchange = () => { const d = $('m-due').value; if (d) { const o = c.due; c.due = Date.parse(d + 'T23:59:00+07:00'); logA(c, 'commander', 'แก้ไขกำหนดแล้วเสร็จ', fDate(o) + ' → ' + fDate(c.due)); save(); } };
   $('m-assign').onclick = () => pickOfficers(c);
-  if ($('m-close')) $('m-close').onclick = () => { c.status = 'done'; c.closed = Date.now(); c.hist.push({ s: 'done', ts: c.closed, note: 'ผู้บังคับบัญชาตรวจสอบและปิดเรื่อง' }); save(); closeModal(); toast('ปิดเรื่อง ' + c.ref + ' แล้ว'); viewCommander(); };
-  $('m-reject').onclick = () => { const why = prompt('ระบุเหตุผลที่ไม่รับเรื่อง / ยุติเรื่อง', 'ไม่อยู่ในอำนาจหน้าที่ ส่งต่อหน่วยงานที่เกี่ยวข้อง'); if (!why) return; c.status = 'rejected'; c.rejectReason = why; c.hist.push({ s: 'rejected', ts: Date.now(), note: why }); save(); closeModal(); toast('บันทึกแล้ว'); viewCommander(); };
+  if ($('m-close')) $('m-close').onclick = () => { c.status = 'done'; c.closed = Date.now(); c.hist.push({ s: 'done', ts: c.closed, note: 'ผู้บังคับบัญชาตรวจสอบและปิดเรื่อง' }); logA(c, 'commander', 'ปิดเรื่อง', 'ตรวจสอบรายงานผลแล้ว'); save(); back(); toast('ปิดเรื่อง ' + c.ref + ' แล้ว'); };
+  $('m-reject').onclick = () => { const why = prompt('ระบุเหตุผลที่ไม่รับเรื่อง / ยุติเรื่อง', 'ข้อมูลไม่เพียงพอ ไม่สามารถติดต่อผู้ร้องได้'); if (!why) return; c.status = 'rejected'; c.rejectReason = why; c.hist.push({ s: 'rejected', ts: Date.now(), note: why }); logA(c, 'commander', 'ยุติ / ไม่รับเรื่อง', why); save(); back(); toast('บันทึกแล้ว'); };
+  $('m-fwd').onclick = () => forwardForm(c);
+}
+function forwardForm(c) {
+  modal('<div class="px-5 py-4 flex items-center sticky top-0 text-white" style="background:#0d9488"><p class="flex-1 text-2xl font-extrabold"><i class="fa-solid fa-share-from-square"></i> ส่งต่อหน่วยงานอื่น · ' + esc(c.ref) + '</p><button data-close class="w-12 h-12 rounded-lg bg-white/10 text-2xl"><i class="fa-solid fa-xmark"></i></button></div><div class="p-5"><p class="lbl">เลือกหน่วยงานปลายทาง</p><div class="grid sm:grid-cols-2 gap-3" id="fw-ag">'
+    + AGENCIES.map((a, i) => '<label class="flex items-center gap-3 rounded-xl border-2 p-4 cursor-pointer border-slate-200 text-lg font-bold"><input type="radio" name="ag" value="' + i + '" class="w-7 h-7 accent-teal-700">' + esc(a) + '</label>').join('') + '</div>'
+    + '<label class="lbl mt-4" for="fw-no">เลขที่หนังสือส่งต่อ</label><input id="fw-no" class="inp" value="ที่ พท. ' + (1200 + c.seq) + '/2569"><label class="lbl mt-3" for="fw-note">เหตุผล / รายละเอียด</label><textarea id="fw-note" class="inp" rows="2">อยู่ในอำนาจหน้าที่ของหน่วยงานดังกล่าว</textarea>'
+    + '<div class="grid grid-cols-2 gap-3 mt-5"><button data-close class="btn b-out">ยกเลิก</button><button id="fw-ok" class="btn" style="background:#0d9488;color:#fff"><i class="fa-solid fa-paper-plane"></i>ส่งต่อ</button></div></div>');
+  $('fw-ok').onclick = () => { const r = document.querySelector('[name=ag]:checked'); if (!r) return toast('กรุณาเลือกหน่วยงาน', false); const ag = AGENCIES[+r.value], now = Date.now();
+    c.status = 'forwarded'; c.fwd = { agency: ag, ts: now, no: $('fw-no').value.trim(), state: 0, log: [{ st: 0, ts: now }] }; c.hist.push({ s: 'forwarded', ts: now, note: 'ส่งต่อ ' + ag + ' · ' + $('fw-note').value.trim() }); logA(c, 'commander', 'ส่งต่อหน่วยงานอื่น', ag + ' · ' + c.fwd.no); save(); closeModal(); toast('ส่งต่อแล้ว'); if (VIEW === 'commander') viewCommander(); };
 }
 function pickOfficers(c) {
   const sel = new Set(c.officers), load = no => DB.list.filter(x => x.officers.includes(no) && ['assigned', 'onsite'].includes(x.status)).length;
@@ -307,24 +423,26 @@ function pickOfficers(c) {
     + '<div class="grid grid-cols-2 gap-3 mt-4 sticky bottom-0 bg-white py-3"><button data-close class="btn b-out">ยกเลิก</button><button id="p-ok" class="btn b-pri"><i class="fa-solid fa-check"></i>มอบหมาย (<span id="p-n">0</span> นาย)</button></div></div>');
   draw(); $('p-q').oninput = draw;
   $('p-list').addEventListener('change', e => { const b = e.target.closest('[data-po]'); if (!b) return; b.checked ? sel.add(b.dataset.po) : sel.delete(b.dataset.po); draw(); });
-  $('p-ok').onclick = () => { if (!sel.size) return toast('กรุณาเลือกอย่างน้อย 1 นาย', false); c.officers = [...sel]; if (c.status === 'new') c.status = 'assigned'; c.hist = c.hist.filter(h => h.s !== 'assigned'); c.hist.splice(1, 0, { s: 'assigned', ts: Date.now(), note: 'มอบหมาย ' + c.officers.map(offName).join(', ') }); save(); closeModal(); toast('มอบหมายแล้ว'); openCase(c.seq); };
+  $('p-ok').onclick = () => { if (!sel.size) return toast('กรุณาเลือกอย่างน้อย 1 นาย', false); c.officers = [...sel]; if (c.status === 'new') c.status = 'assigned'; c.hist = c.hist.filter(h => h.s !== 'assigned'); c.hist.splice(1, 0, { s: 'assigned', ts: Date.now(), note: 'มอบหมาย ' + c.officers.map(offName).join(', ') }); logA(c, 'commander', 'มอบหมายเจ้าหน้าที่', c.officers.map(offName).join(', ')); save(); closeModal(); toast('มอบหมายแล้ว'); openCase(c.seq); };
 }
 
 let GPS = null;
+function officerAlert(mine) { const op = mine.filter(c => !c.result), A = alertCounts(op); if (!A.over && !A.near) return '<div class="glass p-4 text-lg font-bold text-emerald-300"><i class="fa-solid fa-circle-check"></i> ไม่มีงานใกล้ครบกำหนด</div>';
+  return '<div class="p-4 rounded-2xl text-lg font-bold" style="background:#7f1d1d;border:2px solid #f87171"><i class="fa-solid fa-bell"></i> แจ้งเตือน: เกินกำหนด ' + A.over + ' เรื่อง · ใกล้ครบกำหนดภายใน 24 ชม. ' + A.near + ' เรื่อง' + (A.over ? '<p class="text-base font-normal text-red-100 mt-1">เรื่องที่เกินกำหนดถูกยกระดับแจ้งหัวหน้าฝ่ายโดยอัตโนมัติ</p>' : '') + '</div>'; }
 function viewOfficer() {
   document.body.classList.add('dark'); $('hdr').style.display = 'none'; $('ftr').style.display = 'none';
-  const mine = DB.list.filter(c => c.officers.includes(ME) && ['assigned', 'onsite', 'done'].includes(c.status)).sort((a, b) => (a.status === 'done') - (b.status === 'done') || a.due - b.due);
+  const mine = live().filter(c => c.officers.includes(ME) && ['assigned', 'onsite', 'done'].includes(c.status)).sort((a, b) => (a.status === 'done') - (b.status === 'done') || a.due - b.due);
   $('app').innerHTML = '<div class="max-w-xl mx-auto space-y-5"><nav class="flex flex-wrap gap-1">' + VIEWS.map(v => '<a class="px-3 py-2 rounded-lg text-sm font-bold ' + (v[0] === 'officer' ? 'bg-sky-600 text-white' : 'bg-slate-800 text-slate-300') + '" href="?as=' + v[0] + '">' + v[1] + '</a>').join('') + '</nav>'
-    + '<div class="glass p-5 flex items-center gap-4"><div class="bg-sky-500/20 p-3 rounded-xl"><i class="fa-solid fa-user-shield text-sky-400 text-2xl"></i></div><div><p class="text-xl font-bold">' + esc(offName(ME)) + '</p><p class="text-slate-300">รหัส ' + ME + ' · เรื่องร้องเรียนที่ได้รับมอบหมาย ' + mine.filter(c => c.status !== 'done').length + ' เรื่อง</p></div></div>'
+    + '<div class="glass p-5 flex items-center gap-4"><div class="bg-sky-500/20 p-3 rounded-xl"><i class="fa-solid fa-user-shield text-sky-400 text-2xl"></i></div><div><p class="text-xl font-bold">' + esc(offName(ME)) + '</p><p class="text-slate-300">รหัส ' + ME + ' · เรื่องร้องเรียนที่ได้รับมอบหมาย ' + mine.filter(c => c.status !== 'done').length + ' เรื่อง</p></div></div>' + officerAlert(mine)
     + mine.map(c => { const es = effStatus(c), cat = catOf(c.cat), ok = GPS && hav(GPS.lat, GPS.lng, c.lat, c.lng) <= 150, d = GPS ? Math.round(hav(GPS.lat, GPS.lng, c.lat, c.lng)) : null, onsite = c.hist.some(h => h.s === 'onsite');
       return '<div class="glass p-5" style="border-left:8px solid ' + ST[es].color + '"><div class="flex items-start gap-3"><div class="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center text-2xl"><i class="' + cat.icon + '"></i></div><div class="flex-1"><p class="text-lg font-bold">' + esc(c.ref) + '</p><p class="text-slate-200 text-lg">' + esc(c.desc) + '</p><p class="text-slate-400">' + esc(cat.name) + ' · ' + esc(zoneOf(c.zone).name) + ' · กำหนด ' + esc(fDate(c.due)) + '</p></div></div>'
-        + '<div class="mt-3">' + chip(es) + '</div>'
+        + '<div class="mt-3">' + chip(es) + (nearDue(c) ? ' <span class="chip s-near"><i class="fa-solid fa-hourglass-half"></i>เหลือ ' + Math.max(1, Math.round((c.due - Date.now()) / 3600000)) + ' ชม.</span>' : '') + '</div>'
         + (c.status === 'done' ? '<p class="text-emerald-300 font-bold mt-3 text-lg"><i class="fa-solid fa-circle-check"></i> ปิดเรื่องแล้ว</p>' : c.result ? '<p class="text-amber-200 font-bold mt-3 text-lg"><i class="fa-solid fa-hourglass-half"></i> ส่งรายงานผลแล้ว รอผู้บังคับบัญชาปิดเรื่อง</p>'
         : '<div class="grid grid-cols-2 gap-2 mt-4"><a target="_blank" rel="noopener" href="https:\/\/www.google.com\/maps\/dir\/?api=1&destination=' + c.lat + ',' + c.lng + '" class="bg-sky-700 hover:bg-sky-600 text-white py-4 rounded-2xl text-lg font-bold text-center"><i class="fa-solid fa-route mr-1"></i> นำทาง</a>'
         + (onsite ? '<button data-rep="' + c.seq + '" class="bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-2xl text-lg font-bold"><i class="fa-solid fa-clipboard-check mr-1"></i> รายงานผล</button>'
         : '<button data-chk="' + c.seq + '" ' + (ok ? '' : 'disabled') + ' class="py-4 rounded-2xl text-lg font-bold text-white ' + (ok ? 'bg-orange-600 hover:bg-orange-500' : 'bg-slate-600 opacity-60') + '"><i class="fa-solid fa-location-arrow mr-1"></i> ถึงจุดแล้ว</button>') + '</div>'
         + (onsite ? '' : '<p class="text-center text-slate-300 mt-2">' + (d == null ? 'กำลังหาตำแหน่ง GPS…' : 'ห่างจุด ' + d + ' ม. · ต้องอยู่ในรัศมี 150 ม.') + '</p>')) + '</div>'; }).join('') + '</div>';
-  document.querySelectorAll('[data-chk]').forEach(b => b.onclick = () => { const c = DB.list.find(x => x.seq === +b.dataset.chk); c.status = 'onsite'; c.hist.push({ s: 'onsite', ts: Date.now(), note: 'เจ้าหน้าที่ลงพื้นที่ตรวจสอบ', gps: Math.round(hav(GPS.lat, GPS.lng, c.lat, c.lng)) }); save(); toast('บันทึกการลงพื้นที่แล้ว'); viewOfficer(); });
+  document.querySelectorAll('[data-chk]').forEach(b => b.onclick = () => { const c = DB.list.find(x => x.seq === +b.dataset.chk); c.status = 'onsite'; c.hist.push({ s: 'onsite', ts: Date.now(), note: 'เจ้าหน้าที่ลงพื้นที่ตรวจสอบ', gps: Math.round(hav(GPS.lat, GPS.lng, c.lat, c.lng)) }); logA(c, ME, 'บันทึกการลงพื้นที่ (ยืนยัน GPS)', 'ระยะห่างจากจุด ' + Math.round(hav(GPS.lat, GPS.lng, c.lat, c.lng)) + ' ม.'); save(); toast('บันทึกการลงพื้นที่แล้ว'); viewOfficer(); });
   document.querySelectorAll('[data-rep]').forEach(b => b.onclick = () => reportForm(DB.list.find(x => x.seq === +b.dataset.rep)));
 }
 function reportForm(c) {
@@ -338,7 +456,7 @@ function reportForm(c) {
   $('r-b').onchange = async e => { R.before = await readPhotos(e.target, 3); $('r-bt').innerHTML = R.before.map(p => '<img class="thumb" src="' + p + '">').join(''); };
   $('r-a').onchange = async e => { R.after = await readPhotos(e.target, 3); $('r-at').innerHTML = R.after.map(p => '<img class="thumb" src="' + p + '">').join(''); };
   $('r-send').onclick = () => { if (!R.after.length) { R.after = [PH(c.cat, 'a', 1)]; } if (!R.before.length) R.before = c.photos.slice(0, 1);
-    c.result = { note: $('r-res').value + ($('r-note').value.trim() ? ' ' + $('r-note').value.trim() : ''), before: R.before, after: R.after, by: ME, ts: Date.now() }; save(); closeModal(); toast('ส่งรายงานผลแล้ว'); viewOfficer(); };
+    c.result = { note: $('r-res').value + ($('r-note').value.trim() ? ' ' + $('r-note').value.trim() : ''), before: R.before, after: R.after, by: ME, ts: Date.now() }; logA(c, ME, 'ส่งรายงานผล', c.result.note); save(); closeModal(); toast('ส่งรายงานผลแล้ว'); viewOfficer(); };
 }
 
 function accCard(key, title, icon, summary, body) {
@@ -351,33 +469,41 @@ function statsFor(list, now) {
   const onTime = done.filter(c => c.closed <= c.due).length;
   const per = OFFICERS.map(o => { const mine = list.filter(c => c.officers.includes(o.no)), d = mine.filter(c => c.status === 'done' && c.closed);
     return { no: o.no, name: o.name, assigned: mine.length, done: d.length, open: mine.filter(c => ['assigned', 'onsite'].includes(c.status)).length, overdue: mine.filter(c => effStatus(c, now) === 'overdue').length, avg: d.length ? d.reduce((a, c) => a + (c.closed - c.created), 0) / d.length / DAY : null, onTime: d.filter(c => c.closed <= c.due).length }; });
-  return { total: list.length, byStatus: by(c => effStatus(c, now)), byCat: by(c => c.cat), byZone: by(c => c.zone), avg, onTime, doneN: done.length, overdue: list.filter(c => effStatus(c, now) === 'overdue'), per };
+  const rated = list.filter(c => c.rating), dist = [1, 2, 3, 4, 5].map(k => rated.filter(c => c.rating.stars === k).length), ravg = rated.length ? rated.reduce((a, c) => a + c.rating.stars, 0) / rated.length : null;
+  per.forEach(p => { const r = rated.filter(c => c.officers.includes(p.no)); p.rN = r.length; p.ravg = r.length ? r.reduce((a, c) => a + c.rating.stars, 0) / r.length : null; });
+  return { rated: rated.length, dist, ravg, fwd: list.filter(c => c.status === 'forwarded'), esc: list.filter(c => (c.esc || []).length), reporters: list.reduce((a, c) => a + reporterCount(c), 0), merged: list.filter(c => reporterCount(c) > 1).length, total: list.length, byStatus: by(c => effStatus(c, now)), byCat: by(c => c.cat), byZone: by(c => c.zone), avg, onTime, doneN: done.length, overdue: list.filter(c => effStatus(c, now) === 'overdue'), per };
 }
 function bars(rows, max) { return rows.map(r => '<div class="flex items-center gap-3 mb-2"><span class="w-48 text-base font-bold flex items-center gap-2"><i class="' + r.icon + '" style="color:' + r.color + '"></i>' + r.name + '</span><div class="flex-1 bg-slate-100 rounded h-9 overflow-hidden"><div class="h-9 flex items-center justify-end pr-2 text-white font-bold" style="width:' + Math.max(r.v ? 6 : 0, r.v / (max || 1) * 100) + '%;background:' + r.color + '">' + (r.v || '') + '</div></div><span class="w-10 text-right font-bold">' + r.v + '</span></div>').join(''); }
 let EXM = null;
 function viewExec() {
   const months = [...new Set(DB.list.map(c => monthKey(c.created)))].sort().reverse(); if (!EXM) EXM = 'all';
-  const list = DB.list.filter(c => EXM === 'all' || monthKey(c.created) === EXM), S = statsFor(list), fx = v => v == null ? '-' : v.toFixed(1);
+  const list = live().filter(c => EXM === 'all' || monthKey(c.created) === EXM), S = statsFor(list), fx = v => v == null ? '-' : v.toFixed(1);
   const mName = k => { if (k === 'all') return 'ช่วง ' + (Math.round((Date.now() - Math.min(...DB.list.map(c => c.created))) / DAY)) + ' วันล่าสุด'; const p = k.split('-'); return TH_ML[+p[1] - 1] + ' ' + (+p[0] + 543); };
   const kpi = (t, v, sub, color, icon) => '<div class="card p-4" style="border-top:5px solid ' + color + '"><p class="text-base font-bold text-slate-600"><i class="' + icon + '" style="color:' + color + '"></i> ' + t + '</p><p class="text-4xl font-extrabold text-[#0b2a5b] mt-1">' + v + '</p><p class="text-sm text-slate-600">' + sub + '</p></div>';
   const stRows = ST_ORDER.map(s => ({ name: ST[s].name, icon: ST[s].icon, color: ST[s].color, v: S.byStatus[s] || 0 }));
   const catRows = CATS.map(c => ({ name: c.name, icon: c.icon, color: '#0b2a5b', v: S.byCat[c.id] || 0 })), zRows = ZONES.map(z => ({ name: z.name, icon: 'fa-solid fa-map-pin', color: '#c9a227', v: S.byZone[z.id] || 0 }));
   const mx = a => Math.max(1, ...a.map(r => r.v));
   $('app').innerHTML = '<section class="card p-5 mb-6"><div class="flex flex-col md:flex-row md:items-end gap-4"><div class="flex-1"><p class="text-2xl font-extrabold text-[#0b2a5b]">สรุปผลการดำเนินการเรื่องร้องเรียน</p><p class="text-lg text-slate-600">' + (EXM === 'all' ? '' : 'ประจำเดือน') + mName(EXM) + ' · ข้อมูล ณ ' + esc(fLong(Date.now())) + '</p></div>'
-    + '<select id="x-m" class="inp" style="max-width:260px"><option value="all"' + (EXM === 'all' ? ' selected' : '') + '>ทั้งหมด (ทุกเดือน)</option>' + months.map(m => '<option value="' + m + '"' + (m === EXM ? ' selected' : '') + '>' + mName(m) + '</option>').join('') + '</select><button id="x-xlsx" class="btn b-ok"><i class="fa-solid fa-file-excel"></i>ดาวน์โหลด Excel</button></div></section>'
-    + '<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">' + kpi('เรื่องทั้งหมด', S.total, 'เรื่องที่รับในเดือนนี้', '#0b2a5b', 'fa-solid fa-inbox') + kpi('เสร็จสิ้น', S.byStatus.done || 0, 'ทันกำหนด ' + S.onTime + ' เรื่อง', '#16a34a', 'fa-solid fa-circle-check')
-    + kpi('เกินกำหนด', S.overdue.length, 'ต้องเร่งรัด', '#dc2626', 'fa-solid fa-clock') + kpi('เวลาเฉลี่ยปิดเรื่อง', fx(S.avg), 'วัน', '#c9a227', 'fa-solid fa-stopwatch') + '</div><div class="grid 2xl:grid-cols-2 gap-4 items-start">'
+    + '<select id="x-m" class="inp" style="max-width:260px"><option value="all"' + (EXM === 'all' ? ' selected' : '') + '>ทั้งหมด (ทุกเดือน)</option>' + months.map(m => '<option value="' + m + '"' + (m === EXM ? ' selected' : '') + '>' + mName(m) + '</option>').join('') + '</select><button id="x-xlsx" class="btn b-ok"><i class="fa-solid fa-file-excel"></i>ดาวน์โหลด Excel</button><a class="btn b-pri" href="?as=report&m=' + (EXM === 'all' ? monthKey(Date.now()) : EXM) + '"><i class="fa-solid fa-file-pdf"></i>รายงาน PDF</a></div></section>' + slaBanner(alertCounts(list), 0)
+    + '<div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">' + kpi('เรื่องทั้งหมด', S.total, 'เรื่องที่รับในเดือนนี้', '#0b2a5b', 'fa-solid fa-inbox') + kpi('เสร็จสิ้น', S.byStatus.done || 0, 'ทันกำหนด ' + S.onTime + ' เรื่อง', '#16a34a', 'fa-solid fa-circle-check')
+    + kpi('เกินกำหนด', S.overdue.length, 'ต้องเร่งรัด', '#dc2626', 'fa-solid fa-clock') + kpi('เวลาเฉลี่ยปิดเรื่อง', fx(S.avg), 'วัน', '#c9a227', 'fa-solid fa-stopwatch') + kpi('ความพึงพอใจเฉลี่ย', S.ravg == null ? '-' : S.ravg.toFixed(2) + '<span class="text-xl"> / 5</span>', 'จากผู้ประเมิน ' + S.rated + ' ราย', '#c9a227', 'fa-solid fa-star') + '</div><div class="grid 2xl:grid-cols-2 gap-4 items-start">'
     + accCard('status', 'จำนวนเรื่องตามสถานะ', 'fa-solid fa-list-check', ST_ORDER.map(s => ST[s].name + ' ' + (S.byStatus[s] || 0)).join(' · '), legend() + '<div class="mt-4">' + bars(stRows, mx(stRows)) + '</div>')
-    + accCard('map', 'แผนที่ตำแหน่งเรื่องร้องเรียน', 'fa-solid fa-map-location-dot', S.total + ' จุด แสดงสีตามสถานะ', '<div id="x-map" style="height:420px" class="rounded-lg border"></div><div class="mt-3">' + legend() + '</div>')
+    + accCard('map', 'แผนที่ตำแหน่งเรื่องร้องเรียน', 'fa-solid fa-map-location-dot', S.total + ' จุด แสดงสีตามสถานะ และจุดหนาแน่น (Hotspot)', '<div class="flex flex-wrap gap-2 mb-3"><button class="btn b-pri b-sm" data-ml="pins"><i class="fa-solid fa-location-dot"></i>หมุดตามสถานะ</button><button class="btn b-out b-sm" data-ml="heat"><i class="fa-solid fa-fire"></i>แผนที่ความหนาแน่น</button><button class="btn b-out b-sm" data-ml="both"><i class="fa-solid fa-layer-group"></i>แสดงทั้งสองแบบ</button></div><div id="x-map" style="height:420px" class="rounded-lg border"></div><div class="mt-3">' + legend() + '</div>')
+    + accCard('rating', 'ความพึงพอใจของผู้ร้อง', 'fa-solid fa-star', 'เฉลี่ย ' + (S.ravg == null ? '-' : S.ravg.toFixed(2)) + ' / 5 · ผู้ประเมิน ' + S.rated + ' ราย', '<div class="flex flex-wrap items-center gap-6 mb-4"><div><p class="text-6xl font-extrabold text-[#0b2a5b]">' + (S.ravg == null ? '-' : S.ravg.toFixed(2)) + '</p><p class="text-2xl gold">' + '<i class="fa-solid fa-star"></i>'.repeat(Math.round(S.ravg || 0)) + '</p></div><p class="text-lg text-slate-600">ประเมินแล้ว ' + S.rated + ' จาก ' + (S.byStatus.done || 0) + ' เรื่องที่เสร็จสิ้น</p></div>'
+      + bars([5, 4, 3, 2, 1].map(k => ({ name: k + ' ดาว', icon: 'fa-solid fa-star', color: ['#dc2626', '#ea580c', '#ca8a04', '#65a30d', '#16a34a'][k - 1], v: S.dist[k - 1] })), Math.max(1, ...S.dist)))
+    + accCard('fwd', 'เรื่องที่ส่งต่อหน่วยงานอื่น', 'fa-solid fa-share-from-square', S.fwd.length + ' เรื่อง', S.fwd.length ? S.fwd.map(c => '<div class="row" style="border-left-color:#0d9488" data-xopen="' + c.seq + '"><span class="mono font-bold w-44">' + esc(c.ref) + '</span><span class="flex-1">' + esc(c.fwd.agency) + '<br><span class="text-base text-slate-600">' + esc(FWD_ST[c.fwd.state]) + '</span></span>' + chip('forwarded') + '</div>').join('<div class="h-2"></div>') : '<p class="text-lg text-slate-600">ไม่มี</p>')
     + accCard('cat', 'จำนวนเรื่องตามประเภท', 'fa-solid fa-layer-group', CATS.filter(c => S.byCat[c.id]).length + ' ประเภท', bars(catRows, mx(catRows)))
     + accCard('zone', 'จำนวนเรื่องตามพื้นที่', 'fa-solid fa-map-pin', ZONES.map(z => z.name + ' ' + (S.byZone[z.id] || 0)).join(' · '), bars(zRows, mx(zRows)))
-    + accCard('overdue', 'เรื่องที่เกินกำหนด', 'fa-solid fa-clock', S.overdue.length + ' เรื่อง', S.overdue.length ? S.overdue.map(c => '<div class="row" style="border-left-color:#dc2626;cursor:default"><span class="mono font-bold w-44">' + esc(c.ref) + '</span><span class="flex-1">' + esc(c.desc) + '<br><span class="text-base text-slate-600">' + esc(catOf(c.cat).name) + ' · ' + esc(zoneOf(c.zone).name) + ' · ผู้รับผิดชอบ ' + esc(c.officers.map(offName).join(', ') || '-') + '</span></span>' + chip('overdue', ' ' + Math.ceil((Date.now() - c.due) / DAY) + ' วัน') + '</div>').join('<div class="h-2"></div>') : '<p class="text-lg text-slate-600">ไม่มีเรื่องเกินกำหนด</p>')
-    + accCard('per', 'ผลการปฏิบัติงานรายบุคคล', 'fa-solid fa-users', OFFICERS.length + ' นาย', '<div class="overflow-x-auto"><table class="w-full text-lg border-collapse"><thead><tr class="bg-[#0b2a5b] text-white">' + ['รหัส', 'ชื่อ-สกุล', 'ได้รับมอบหมาย', 'เสร็จสิ้น', 'ค้างดำเนินการ', 'เกินกำหนด', 'เฉลี่ย (วัน)', 'ทันกำหนด'].map(h => '<th class="p-3 border border-slate-300 text-base">' + h + '</th>').join('') + '</tr></thead><tbody>'
-      + S.per.map(p => '<tr class="odd:bg-slate-50"><td class="p-3 border text-center">' + p.no + '</td><td class="p-3 border whitespace-nowrap">' + esc(p.name) + '</td><td class="p-3 border text-center font-bold">' + p.assigned + '</td><td class="p-3 border text-center text-green-700 font-bold">' + p.done + '</td><td class="p-3 border text-center">' + p.open + '</td><td class="p-3 border text-center ' + (p.overdue ? 'text-red-700 font-bold' : '') + '">' + p.overdue + '</td><td class="p-3 border text-center">' + fx(p.avg) + '</td><td class="p-3 border text-center">' + (p.done ? Math.round(p.onTime * 100 / p.done) + '%' : '-') + '</td></tr>').join('') + '</tbody></table></div>')
+    + accCard('overdue', 'เรื่องที่เกินกำหนด', 'fa-solid fa-clock', S.overdue.length + ' เรื่อง', S.overdue.length ? S.overdue.map(c => '<div class="row" style="border-left-color:#dc2626" data-xopen="' + c.seq + '"><span class="mono font-bold w-44">' + esc(c.ref) + '</span><span class="flex-1">' + esc(c.desc) + '<br><span class="text-base text-slate-600">' + esc(catOf(c.cat).name) + ' · ' + esc(zoneOf(c.zone).name) + ' · ผู้รับผิดชอบ ' + esc(c.officers.map(offName).join(', ') || '-') + '</span><br>' + flags(c) + '</span>' + chip('overdue', ' ' + Math.ceil((Date.now() - c.due) / DAY) + ' วัน') + '</div>').join('<div class="h-2"></div>') : '<p class="text-lg text-slate-600">ไม่มีเรื่องเกินกำหนด</p>')
+    + accCard('per', 'ผลการปฏิบัติงานรายบุคคล', 'fa-solid fa-users', OFFICERS.length + ' นาย', '<div class="overflow-x-auto"><table class="w-full text-lg border-collapse"><thead><tr class="bg-[#0b2a5b] text-white">' + ['รหัส', 'ชื่อ-สกุล', 'ได้รับมอบหมาย', 'เสร็จสิ้น', 'ค้างดำเนินการ', 'เกินกำหนด', 'เฉลี่ย (วัน)', 'ทันกำหนด', 'ความพึงพอใจ'].map(h => '<th class="p-3 border border-slate-300 text-base">' + h + '</th>').join('') + '</tr></thead><tbody>'
+      + S.per.map(p => '<tr class="odd:bg-slate-50"><td class="p-3 border text-center">' + p.no + '</td><td class="p-3 border whitespace-nowrap">' + esc(p.name) + '</td><td class="p-3 border text-center font-bold">' + p.assigned + '</td><td class="p-3 border text-center text-green-700 font-bold">' + p.done + '</td><td class="p-3 border text-center">' + p.open + '</td><td class="p-3 border text-center ' + (p.overdue ? 'text-red-700 font-bold' : '') + '">' + p.overdue + '</td><td class="p-3 border text-center">' + fx(p.avg) + '</td><td class="p-3 border text-center">' + (p.done ? Math.round(p.onTime * 100 / p.done) + '%' : '-') + '</td><td class="p-3 border text-center whitespace-nowrap">' + (p.ravg == null ? '-' : '<i class="fa-solid fa-star gold"></i> ' + p.ravg.toFixed(2) + ' <span class="text-sm text-slate-500">(' + p.rN + ')</span>') + '</td></tr>').join('') + '</tbody></table></div>')
     + '</div>';
   $('x-m').onchange = () => { EXM = $('x-m').value; viewExec(); };
   $('x-xlsx').onclick = () => exportExec(list, S, mName(EXM), EXM);
-  let map = null; const drawMap = () => { if (map || !$('x-map') || !$('x-map').offsetParent) return; map = mkMap('x-map', 12.93, 100.882, 13); if (list.length) map.fitBounds(L.latLngBounds(list.map(c => [c.lat, c.lng])).pad(0.08)); list.forEach(c => L.marker([c.lat, c.lng], { icon: pinIcon(effStatus(c)) }).addTo(map).bindPopup('<b>' + esc(c.ref) + '</b><br>' + esc(catOf(c.cat).name) + '<br>' + ST[effStatus(c)].name)); };
+  let map = null, pins = null, heat = null; const setLayer = m => { if (!map) return; [pins, heat].forEach(l => l && map.removeLayer(l)); if (m !== 'heat') pins.addTo(map); if (m !== 'pins' && heat) heat.addTo(map); document.querySelectorAll('[data-ml]').forEach(b => { b.classList.toggle('b-pri', b.dataset.ml === m); b.classList.toggle('b-out', b.dataset.ml !== m); }); };
+  const drawMap = () => { if (map || !$('x-map') || !$('x-map').offsetParent) return; map = mkMap('x-map', 12.93, 100.882, 13); if (list.length) map.fitBounds(L.latLngBounds(list.map(c => [c.lat, c.lng])).pad(0.08)); pins = L.layerGroup(list.map(c => L.marker([c.lat, c.lng], { icon: pinIcon(effStatus(c)) }).bindPopup('<b>' + esc(c.ref) + '</b><br>' + esc(catOf(c.cat).name) + '<br>' + ST[effStatus(c)].name))); if (L.heatLayer) heat = L.heatLayer(list.map(c => [c.lat, c.lng, 0.6 + 0.2 * reporterCount(c)]), { radius: 34, blur: 26, maxZoom: 16, minOpacity: .35, gradient: { .3: '#2563eb', .55: '#facc15', .8: '#f97316', 1: '#dc2626' } }); setLayer(Q.get('map') || 'pins'); };
+  document.querySelectorAll('[data-ml]').forEach(b => b.onclick = () => setLayer(b.dataset.ml));
+  document.querySelectorAll('[data-xopen]').forEach(r => r.onclick = () => openCase(+r.dataset.xopen, 'exec'));
   document.querySelectorAll('[data-acc]').forEach(s => s.querySelector('.acc-h').onclick = () => { s.classList.toggle('open'); try { localStorage.setItem('cmp-acc:' + s.dataset.acc, s.classList.contains('open') ? '1' : '0'); } catch (e) { } drawMap(); });
   const pr = document.querySelector('[data-acc="per"]'); if (pr) pr.classList.add('2xl:col-span-2');
   drawMap();
@@ -393,7 +519,7 @@ async function buildExecWorkbook(list, S, mName) {
   merged('หน่วยงาน เทศกิจเมืองพัทยา', { b: 1 }); merged('รายงานสรุปผลการดำเนินการเรื่องร้องเรียน ' + (mName.startsWith('ช่วง') ? '' : 'ประจำเดือน') + mName, { b: 1 }); merged('ข้อมูล ณ ' + fLong(Date.now()), {}); ws.addRow([]);
   const kv = (rows) => rows.forEach(([k, v]) => { const r = ws.addRow([k, '', '', '', v]); ws.mergeCells(r.number, 1, r.number, 4); ws.mergeCells(r.number, 5, r.number, N); r.height = 26; for (let i = 1; i <= N; i++) { const c = r.getCell(i); c.border = B; c.font = F(); c.alignment = { vertical: 'middle', horizontal: i < 5 ? 'left' : 'center', indent: i < 5 ? 1 : 0 }; } });
   merged('สรุปภาพรวม', { b: 1, h: 'left', fill: BLUE });
-  kv([['เรื่องทั้งหมด', S.total + ' เรื่อง'], ['เสร็จสิ้น', (S.byStatus.done || 0) + ' เรื่อง (ทันกำหนด ' + S.onTime + ' เรื่อง)'], ['เกินกำหนด', S.overdue.length + ' เรื่อง'], ['เวลาเฉลี่ยในการปิดเรื่อง', S.avg == null ? '-' : S.avg.toFixed(1) + ' วัน']]);
+  kv([['เรื่องทั้งหมด', S.total + ' เรื่อง'], ['เสร็จสิ้น', (S.byStatus.done || 0) + ' เรื่อง (ทันกำหนด ' + S.onTime + ' เรื่อง)'], ['เกินกำหนด', S.overdue.length + ' เรื่อง'], ['เวลาเฉลี่ยในการปิดเรื่อง', S.avg == null ? '-' : S.avg.toFixed(1) + ' วัน'], ['ความพึงพอใจเฉลี่ย', S.ravg == null ? '-' : S.ravg.toFixed(2) + ' / 5 (ผู้ประเมิน ' + S.rated + ' ราย)'], ['ส่งต่อหน่วยงานอื่น', S.fwd.length + ' เรื่อง'], ['เรื่องที่ถูกยกระดับ (เกินกำหนด)', S.esc.length + ' เรื่อง']]);
   const table = (title, head, rows, al) => { ws.addRow([]); merged(title, { b: 1, h: 'left', fill: BLUE }); const hr = ws.addRow(head); hr.height = 30; for (let i = 1; i <= N; i++) { const c = hr.getCell(i); c.font = F(1); c.border = B; c.fill = GREY; c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }; }
     rows.forEach(v => { const r = ws.addRow(v); r.height = 26; for (let i = 1; i <= N; i++) { const c = r.getCell(i); c.font = F(); c.border = B; c.alignment = { vertical: 'middle', horizontal: (al || [])[i - 1] || 'center', indent: (al || [])[i - 1] === 'left' ? 1 : 0, wrapText: true }; } }); return hr; };
   const pair = (title, h1, rows) => { ws.addRow([]); merged(title, { b: 1, h: 'left', fill: BLUE }); const hr = ws.addRow([h1, '', '', '', 'จำนวน (เรื่อง)']); ws.mergeCells(hr.number, 1, hr.number, 4); ws.mergeCells(hr.number, 5, hr.number, N); hr.height = 30; for (let i = 1; i <= N; i++) { const c = hr.getCell(i); c.font = F(1); c.border = B; c.fill = GREY; c.alignment = { horizontal: 'center', vertical: 'middle' }; }
@@ -413,9 +539,9 @@ async function exportExec(list, S, mName, key) {
   catch (e) { toast('สร้างไฟล์ไม่สำเร็จ: ' + (e.message || e), false); }
 }
 
-function trackExamples() { const f = s => { const c = DB.list.slice().reverse().find(x => effStatus(x) === s); return c ? c.ref : null; }; return ['onsite', 'done', 'overdue', 'rejected', 'assigned'].map(f).filter(Boolean); }
+function trackExamples() { const f = s => { const c = live().slice().reverse().find(x => effStatus(x) === s && (s !== 'done' || !x.rating)); return c ? c.ref : null; }; return ['onsite', 'done', 'overdue', 'forwarded', 'rejected', 'assigned'].map(f).filter(Boolean); }
 function viewHome() {
-  const S = statsFor(DB.list), days = Math.round((Date.now() - Math.min(...DB.list.map(c => c.created))) / DAY);
+  const S = statsFor(live()), days = Math.round((Date.now() - Math.min(...DB.list.map(c => c.created))) / DAY);
   const card = (as, t, d, icon, color) => '<a href="?as=' + as + '" class="card p-6 flex items-center gap-5 hover:shadow-lg transition" style="border-left:8px solid ' + color + ';min-height:130px"><span class="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl flex-none" style="background:' + color + '1a;color:' + color + '"><i class="' + icon + '"></i></span><span class="flex-1"><span class="block text-2xl font-extrabold text-[#0b2a5b]">' + t + '</span><span class="block text-lg text-slate-600 mt-1">' + d + '</span></span><i class="fa-solid fa-chevron-right text-2xl text-slate-400"></i></a>';
   const step = (n, t, d, icon, color) => '<div class="flex-1 min-w-[170px] text-center"><div class="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl border-4" style="border-color:' + color + ';color:' + color + ';background:#fff"><i class="' + icon + '"></i></div><p class="mt-3 text-sm font-bold text-slate-500">ขั้นตอนที่ ' + n + '</p><p class="text-xl font-extrabold text-[#0b2a5b]">' + t + '</p><p class="text-base text-slate-600">' + d + '</p></div>';
   const arrow = '<div class="hidden lg:flex items-center text-3xl gold pt-6"><i class="fa-solid fa-arrow-right-long"></i></div>';
@@ -424,22 +550,59 @@ function viewHome() {
     + '<p class="text-xl md:text-2xl mt-4 max-w-3xl text-slate-100">ช่องทางให้ประชาชนแจ้งเรื่องร้องเรียนและติดตามผลได้ด้วยตนเอง ผู้บังคับบัญชามอบหมายงานได้ทันที เจ้าหน้าที่รายงานผลพร้อมภาพจากจุดเกิดเหตุ และผู้บริหารเห็นภาพรวมการปฏิบัติงานแบบเรียลไทม์</p>'
     + '<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">' + [['เรื่องในระบบ (จำลอง)', S.total], ['เสร็จสิ้น', S.byStatus.done || 0], ['ปิดเรื่องเฉลี่ย (วัน)', S.avg == null ? '-' : S.avg.toFixed(1)], ['ช่วงข้อมูล (วัน)', days]].map(x => '<div class="rounded-xl p-4" style="background:rgba(255,255,255,.1);border:1px solid rgba(233,212,138,.4)"><p class="text-4xl font-extrabold">' + x[1] + '</p><p class="text-base" style="color:#e9d48a">' + x[0] + '</p></div>').join('') + '</div></div></section>'
     + '<section class="card p-6 mb-6"><h2><i class="fa-solid fa-diagram-project gold"></i>ขั้นตอนการทำงาน</h2><div class="flex flex-wrap lg:flex-nowrap gap-4 justify-center">'
-    + step(1, 'ประชาชนยื่นเรื่อง', 'ระบุประเภท ภาพ และตำแหน่ง รับเลขที่ทันที', 'fa-solid fa-pen-to-square', '#64748b') + arrow + step(2, 'ผู้บังคับบัญชามอบหมาย', 'เลือกเจ้าหน้าที่ กำหนดความเร่งด่วนและวันแล้วเสร็จ', 'fa-solid fa-user-check', '#7c3aed') + arrow
-    + step(3, 'เจ้าหน้าที่ลงพื้นที่', 'ยืนยันตำแหน่งด้วย GPS ดำเนินการแก้ไข', 'fa-solid fa-person-walking-arrow-right', '#ea580c') + arrow + step(4, 'รายงานผลและปิดเรื่อง', 'ภาพก่อน/หลัง ผู้บังคับบัญชาตรวจและปิดเรื่อง', 'fa-solid fa-circle-check', '#16a34a') + arrow
-    + step(5, 'ผู้บริหารติดตาม', 'สรุปสถิติ แผนที่ และผลงานรายบุคคล', 'fa-solid fa-chart-column', '#0b2a5b') + '</div></section>'
+    + step(1, 'ประชาชนยื่นเรื่อง', 'ระบุประเภท ภาพ และตำแหน่ง รับเลขที่ทันที', 'fa-solid fa-pen-to-square', '#64748b') + arrow + step(2, 'ผู้บังคับบัญชามอบหมาย', 'ตรวจเรื่องซ้ำ มอบหมาย หรือส่งต่อหน่วยงานอื่น', 'fa-solid fa-user-check', '#7c3aed') + arrow
+    + step(3, 'เจ้าหน้าที่ลงพื้นที่', 'ยืนยัน GPS แจ้งเตือนใกล้ครบกำหนด เกินกำหนดยกระดับอัตโนมัติ', 'fa-solid fa-person-walking-arrow-right', '#ea580c') + arrow + step(4, 'รายงานผลและปิดเรื่อง', 'ภาพก่อน/หลัง ปิดเรื่อง ประชาชนประเมินความพึงพอใจ', 'fa-solid fa-circle-check', '#16a34a') + arrow
+    + step(5, 'ผู้บริหารติดตาม', 'แดชบอร์ด จุดหนาแน่น ความพึงพอใจ รายงาน PDF รายเดือน', 'fa-solid fa-chart-column', '#0b2a5b') + '</div></section>'
     + '<h2 class="text-2xl font-extrabold text-[#0b2a5b] mb-4 flex items-center gap-2"><i class="fa-solid fa-hand-pointer gold"></i>เลือกหน้าจอที่ต้องการทดลอง</h2><div class="grid md:grid-cols-2 gap-5 mb-6">'
     + card('citizen', 'ประชาชนยื่นเรื่อง', 'แบบฟอร์มร้องเรียน 8 ประเภท พร้อมภาพและแผนที่ ได้รับใบรับเรื่อง', 'fa-solid fa-pen-to-square', '#0b2a5b')
-    + card('track', 'ติดตามเรื่อง', 'กรอกเลขที่รับเรื่อง ดูสถานะและผลการดำเนินการ', 'fa-solid fa-magnifying-glass', '#0369a1')
-    + card('commander', 'ผู้บังคับบัญชา', 'กล่องรับเรื่อง กรองข้อมูล มอบหมายเจ้าหน้าที่ ปิดเรื่อง', 'fa-solid fa-inbox', '#7c3aed')
-    + card('officer', 'เจ้าหน้าที่', 'งานที่ได้รับมอบหมาย นำทาง เช็กอินจุดเกิดเหตุ รายงานผล', 'fa-solid fa-user-shield', '#ea580c')
-    + '<div class="md:col-span-2">' + card('exec', 'ผู้บริหาร', 'แดชบอร์ดสรุปผล สถานะ ประเภท พื้นที่ แผนที่ ผลงานรายบุคคล และดาวน์โหลด Excel', 'fa-solid fa-chart-column', '#c9a227') + '</div></div>'
+    + card('track', 'ติดตามเรื่อง', 'ดูสถานะ ผลการดำเนินการ และประเมินความพึงพอใจ 1-5 ดาว', 'fa-solid fa-magnifying-glass', '#0369a1')
+    + card('commander', 'ผู้บังคับบัญชา', 'แจ้งเตือนกำหนดเวลา รวมเรื่องซ้ำ มอบหมาย ส่งต่อหน่วยงาน ปิดเรื่อง', 'fa-solid fa-inbox', '#7c3aed')
+    + card('officer', 'เจ้าหน้าที่', 'งานที่ได้รับมอบหมาย แจ้งเตือนใกล้ครบกำหนด นำทาง เช็กอิน รายงานผล', 'fa-solid fa-user-shield', '#ea580c')
+    + card('exec', 'ผู้บริหาร', 'แดชบอร์ด แผนที่จุดหนาแน่น ความพึงพอใจ ผลงานรายบุคคล Excel', 'fa-solid fa-chart-column', '#c9a227') + card('report', 'รายงานประจำเดือน (PDF)', 'รายงาน A4 พร้อมแผนภูมิ ตารางสรุป และช่องลงนาม พิมพ์หรือบันทึกเป็น PDF', 'fa-solid fa-file-pdf', '#b91c1c') + '<div class="md:col-span-2">' + card('audit', 'บันทึกการใช้งานและสิทธิ์', 'ประวัติการเปลี่ยนแปลงทุกรายการ (ใคร/เมื่อใด/ทำอะไร) และสิทธิ์ดูข้อมูลส่วนบุคคล (PDPA)', 'fa-solid fa-clipboard-list', '#0d9488') + '</div></div>'
     + '<section class="card p-5"><h2><i class="fa-solid fa-circle-info gold"></i>หมายเหตุ</h2><div class="mb-3">' + legend() + '</div><p class="text-lg text-slate-700">ข้อมูลทั้งหมดในเว็บนี้เป็นข้อมูลจำลองเพื่อการนำเสนอ ชื่อบุคคลทั้งหมดเป็นชื่อสมมติ ไม่ใช่เจ้าหน้าที่หรือประชาชนจริง สถานที่อ้างอิงพื้นที่สาธารณะในเมืองพัทยาเพื่อความสมจริงเท่านั้น และยังไม่เชื่อมต่อระบบจริง</p></section>';
+}
+let AF = { q: '', who: '' };
+function viewAudit() {
+  const all = []; DB.list.forEach(c => (c.audit || []).forEach(a => all.push(Object.assign({ ref: c.ref, seq: c.seq }, a)))); all.sort((a, b) => b.ts - a.ts);
+  const whoOpts = [['', 'ผู้ดำเนินการทั้งหมด'], ['system', ACTOR.system], ['citizen', ACTOR.citizen], ['commander', 'หัวหน้าชุดปฏิบัติการ'], ['exec', 'ผู้บริหาร'], ['officer', 'เจ้าหน้าที่']];
+  const roleRow = (r, a, b, c2, d) => '<tr class="odd:bg-slate-50"><td class="p-3 border font-bold">' + r + '</td>' + [a, b, c2, d].map(x => '<td class="p-3 border text-center">' + x + '</td>').join('') + '</tr>';
+  const Y = '<span class="chip s-done"><i class="fa-solid fa-check"></i>เต็ม</span>', M = '<span class="chip s-rejected"><i class="fa-solid fa-eye-slash"></i>ปิดบัง</span>', N = '<span class="chip s-overdue"><i class="fa-solid fa-xmark"></i>ไม่เห็น</span>';
+  $('app').innerHTML = '<section class="card p-5 mb-6"><h2><i class="fa-solid fa-user-lock gold"></i>สิทธิ์การเข้าถึงข้อมูลส่วนบุคคลของผู้ร้อง</h2><div class="overflow-x-auto"><table class="w-full text-lg border-collapse"><thead><tr class="bg-[#0b2a5b] text-white"><th class="p-3 border text-left">บทบาท</th><th class="p-3 border">ชื่อผู้ร้อง</th><th class="p-3 border">เบอร์โทรศัพท์</th><th class="p-3 border">รายละเอียดและภาพ</th><th class="p-3 border">แก้ไขสถานะ</th></tr></thead><tbody>'
+    + roleRow('ประชาชน (หน้าติดตาม)', N, N, 'เฉพาะเรื่องของตน', N) + roleRow('เจ้าหน้าที่ผู้รับผิดชอบ', N, N, Y, 'รายงานผล') + roleRow('หัวหน้าชุดปฏิบัติการ', Y, Y, Y, Y) + roleRow('ผู้บริหาร', DB.perm.execPii ? 'ขอดูได้ (บันทึกเหตุผล)' : M, DB.perm.execPii ? 'ขอดูได้ (บันทึกเหตุผล)' : M, Y, 'อ่านอย่างเดียว') + '</tbody></table></div>'
+    + '<label class="flex items-center gap-3 mt-4 text-lg font-bold cursor-pointer"><input type="checkbox" id="a-perm" class="w-7 h-7 accent-blue-900"' + (DB.perm.execPii ? ' checked' : '') + '>อนุญาตให้ผู้บริหารขอดูข้อมูลส่วนบุคคลของผู้ร้อง (ทุกครั้งต้องระบุเหตุผลและถูกบันทึก)</label>'
+    + '<div class="rounded-lg border border-slate-300 bg-slate-50 p-4 mt-4 text-base leading-relaxed"><b>หมายเหตุ PDPA:</b> ข้อมูลส่วนบุคคลของผู้ร้องใช้เพื่อการตรวจสอบและแก้ไขเรื่องร้องเรียนเท่านั้น เปิดเผยเฉพาะผู้มีหน้าที่ตามหลักความจำเป็น (need-to-know) ไม่เปิดเผยต่อผู้ถูกร้อง การเข้าถึงทุกครั้งถูกบันทึกเพื่อการตรวจสอบย้อนหลัง ตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562</div></section>'
+    + '<section class="card p-5"><h2><i class="fa-solid fa-clipboard-list gold"></i>บันทึกการใช้งานระบบ (Audit Log)</h2><div class="grid sm:grid-cols-3 gap-3 mb-4"><input id="a-q" class="inp sm:col-span-2" placeholder="ค้นหาเลขที่เรื่อง / การดำเนินการ" value="' + esc(AF.q) + '"><select id="a-who" class="inp">' + whoOpts.map(o => '<option value="' + o[0] + '"' + (o[0] === AF.who ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div><p class="text-base text-slate-600 mb-2" id="a-n"></p><div class="overflow-x-auto"><table class="w-full text-lg border-collapse"><thead><tr class="bg-[#0b2a5b] text-white"><th class="p-3 border text-left">วันเวลา</th><th class="p-3 border text-left">เลขที่เรื่อง</th><th class="p-3 border text-left">ผู้ดำเนินการ</th><th class="p-3 border text-left">การดำเนินการ</th></tr></thead><tbody id="a-body"></tbody></table></div></section>';
+  const draw = () => { AF = { q: $('a-q').value.trim(), who: $('a-who').value }; const f = all.filter(a => (!AF.q || (a.ref + a.act + a.detail).includes(AF.q)) && (!AF.who || (AF.who === 'officer' ? /^\d+$/.test(a.who) : a.who === AF.who)));
+    $('a-n').textContent = 'ทั้งหมด ' + f.length + ' รายการ' + (f.length > 200 ? ' (แสดง 200 รายการล่าสุด)' : '');
+    $('a-body').innerHTML = f.slice(0, 200).map(a => '<tr class="odd:bg-slate-50"><td class="p-2 border whitespace-nowrap">' + esc(fDT(a.ts)) + '</td><td class="p-2 border mono"><button class="underline text-[#0b2a5b] font-bold" data-aopen="' + a.seq + '">' + esc(a.ref) + '</button></td><td class="p-2 border">' + esc(whoName(a.who)) + '</td><td class="p-2 border"><b>' + esc(a.act) + '</b>' + (a.detail ? ' · ' + esc(a.detail) : '') + '</td></tr>').join('');
+    document.querySelectorAll('[data-aopen]').forEach(b => b.onclick = () => openCase(+b.dataset.aopen)); };
+  $('a-q').oninput = draw; $('a-who').onchange = draw; draw();
+  $('a-perm').onchange = () => { DB.perm.execPii = $('a-perm').checked; const c0 = DB.list[DB.list.length - 1]; logA(c0, 'admin', 'เปลี่ยนสิทธิ์ผู้บริหาร', DB.perm.execPii ? 'อนุญาตให้ขอดูข้อมูลส่วนบุคคล' : 'ยกเลิกสิทธิ์ดูข้อมูลส่วนบุคคล'); save(); viewAudit(); };
+}
+function viewReport() {
+  document.body.classList.add('rpt'); const months = [...new Set(live().map(c => monthKey(c.created)))].sort().reverse(), mk = Q.get('m') && months.includes(Q.get('m')) ? Q.get('m') : months[0];
+  const list = live().filter(c => monthKey(c.created) === mk), S = statsFor(list), p = mk.split('-'), mName = TH_ML[+p[1] - 1] + ' ' + (+p[0] + 543), fx = (v, d) => v == null ? '-' : v.toFixed(d || 1);
+  const pct = (a, b) => b ? Math.round(a * 100 / b) + '%' : '-';
+  const tbl = (head, rows, w) => '<table><thead><tr>' + head.map((h, i) => '<th' + (w && w[i] ? ' style="width:' + w[i] + '"' : '') + '>' + h + '</th>').join('') + '</tr></thead><tbody>' + rows.map(r => '<tr>' + r.map((x, i) => '<td style="text-align:' + (i === 0 ? 'left' : 'center') + '">' + x + '</td>').join('') + '</tr>').join('') + '</tbody></table>';
+  const barRows = (rows, color) => { const mx = Math.max(1, ...rows.map(r => r[1])); return rows.map(r => [r[0], r[1], pct(r[1], S.total), '<span class="bar" style="width:' + Math.round(r[1] / mx * 55) + 'mm;background:' + (r[2] || color) + '"></span>']); };
+  $('app').innerHTML = '<div class="noprint max-w-4xl mx-auto mb-3 flex flex-wrap gap-3 items-center"><a href="?as=exec" class="btn b-out"><i class="fa-solid fa-arrow-left"></i>กลับแดชบอร์ด</a><select id="r-m" class="inp" style="max-width:240px">' + months.map(m => { const q = m.split('-'); return '<option value="' + m + '"' + (m === mk ? ' selected' : '') + '>' + TH_ML[+q[1] - 1] + ' ' + (+q[0] + 543) + '</option>'; }).join('') + '</select><button class="btn b-pri" onclick="window.print()"><i class="fa-solid fa-print"></i>พิมพ์ / บันทึกเป็น PDF</button><span class="text-base text-slate-600">เลือก "บันทึกเป็น PDF" ในหน้าต่างพิมพ์ · กระดาษ A4</span></div>'
+    + '<div class="rp"><div style="display:flex;align-items:center;gap:12pt;border-bottom:3pt double #0b2a5b;padding-bottom:6pt"><div style="width:60pt;height:60pt;border:1.5pt dashed #c9a227;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11pt;color:#8a6d0b;flex:none">ตรา<br>หน่วยงาน</div><div style="flex:1"><h1>รายงานสรุปผลการดำเนินการเรื่องร้องเรียน ประจำเดือน' + mName + '</h1><div>หน่วยงาน เทศกิจเมืองพัทยา · ข้อมูล ณ ' + esc(fLong(Date.now())) + '</div></div><div style="font-size:12pt;border:1pt solid #000;padding:2pt 6pt">ข้อมูลจำลอง<br>เพื่อการนำเสนอ</div></div>'
+    + '<div class="sec"><h3>1. สรุปภาพรวม</h3>' + tbl(['รายการ', 'ผล'], [['เรื่องที่รับทั้งหมด', S.total + ' เรื่อง (ผู้แจ้ง ' + S.reporters + ' ราย)'], ['ดำเนินการเสร็จสิ้น', (S.byStatus.done || 0) + ' เรื่อง (' + pct(S.byStatus.done || 0, S.total) + ')'], ['เสร็จทันกำหนด', S.onTime + ' เรื่อง (' + pct(S.onTime, S.doneN) + ' ของเรื่องที่เสร็จ)'], ['เกินกำหนด / ถูกยกระดับ', S.overdue.length + ' / ' + S.esc.length + ' เรื่อง'], ['ส่งต่อหน่วยงานอื่น', S.fwd.length + ' เรื่อง'], ['เวลาเฉลี่ยในการปิดเรื่อง', fx(S.avg) + ' วัน'], ['ความพึงพอใจเฉลี่ย', fx(S.ravg, 2) + ' / 5 (ผู้ประเมิน ' + S.rated + ' ราย)']], ['55%', '45%']) + '</div>'
+    + '<div class="sec"><h3>2. จำแนกตามสถานะ</h3>' + tbl(['สถานะ', 'จำนวน', 'ร้อยละ', 'แผนภูมิ'], barRows(ST_ORDER.map(k => [ST[k].name, S.byStatus[k] || 0, ST[k].color])), ['32%', '12%', '12%', '44%']) + '</div>'
+    + '<div class="sec"><h3>3. จำแนกตามประเภทเรื่อง</h3>' + tbl(['ประเภท', 'จำนวน', 'ร้อยละ', 'แผนภูมิ'], barRows(CATS.map(c => [c.name, S.byCat[c.id] || 0]), '#0b2a5b'), ['32%', '12%', '12%', '44%']) + '</div>'
+    + '<div class="sec"><h3>4. จำแนกตามพื้นที่</h3>' + tbl(['พื้นที่', 'จำนวน', 'ร้อยละ', 'แผนภูมิ'], barRows(ZONES.map(z => [z.name, S.byZone[z.id] || 0]), '#c9a227'), ['32%', '12%', '12%', '44%']) + '</div>'
+    + '<div class="sec"><h3>5. ความพึงพอใจของผู้ร้อง</h3>' + tbl(['ระดับ', 'จำนวน', 'ร้อยละ', 'แผนภูมิ'], [5, 4, 3, 2, 1].map(k => { const mx = Math.max(1, ...S.dist); return [k + ' ดาว', S.dist[k - 1], pct(S.dist[k - 1], S.rated), '<span class="bar" style="width:' + Math.round(S.dist[k - 1] / mx * 55) + 'mm;background:#c9a227"></span>']; }), ['32%', '12%', '12%', '44%']) + '</div>'
+    + '<div class="sec"><h3>6. ผลการปฏิบัติงานรายบุคคล</h3>' + tbl(['ชื่อ-สกุล', 'มอบหมาย', 'เสร็จ', 'เกินกำหนด', 'เฉลี่ย (วัน)', 'พึงพอใจ'], S.per.filter(p => p.assigned).map(p => [esc(p.name), p.assigned, p.done, p.overdue, fx(p.avg), fx(p.ravg, 2)]), ['34%', '13%', '11%', '14%', '14%', '14%']) + '</div>'
+    + '<div class="sec"><h3>7. เรื่องที่เกินกำหนด / ส่งต่อหน่วยงานอื่น</h3>' + (S.overdue.length + S.fwd.length ? tbl(['เลขที่รับเรื่อง', 'ประเภท', 'สถานะ', 'หมายเหตุ'], S.overdue.map(c => [esc(c.ref), esc(catOf(c.cat).name), 'เกินกำหนด', (escLevel(c) ? 'ยกระดับ: ' + esc(ESC_LV[escLevel(c)]) : '-')]).concat(S.fwd.map(c => [esc(c.ref), esc(catOf(c.cat).name), 'ส่งต่อ', esc(c.fwd.agency)])), ['26%', '26%', '16%', '32%']) : '<p>ไม่มี</p>') + '</div>'
+    + '<div class="sec" style="display:flex;justify-content:space-between;margin-top:22pt;text-align:center">' + ['ผู้จัดทำรายงาน', 'ผู้ตรวจสอบ', 'ผู้อนุมัติ'].map(t => '<div style="width:31%">ลงชื่อ ....................................<br>( .............................................. )<br>ตำแหน่ง ' + t + '<br>วันที่ ....... / ....... / .......</div>').join('') + '</div>'
+    + '<p style="font-size:12pt;margin-top:14pt;color:#444">หมายเหตุ: รายงานนี้สร้างจากข้อมูลจำลองเพื่อการนำเสนอ ข้อมูลส่วนบุคคลของผู้ร้องไม่ปรากฏในรายงานตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562</p></div>';
+  $('r-m').onchange = () => { location.search = '?as=report&m=' + $('r-m').value; };
 }
 function start() {
   load(); nav();
   if (VIEW === 'officer') { viewOfficer(); if (navigator.geolocation) navigator.geolocation.watchPosition(p => { GPS = { lat: p.coords.latitude, lng: p.coords.longitude }; if (!$('mdl')) viewOfficer(); }, () => { }, { enableHighAccuracy: true, maximumAge: 10000 }); }
-  else ({ home: viewHome, citizen: viewCitizen, track: viewTrack, commander: viewCommander, exec: viewExec }[VIEW] || viewHome)();
-  if (VIEW === 'exec' || VIEW === 'home') $('app').classList.add('wide');
+  else ({ home: viewHome, citizen: viewCitizen, track: viewTrack, commander: viewCommander, exec: viewExec, audit: viewAudit, report: viewReport }[VIEW] || viewHome)();
+  if (['exec', 'home', 'audit'].includes(VIEW)) $('app').classList.add('wide');
 }
 start();
 </script></body></html>
