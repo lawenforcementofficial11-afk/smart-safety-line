@@ -101,7 +101,8 @@ function effStatus(c, now) { now = now || Date.now(); if (['new', 'assigned', 'o
 function chip(s, extra) { const t = ST[s]; return '<span class="chip s-' + s + '"><i class="' + t.icon + '"></i>' + t.name + (extra || '') + '</span>'; }
 function refNo(seq, ts) { return 'รอ.' + (bkk(ts).y + 543) + '/' + String(seq).padStart(6, '0'); }
 
-const KEY = 'cmp-trial-v2';
+const KEY = 'cmp-trial-v3';
+const PH = (cat, k, v) => 'complaint-photos/' + cat + '-' + k + v + '.jpg';
 const PLACES = {
   z1: [['ตลาดนาเกลือ', 12.9618, 100.8935], ['ถนนนาเกลือ ซอย 12', 12.9582, 100.8962], ['หาดวงศ์อมาตย์', 12.9570, 100.8872], ['ถนนพัทยา-นาเกลือ', 12.9548, 100.8992]],
   z2: [['ถนนพัทยาเหนือ', 12.9468, 100.8902], ['ถนนเลียบชายหาด ช่วงพัทยาเหนือ', 12.9450, 100.8853], ['ถนนพัทยาสาย 2 ซอย 6', 12.9424, 100.8881], ['ถนนพัทยากลาง', 12.9336, 100.8852], ['ถนนเลียบชายหาด หน้าซอย 13', 12.9331, 100.8802], ['ถนนพัทยาสาย 3', 12.9330, 100.8962], ['ซอยบัวขาว', 12.9292, 100.8898]],
@@ -135,15 +136,15 @@ function seed() {
     const due = createdAdj + slaD * DAY;
     const main = wpick(oW), offs = [main].concat(R() < .25 ? [wpick(oW)].filter(x => x !== main) : []);
     const c = { seq: 101 + i, created: createdAdj, cat, desc: pick(DESC[cat]) + ' บริเวณ' + pl[0], zone, lat: pl[1] + (R() - .5) * 0.0024, lng: pl[2] + (R() - .5) * 0.0024,
-      phone: R() < .6 ? '08x-xxx-' + String(Math.floor(R() * 9000) + 1000) : '', name: pick(cnames), photos: [img(cc.name, '#475569')], status, pri, due, officers: [], hist: [{ s: 'new', ts: createdAdj, note: pick(['รับเรื่องผ่านช่องทางออนไลน์', 'รับเรื่องผ่าน LINE', 'รับเรื่องทางโทรศัพท์']) }], result: null };
+      phone: R() < .6 ? '08x-xxx-' + String(Math.floor(R() * 9000) + 1000) : '', name: pick(cnames), photos: [PH(cat, 'b', 1 + i % 2)], status, pri, due, officers: [], hist: [{ s: 'new', ts: createdAdj, note: pick(['รับเรื่องผ่านช่องทางออนไลน์', 'รับเรื่องผ่าน LINE', 'รับเรื่องทางโทรศัพท์']) }], result: null };
     if (status === 'rejected') { const why = pick(['ไม่อยู่ในอำนาจหน้าที่ ส่งต่อหน่วยงานที่เกี่ยวข้อง', 'เรื่องซ้ำกับเลขที่รับเรื่องเดิม', 'ข้อมูลไม่เพียงพอ ไม่สามารถติดต่อผู้ร้องได้']); c.hist.push({ s: 'rejected', ts: createdAdj + (1 + R() * 5) * 3600000, note: why }); c.rejectReason = why; }
     else if (status !== 'new') {
       c.officers = offs; const ta = createdAdj + (10 + R() * 80) * 60000; c.hist.push({ s: 'assigned', ts: ta, note: 'มอบหมาย ' + offs.map(offName).join(', ') });
       if (status === 'onsite' || status === 'done') c.hist.push({ s: 'onsite', ts: ta + (20 + R() * 150) * 60000, note: 'เจ้าหน้าที่ลงพื้นที่ตรวจสอบ', gps: Math.round(10 + R() * 120) });
       if (status === 'done') { const late = R() < .14, d = late ? slaD * (1.05 + R() * .8) : Math.max(0.08, slaD * (0.15 + R() * .8)); let cl = createdAdj + d * DAY; if (cl > now - 600000) cl = now - 600000 - R() * 3600000;
-        c.result = { note: pick(RESULTS.done), before: [img('ก่อนดำเนินการ', '#7c2d12')], after: [img('หลังดำเนินการ', '#166534')], by: main, ts: cl - 1800000 };
+        c.result = { note: pick(RESULTS.done), before: [PH(cat, 'b', 1 + i % 2)], after: [PH(cat, 'a', 1 + i % 2)], by: main, ts: cl - 1800000 };
         c.hist.push({ s: 'done', ts: cl, note: 'ปิดเรื่อง ดำเนินการแล้วเสร็จ' }); c.closed = cl; }
-      else if (status === 'onsite' && R() < .4) c.result = { note: pick(RESULTS.done), before: [img('ก่อนดำเนินการ', '#7c2d12')], after: [img('หลังดำเนินการ', '#166534')], by: main, ts: now - R() * 3 * 3600000 };
+      else if (status === 'onsite' && R() < .4) c.result = { note: pick(RESULTS.done), before: [PH(cat, 'b', 1 + i % 2)], after: [PH(cat, 'a', 1 + i % 2)], by: main, ts: now - R() * 3 * 3600000 };
     }
     c.ref = refNo(c.seq, createdAdj); L.push(c);
   }
@@ -336,7 +337,7 @@ function reportForm(c) {
     + '<button id="r-send" class="w-full bg-emerald-600 hover:bg-emerald-500 py-5 rounded-2xl text-xl font-bold mt-4"><i class="fa-solid fa-paper-plane mr-1"></i> ส่งรายงานผล</button></div>');
   $('r-b').onchange = async e => { R.before = await readPhotos(e.target, 3); $('r-bt').innerHTML = R.before.map(p => '<img class="thumb" src="' + p + '">').join(''); };
   $('r-a').onchange = async e => { R.after = await readPhotos(e.target, 3); $('r-at').innerHTML = R.after.map(p => '<img class="thumb" src="' + p + '">').join(''); };
-  $('r-send').onclick = () => { if (!R.after.length) { R.after = [img('หลังดำเนินการ', '#166534')]; } if (!R.before.length) R.before = [img('ก่อนดำเนินการ', '#7c2d12')];
+  $('r-send').onclick = () => { if (!R.after.length) { R.after = [PH(c.cat, 'a', 1)]; } if (!R.before.length) R.before = c.photos.slice(0, 1);
     c.result = { note: $('r-res').value + ($('r-note').value.trim() ? ' ' + $('r-note').value.trim() : ''), before: R.before, after: R.after, by: ME, ts: Date.now() }; save(); closeModal(); toast('ส่งรายงานผลแล้ว'); viewOfficer(); };
 }
 
