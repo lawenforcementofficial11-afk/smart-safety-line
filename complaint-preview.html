@@ -56,12 +56,18 @@ body{background:#eef2f7;color:#0f1b33;font-family:'Sarabun',sans-serif;font-size
 *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 #app.wide{max-width:1600px}@media(min-width:1600px){body{font-size:20px}}
 .leaflet-container{font-family:'Sarabun',sans-serif}
+@media(max-width:640px){.chip{white-space:normal;flex-wrap:wrap;max-width:100%;overflow-wrap:anywhere}
+html,body{overflow-x:hidden}#app{max-width:100vw}#app *{min-width:0}#app img,#app canvas,#app svg{max-width:100%}#app table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}.rp{max-width:100%;overflow-x:auto}
+#demobar{font-size:13px!important;padding:3px 6px!important;line-height:1.3}
+#hdr>div:first-child{padding-top:.5rem!important;gap:.6rem!important}#hdr img{width:2.75rem!important;height:2.75rem!important}#hdr p.text-2xl{font-size:1.3rem!important}
+#menubtn{display:inline-flex!important}#nav{display:none!important}#nav.open{display:flex!important;padding-bottom:.5rem}}
+#menubtn{display:none;align-items:center;gap:.45rem;background:#c9a227;color:#0f1b33;font-weight:800;font-size:1.2rem;padding:.55rem 1rem;border-radius:10px;flex:none;min-height:48px}
 </style></head>
 <body>
 <div id="demobar" class="noprint" style="background:#facc15;color:#111;font-weight:800;text-align:center;padding:6px;font-size:16px">ฉบับทดลอง · ข้อมูลจำลองเพื่อการนำเสนอ · ชื่อบุคคลเป็นชื่อสมมติ · ไม่เชื่อมต่อระบบจริง · <button onclick="resetDemo()" style="text-decoration:underline">ล้างข้อมูลตัวอย่าง</button></div>
 <header class="navy text-white noprint" id="hdr"><div class="max-w-6xl mx-auto px-4 pt-4 flex items-center gap-4">
 <img src="complaint-assets/logo-192.png" alt="ตราเทศกิจเมืองพัทยา" class="w-16 h-16 flex-none object-contain" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))">
-<div class="flex-1"><p class="text-2xl font-extrabold tracking-wide">เทศกิจเมืองพัทยา</p><p class="text-base" style="color:#e9d48a">ระบบรับเรื่องร้องเรียน / ร้องทุกข์</p></div></div>
+<div class="flex-1"><p class="text-2xl font-extrabold tracking-wide">เทศกิจเมืองพัทยา</p><p class="text-base" style="color:#e9d48a">ระบบรับเรื่องร้องเรียน / ร้องทุกข์</p></div><button id="menubtn" type="button" aria-expanded="false" aria-controls="nav" onclick="var n=document.getElementById('nav');var o=n.classList.toggle('open');this.setAttribute('aria-expanded',o)"><span style="font-size:1.4rem">☰</span>เมนู</button></div>
 <nav class="max-w-6xl mx-auto px-4 mt-3 flex flex-wrap gap-1" id="nav"></nav><div style="height:4px;background:#c9a227"></div></header>
 <main id="app" class="max-w-6xl mx-auto p-4 md:p-6"></main>
 <footer class="text-center text-sm text-slate-500 py-6 noprint" id="ftr">เทศกิจเมืองพัทยา · ระบบรับเรื่องร้องเรียน (ตัวอย่าง) · ข้อมูลส่วนบุคคลได้รับการคุ้มครองตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562</footer>
