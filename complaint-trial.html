@@ -1,0 +1,444 @@
+<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>ระบบรับเรื่องร้องเรียน เทศกิจเมืองพัทยา (ตัวอย่าง)</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<style>
+body{background:#eef2f7;color:#0f1b33;font-family:'Sarabun',sans-serif;font-size:18px}
+.navy{background:#0b2a5b}.gold{color:#c9a227}.bd-gold{border-color:#c9a227}
+.card{background:#fff;border:1px solid #d5dce6;border-radius:12px;box-shadow:0 1px 3px rgba(11,42,91,.08)}
+.card h2{font-size:1.35rem;font-weight:800;color:#0b2a5b;border-bottom:2px solid #c9a227;padding-bottom:.4rem;margin-bottom:1rem;display:flex;gap:.6rem;align-items:center}
+.btn{white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:.6rem;min-height:56px;padding:0 1.4rem;border-radius:10px;font-size:1.2rem;font-weight:700;border:2px solid transparent;cursor:pointer}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.b-pri{background:#0b2a5b;color:#fff}.b-pri:hover{background:#123a7a}.b-gold{background:#c9a227;color:#0b2a5b}.b-ok{background:#166534;color:#fff}.b-dan{background:#b91c1c;color:#fff}.b-out{background:#fff;color:#0b2a5b;border-color:#0b2a5b}
+.b-sm{min-height:44px;font-size:1.02rem;padding:0 1rem}
+.inp{width:100%;border:1.5px solid #94a3b8;border-radius:10px;padding:.8rem 1rem;font-size:1.15rem;background:#fff;color:#0f1b33}.inp:focus{outline:3px solid #c9a22766;border-color:#0b2a5b}
+.lbl{display:block;font-weight:700;color:#0b2a5b;margin-bottom:.35rem;font-size:1.1rem}
+.chip{white-space:nowrap;display:inline-flex;align-items:center;gap:.45rem;padding:.3rem .85rem;border-radius:6px;font-weight:700;font-size:1.02rem;border:1.5px solid}
+.s-new{background:#e8eef7;color:#1e3a8a;border-color:#64748b}.s-assigned{background:#f3e8ff;color:#5b21b6;border-color:#7c3aed}.s-onsite{background:#fff1e6;color:#9a3412;border-color:#ea580c}
+.s-done{background:#e7f6ec;color:#166534;border-color:#16a34a}.s-overdue{background:#fdecec;color:#991b1b;border-color:#dc2626}.s-rejected{background:#e5e7eb;color:#374151;border-color:#4b5563}
+.cat{width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.35rem;background:#e8eef7;color:#0b2a5b;border:1px solid #c7d2e3;flex:none}
+.catbtn{display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:1rem .5rem;border:2px solid #d5dce6;border-radius:12px;background:#fff;font-weight:700;font-size:1.05rem;text-align:center;min-height:120px;cursor:pointer}
+.catbtn.on{border-color:#0b2a5b;background:#eaf0fa;box-shadow:inset 0 0 0 2px #c9a227}
+.row{display:flex;align-items:center;gap:.8rem;padding:.75rem 1rem;border:1px solid #d5dce6;border-left-width:8px;border-radius:8px;background:#fff;cursor:pointer}.row:hover{background:#f8fafc}
+.pin{width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4)}.pin i{transform:rotate(45deg);color:#fff;font-size:.85rem}
+.mono{font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.tab{padding:.7rem 1.1rem;border-radius:8px 8px 0 0;font-weight:700;color:#e2e8f0;font-size:1.05rem;display:inline-flex;gap:.5rem;align-items:center}.tab.on{background:#eef2f7;color:#0b2a5b}
+.acc-h{width:100%;display:flex;align-items:center;gap:.8rem;text-align:left;cursor:pointer;min-height:60px}
+.acc-h .chev{margin-left:auto;width:44px;height:44px;border-radius:10px;background:#e8eef7;display:flex;align-items:center;justify-content:center;color:#0b2a5b;transition:transform .2s}
+.acc.open .chev{transform:rotate(180deg)}.acc:not(.open) .acc-b{display:none}
+.tl{position:relative;border-left:3px solid #cbd5e1;margin-left:1.2rem}.tl li{position:relative;margin-left:2rem;padding-bottom:1.2rem}
+.tl .dot{position:absolute;left:-3.45rem;top:0;width:2.6rem;height:2.6rem;border-radius:999px;display:flex;align-items:center;justify-content:center;border:2px solid}
+.tl li.todo{opacity:.45}
+.modal{position:fixed;inset:0;background:rgba(15,27,51,.6);z-index:2000;display:flex;align-items:flex-end;justify-content:center}@media(min-width:640px){.modal{align-items:center}}
+.modal>div{background:#fff;width:100%;max-width:860px;max-height:94vh;overflow:auto;border-radius:16px 16px 0 0}@media(min-width:640px){.modal>div{border-radius:16px}}
+.thumb{width:110px;height:82px;object-fit:cover;border-radius:8px;border:1px solid #cbd5e1}
+.dark{background:linear-gradient(135deg,#020617,#0f172a,#1e3a8a);color:#f8fafc}
+.glass{background:rgba(15,23,42,.78);border:1px solid rgba(255,255,255,.12);border-radius:22px}
+#print-area{display:none}
+@media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}#print-area{display:block;position:absolute;left:0;top:0;width:100%}}
+#app.wide{max-width:1600px}@media(min-width:1600px){body{font-size:20px}}
+.leaflet-container{font-family:'Sarabun',sans-serif}
+</style></head>
+<body>
+<div style="background:#facc15;color:#111;font-weight:800;text-align:center;padding:6px;font-size:16px">ฉบับทดลอง · ข้อมูลจำลองเพื่อการนำเสนอ · ชื่อบุคคลเป็นชื่อสมมติ · ไม่เชื่อมต่อระบบจริง · <button onclick="resetDemo()" style="text-decoration:underline">ล้างข้อมูลตัวอย่าง</button></div>
+<header class="navy text-white" id="hdr"><div class="max-w-6xl mx-auto px-4 pt-4 flex items-center gap-4">
+<div class="w-16 h-16 rounded-full border-2 bd-gold flex flex-col items-center justify-center text-[10px] leading-tight text-center flex-none" style="border-style:dashed;color:#e9d48a">ตรา<br>หน่วยงาน<br>(ใส่โลโก้)</div>
+<div class="flex-1"><p class="text-2xl font-extrabold tracking-wide">เทศกิจเมืองพัทยา</p><p class="text-base" style="color:#e9d48a">ระบบรับเรื่องร้องเรียน / ร้องทุกข์</p></div></div>
+<nav class="max-w-6xl mx-auto px-4 mt-3 flex flex-wrap gap-1" id="nav"></nav><div style="height:4px;background:#c9a227"></div></header>
+<main id="app" class="max-w-6xl mx-auto p-4 md:p-6"></main>
+<footer class="text-center text-sm text-slate-500 py-6" id="ftr">เทศกิจเมืองพัทยา · ระบบรับเรื่องร้องเรียน (ตัวอย่าง) · ข้อมูลส่วนบุคคลได้รับการคุ้มครองตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562</footer>
+<div id="print-area"></div>
+<div id="modal-root"></div>
+<script>
+const EXCELJS_URL = 'https:\/\/cdn.jsdelivr.net\/npm\/exceljs@4.4.0\/dist\/exceljs.min.js';
+const TILE_URL = 'https:\/\/{s}.tile.openstreetmap.org\/{z}\/{x}\/{y}.png';
+const SVG_NS = 'http:\/\/www.w3.org\/2000\/svg';
+const CATS = [
+  { id: 'trash', name: 'ขยะ / ความสะอาด', icon: 'fa-regular fa-trash-can', sla: 2 },
+  { id: 'vendor', name: 'หาบเร่ แผงลอย', icon: 'fa-solid fa-store', sla: 3 },
+  { id: 'walk', name: 'ทางเท้า / สิ่งกีดขวาง', icon: 'fa-solid fa-person-walking', sla: 3 },
+  { id: 'park', name: 'จอดรถกีดขวาง', icon: 'fa-solid fa-car-side', sla: 1 },
+  { id: 'noise', name: 'เสียงดังรบกวน', icon: 'fa-solid fa-volume-high', sla: 1 },
+  { id: 'sign', name: 'ป้าย / โฆษณา', icon: 'fa-regular fa-rectangle-list', sla: 5 },
+  { id: 'light', name: 'ไฟส่องสว่าง', icon: 'fa-regular fa-lightbulb', sla: 5 },
+  { id: 'other', name: 'เรื่องอื่น ๆ', icon: 'fa-regular fa-folder-open', sla: 5 }];
+const ST = {
+  new: { name: 'รับเรื่อง', icon: 'fa-solid fa-inbox', color: '#64748b' },
+  assigned: { name: 'มอบหมายแล้ว', icon: 'fa-solid fa-user-check', color: '#7c3aed' },
+  onsite: { name: 'ลงพื้นที่ / ดำเนินการ', icon: 'fa-solid fa-person-walking-arrow-right', color: '#ea580c' },
+  done: { name: 'เสร็จสิ้น', icon: 'fa-solid fa-circle-check', color: '#16a34a' },
+  overdue: { name: 'เกินกำหนด', icon: 'fa-solid fa-clock', color: '#dc2626' },
+  rejected: { name: 'ยุติ / ไม่รับเรื่อง', icon: 'fa-solid fa-ban', color: '#4b5563' } };
+const ST_ORDER = ['new', 'assigned', 'onsite', 'done', 'overdue', 'rejected'];
+const PRI = { normal: { name: 'ปกติ', f: 1 }, urgent: { name: 'ด่วน', f: 0.5 }, critical: { name: 'ด่วนมาก', f: 0.25 } };
+const ZONES = [{ id: 'z1', name: 'นาเกลือ', lat: 12.9580, lng: 100.8950 }, { id: 'z2', name: 'พัทยาเหนือ-กลาง', lat: 12.9400, lng: 100.8880 }, { id: 'z3', name: 'พัทยาใต้', lat: 12.9230, lng: 100.8760 }, { id: 'z4', name: 'จอมเทียน', lat: 12.8880, lng: 100.8740 }, { id: 'z5', name: 'เกาะล้าน', lat: 12.9150, lng: 100.7800 }];
+const OFFICERS = [['9001', 'นายสมชาย ใจดี'], ['9002', 'นางสาวมาลี ทองคำ'], ['9003', 'นายวิชัย รอบคอบ'], ['9004', 'นายอนันต์ ตั้งใจ'], ['9005', 'นางสาวกานดา เรียบร้อย'], ['9006', 'นายประเสริฐ มั่นคง'], ['9007', 'นายสุรชัย กล้าหาญ'], ['9008', 'นายธีระ รักงาน'], ['9009', 'นายกิตติ ขยันดี'], ['9010', 'นางสาวพิมพ์ใจ ซื่อตรง'], ['9011', 'นายชาตรี พร้อมเพรียง'], ['9012', 'นายวีระ อดทน']].map(x => ({ no: x[0], name: x[1] }));
+const ME = '9001';
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const $ = id => document.getElementById(id);
+const DAY = 86400000;
+const TH_M = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+const TH_ML = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+function bkk(ts) { const d = new Date(ts + 7 * 3600000); return { y: d.getUTCFullYear(), m: d.getUTCMonth(), d: d.getUTCDate(), hh: String(d.getUTCHours()).padStart(2, '0'), mm: String(d.getUTCMinutes()).padStart(2, '0') }; }
+function fDate(ts) { const b = bkk(ts); return b.d + ' ' + TH_M[b.m] + ' ' + (b.y + 543); }
+function fDT(ts) { const b = bkk(ts); return fDate(ts) + ' เวลา ' + b.hh + '.' + b.mm + ' น.'; }
+function fLong(ts) { const b = bkk(ts); return b.d + ' ' + TH_ML[b.m] + ' ' + (b.y + 543) + ' เวลา ' + b.hh + '.' + b.mm + ' น.'; }
+function monthKey(ts) { const b = bkk(ts); return b.y + '-' + String(b.m + 1).padStart(2, '0'); }
+function catOf(id) { return CATS.find(c => c.id === id) || CATS[7]; }
+function zoneOf(id) { return ZONES.find(z => z.id === id) || ZONES[2]; }
+function offName(no) { const o = OFFICERS.find(x => x.no === no); return o ? o.name : no; }
+function nearestZone(lat, lng) { let best = ZONES[0], bd = 1e9; ZONES.forEach(z => { const d = (z.lat - lat) ** 2 + (z.lng - lng) ** 2; if (d < bd) { bd = d; best = z; } }); return best.id; }
+function hav(a, b, c, d) { const R = 6371000, r = x => x * Math.PI / 180, p = Math.sin(r(c - a) / 2) ** 2 + Math.cos(r(a)) * Math.cos(r(c)) * Math.sin(r(d - b) / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(p)); }
+function img(label, color) {
+  const svg = '<svg xmlns="' + SVG_NS + '" width="640" height="480"><rect width="640" height="480" fill="' + color + '"/><rect x="20" y="20" width="600" height="440" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="4" stroke-dasharray="14 10"/><text x="320" y="230" font-family="Sarabun,sans-serif" font-size="40" fill="#fff" text-anchor="middle">' + label + '</text><text x="320" y="290" font-family="Sarabun,sans-serif" font-size="26" fill="#fff" fill-opacity=".8" text-anchor="middle">ภาพตัวอย่าง</text></svg>';
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+function effStatus(c, now) { now = now || Date.now(); if (['new', 'assigned', 'onsite'].includes(c.status) && c.due && now > c.due) return 'overdue'; return c.status; }
+function chip(s, extra) { const t = ST[s]; return '<span class="chip s-' + s + '"><i class="' + t.icon + '"></i>' + t.name + (extra || '') + '</span>'; }
+function refNo(seq, ts) { return 'รอ.' + (bkk(ts).y + 543) + '/' + String(seq).padStart(6, '0'); }
+
+const KEY = 'cmp-trial-v2';
+const PLACES = {
+  z1: [['ตลาดนาเกลือ', 12.9618, 100.8935], ['ถนนนาเกลือ ซอย 12', 12.9582, 100.8962], ['หาดวงศ์อมาตย์', 12.9570, 100.8872], ['ถนนพัทยา-นาเกลือ', 12.9548, 100.8992]],
+  z2: [['ถนนพัทยาเหนือ', 12.9468, 100.8902], ['ถนนเลียบชายหาด ช่วงพัทยาเหนือ', 12.9450, 100.8853], ['ถนนพัทยาสาย 2 ซอย 6', 12.9424, 100.8881], ['ถนนพัทยากลาง', 12.9336, 100.8852], ['ถนนเลียบชายหาด หน้าซอย 13', 12.9331, 100.8802], ['ถนนพัทยาสาย 3', 12.9330, 100.8962], ['ซอยบัวขาว', 12.9292, 100.8898]],
+  z3: [['วอล์คกิ้งสตรีท', 12.9270, 100.8722], ['ท่าเรือแหลมบาลีฮาย', 12.9206, 100.8683], ['ถนนพัทยาใต้', 12.9256, 100.8792], ['ถนนเทพประสิทธิ์', 12.9150, 100.8802], ['ถนนพัทยาสาย 2 ช่วงพัทยาใต้', 12.9240, 100.8820]],
+  z4: [['หาดจอมเทียน', 12.8852, 100.8692], ['ถนนจอมเทียนสาย 2', 12.8902, 100.8732], ['ถนนเลียบชายหาดจอมเทียน ซอย 5', 12.8952, 100.8702], ['ถนนสุขุมวิท ช่วงจอมเทียน', 12.8802, 100.8902]],
+  z5: [['หาดตาแหวน เกาะล้าน', 12.9196, 100.7792], ['ท่าเรือหน้าบ้าน เกาะล้าน', 12.9181, 100.7882], ['หาดแสม เกาะล้าน', 12.9160, 100.7712], ['หาดนวล เกาะล้าน', 12.9012, 100.7842]] };
+const DESC = {
+  trash: ['ขยะตกค้างไม่มีการจัดเก็บ', 'มีการลักลอบทิ้งขยะริมทาง', 'ถังขยะล้นส่งกลิ่นเหม็น', 'เศษวัสดุก่อสร้างกองบนทางเท้า'],
+  vendor: ['วางแผงค้าบนทางเท้า', 'รถเข็นขายอาหารจอดกีดขวางทางเดิน', 'ตั้งร้านค้านอกจุดผ่อนผัน', 'ขายของบนชายหาดนอกพื้นที่ที่กำหนด'],
+  walk: ['วางสินค้ากีดขวางทางเท้า', 'ตั้งโต๊ะเก้าอี้ร้านอาหารรุกล้ำทางเท้า', 'ทางเท้าชำรุดเป็นหลุม เสี่ยงอันตราย', 'ป้ายตั้งพื้นกีดขวางทางเดิน'],
+  park: ['จอดรถบนทางเท้า', 'จอดรถซ้อนคันกีดขวางการจราจร', 'รถจักรยานยนต์จอดขวางทางเข้าออก', 'จอดรถในจุดห้ามจอดหน้าตลาด'],
+  noise: ['เสียงดนตรีดังจากร้านยามดึก', 'เสียงดังจากงานก่อสร้างนอกเวลา', 'รถแห่โฆษณาเปิดเสียงดัง', 'เสียงดังรบกวนจากสถานบันเทิง'],
+  sign: ['ติดป้ายโฆษณาบนเสาไฟฟ้า', 'ป้ายโฆษณาติดตั้งไม่ได้รับอนุญาต', 'ป้ายชำรุดเสี่ยงหล่นใส่ผู้สัญจร', 'แผ่นป้ายโฆษณาบดบังป้ายจราจร'],
+  light: ['ไฟส่องสว่างดับหลายดวง', 'โคมไฟริมหาดชำรุด', 'ไฟทางเดินดับ ทำให้มืดเปลี่ยว', 'เสาไฟเอียงเสี่ยงล้ม'],
+  other: ['สุนัขจรจัดรวมกลุ่มไล่กัดคน', 'น้ำท่วมขังทางเท้าหลังฝนตก', 'ผู้ขายบริการเร่ขายบนชายหาด', 'มีผู้ใช้ทางเท้าเป็นที่พักอาศัย'] };
+const RESULTS = { done: ['ดำเนินการแก้ไขเรียบร้อยแล้ว', 'ตักเตือนและให้ผู้เกี่ยวข้องแก้ไขเรียบร้อย', 'ประสานเจ้าของพื้นที่เคลื่อนย้ายสิ่งกีดขวางแล้ว', 'ประสานหน่วยงานที่เกี่ยวข้องดำเนินการแก้ไขแล้ว', 'เปรียบเทียบปรับตามระเบียบและแก้ไขเรียบร้อย'] };
+function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function seed() {
+  const R = rng(20261029), pick = a => a[Math.floor(R() * a.length)], now = Date.now(), L = [];
+  const zW = [['z1', 14], ['z2', 22], ['z3', 18], ['z4', 12], ['z5', 6]], cW = [['trash', 16], ['vendor', 15], ['walk', 13], ['park', 14], ['noise', 10], ['sign', 8], ['light', 9], ['other', 7]];
+  const wpick = w => { let t = w.reduce((a, x) => a + x[1], 0), r = R() * t; for (const x of w) { if ((r -= x[1]) < 0) return x[0]; } return w[0][0]; };
+  const oW = OFFICERS.map((o, i) => [o.no, 14 - i]);
+  const N = 74, cnames = ['ผู้ร้อง (นามสมมติ)', 'ประชาชน (นามสมมติ)', 'ผู้ประกอบการ (นามสมมติ)', 'นักท่องเที่ยว (นามสมมติ)', ''];
+  for (let i = 0; i < N; i++) {
+    const ageDays = i < 6 ? R() * 1.2 : 1 + R() * 59, created = now - ageDays * DAY - R() * 3600000;
+    const cat = wpick(cW), zone = wpick(zW), pl = pick(PLACES[zone]), cc = catOf(cat);
+    let status;
+    if (i < 4) status = 'new'; else if (i < 8) status = 'assigned'; else if (i < 13) status = 'onsite'; else if (i < 17) status = R() < .5 ? 'assigned' : 'onsite'; else if (i < 20) status = 'rejected'; else status = ageDays < 2 && R() < .6 ? 'onsite' : 'done';
+    const pri = R() < .12 ? 'urgent' : R() < .04 ? 'critical' : 'normal', slaD = Math.max(0.25, cc.sla * PRI[pri].f);
+    let createdAdj = created; if (i >= 13 && i < 17) createdAdj = now - (slaD + 1 + R() * 4) * DAY; else if (['new', 'assigned', 'onsite'].includes(status)) createdAdj = now - (0.05 + R() * 0.75) * slaD * DAY;
+    const due = createdAdj + slaD * DAY;
+    const main = wpick(oW), offs = [main].concat(R() < .25 ? [wpick(oW)].filter(x => x !== main) : []);
+    const c = { seq: 101 + i, created: createdAdj, cat, desc: pick(DESC[cat]) + ' บริเวณ' + pl[0], zone, lat: pl[1] + (R() - .5) * 0.0024, lng: pl[2] + (R() - .5) * 0.0024,
+      phone: R() < .6 ? '08x-xxx-' + String(Math.floor(R() * 9000) + 1000) : '', name: pick(cnames), photos: [img(cc.name, '#475569')], status, pri, due, officers: [], hist: [{ s: 'new', ts: createdAdj, note: pick(['รับเรื่องผ่านช่องทางออนไลน์', 'รับเรื่องผ่าน LINE', 'รับเรื่องทางโทรศัพท์']) }], result: null };
+    if (status === 'rejected') { const why = pick(['ไม่อยู่ในอำนาจหน้าที่ ส่งต่อหน่วยงานที่เกี่ยวข้อง', 'เรื่องซ้ำกับเลขที่รับเรื่องเดิม', 'ข้อมูลไม่เพียงพอ ไม่สามารถติดต่อผู้ร้องได้']); c.hist.push({ s: 'rejected', ts: createdAdj + (1 + R() * 5) * 3600000, note: why }); c.rejectReason = why; }
+    else if (status !== 'new') {
+      c.officers = offs; const ta = createdAdj + (10 + R() * 80) * 60000; c.hist.push({ s: 'assigned', ts: ta, note: 'มอบหมาย ' + offs.map(offName).join(', ') });
+      if (status === 'onsite' || status === 'done') c.hist.push({ s: 'onsite', ts: ta + (20 + R() * 150) * 60000, note: 'เจ้าหน้าที่ลงพื้นที่ตรวจสอบ', gps: Math.round(10 + R() * 120) });
+      if (status === 'done') { const late = R() < .14, d = late ? slaD * (1.05 + R() * .8) : Math.max(0.08, slaD * (0.15 + R() * .8)); let cl = createdAdj + d * DAY; if (cl > now - 600000) cl = now - 600000 - R() * 3600000;
+        c.result = { note: pick(RESULTS.done), before: [img('ก่อนดำเนินการ', '#7c2d12')], after: [img('หลังดำเนินการ', '#166534')], by: main, ts: cl - 1800000 };
+        c.hist.push({ s: 'done', ts: cl, note: 'ปิดเรื่อง ดำเนินการแล้วเสร็จ' }); c.closed = cl; }
+      else if (status === 'onsite' && R() < .4) c.result = { note: pick(RESULTS.done), before: [img('ก่อนดำเนินการ', '#7c2d12')], after: [img('หลังดำเนินการ', '#166534')], by: main, ts: now - R() * 3 * 3600000 };
+    }
+    c.ref = refNo(c.seq, createdAdj); L.push(c);
+  }
+  L.sort((a, b) => a.created - b.created).forEach((c, k) => { c.seq = 101 + k; c.ref = refNo(c.seq, c.created); });
+  const meCases = L.filter(c => ['assigned', 'onsite'].includes(c.status) && !c.result).slice(0, 3); meCases.forEach(c => { c.officers = [ME].concat(c.officers.filter(x => x !== ME)).slice(0, 2); });
+  return { list: L, seq: 101 + L.length };
+}
+let DB = null;
+function load() { try { DB = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { DB = null; } if (!DB || !DB.list) { DB = seed(); save(); } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { } }
+function resetDemo() { localStorage.removeItem(KEY); localStorage.removeItem('cmp-rate'); location.reload(); }
+function byRef(r) { r = String(r || '').replace(/\s+/g, '').replace(/^รอ/, 'รอ'); return DB.list.find(c => c.ref === r || c.ref.replace('รอ.', '') === r || String(c.seq) === r.replace(/^0+/, '')); }
+
+const VIEWS = [['home', 'หน้าแรก', 'fa-solid fa-house'], ['citizen', 'ยื่นเรื่องร้องเรียน', 'fa-solid fa-pen-to-square'], ['track', 'ติดตามเรื่อง', 'fa-solid fa-magnifying-glass'], ['commander', 'ผู้บังคับบัญชา', 'fa-solid fa-inbox'], ['officer', 'เจ้าหน้าที่', 'fa-solid fa-user-shield'], ['exec', 'ผู้บริหาร', 'fa-solid fa-chart-column']];
+const Q = new URLSearchParams(location.search);
+let VIEW = Q.get('as') || 'home';
+function nav() { $('nav').innerHTML = VIEWS.map(v => '<a class="tab ' + (v[0] === VIEW ? 'on' : '') + '" href="?as=' + v[0] + '"><i class="' + v[2] + '"></i>' + v[1] + '</a>').join(''); }
+function modal(html) { $('modal-root').innerHTML = '<div class="modal" id="mdl"><div>' + html + '</div></div>'; $('mdl').addEventListener('click', e => { if (e.target.id === 'mdl' || e.target.closest('[data-close]')) closeModal(); }); }
+function closeModal() { $('modal-root').innerHTML = ''; }
+function toast(msg, ok) { const t = document.createElement('div'); t.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[3000] px-6 py-4 rounded-xl text-lg font-bold shadow-xl ' + (ok === false ? 'bg-red-700 text-white' : 'bg-green-800 text-white'); t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); }
+function readPhotos(input, max) { return Promise.all([...input.files].slice(0, max).map(f => new Promise(ok => { const r = new FileReader(); r.onload = () => { const im = new Image(); im.onload = () => { const s = Math.min(1, 900 / Math.max(im.width, im.height)), cv = document.createElement('canvas'); cv.width = im.width * s; cv.height = im.height * s; cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height); ok(cv.toDataURL('image/jpeg', .75)); }; im.onerror = () => ok(null); im.src = r.result; }; r.readAsDataURL(f); }))).then(a => a.filter(Boolean)); }
+function mkMap(el, lat, lng, z) { const m = L.map(el, { scrollWheelZoom: false }).setView([lat, lng], z || 15); L.tileLayer(TILE_URL, { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(m); return m; }
+function pinIcon(s) { const t = ST[s]; return L.divIcon({ className: '', html: '<div class="pin" style="background:' + t.color + '"><i class="' + t.icon + '"></i></div>', iconSize: [34, 34], iconAnchor: [17, 34] }); }
+function legend() { return '<div class="flex flex-wrap gap-2 items-center"><span class="text-base font-bold text-slate-600 mr-1">คำอธิบายสถานะ:</span>' + ST_ORDER.map(s => chip(s)).join('') + '</div>'; }
+function trackUrl(ref) { return location.origin + location.pathname + '?as=track&ref=' + encodeURIComponent(ref); }
+function qrSvg(text, cell) { const q = qrcode(0, 'M'); q.addData(unescape(encodeURIComponent(text))); q.make(); return q.createSvgTag(cell || 4, 8); }
+
+let F = null;
+function viewCitizen() {
+  F = { cat: '', lat: null, lng: null, photos: [], started: Date.now(), a: 2 + Math.floor(Math.random() * 7), b: 1 + Math.floor(Math.random() * 8) };
+  $('app').innerHTML = '<div class="grid lg:grid-cols-3 gap-6"><div class="lg:col-span-2 space-y-6">'
+    + '<section class="card p-5"><h2><i class="fa-solid fa-layer-group gold"></i>1. เลือกประเภทเรื่อง</h2><div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="cats">'
+    + CATS.map(c => '<button type="button" class="catbtn" data-cat="' + c.id + '"><span class="cat"><i class="' + c.icon + '"></i></span>' + c.name + '</button>').join('') + '</div></section>'
+    + '<section class="card p-5"><h2><i class="fa-solid fa-file-lines gold"></i>2. รายละเอียดเรื่อง</h2><label class="lbl" for="f-desc">รายละเอียด (เกิดอะไรขึ้น ที่ไหน เมื่อใด)</label><textarea id="f-desc" rows="4" maxlength="1000" class="inp" placeholder="เช่น มีการวางแผงค้าบนทางเท้าบริเวณหน้าซอย 6 ทำให้คนเดินไม่สะดวก"></textarea>'
+    + '<label class="lbl mt-4">ภาพประกอบ (ไม่เกิน 3 ภาพ)</label><label class="btn b-out cursor-pointer"><i class="fa-solid fa-camera"></i>ถ่ายภาพ / เลือกภาพ<input id="f-photo" type="file" accept="image\/*" multiple class="hidden"></label><div id="f-thumbs" class="flex flex-wrap gap-2 mt-2"></div></section>'
+    + '<section class="card p-5"><h2><i class="fa-solid fa-location-dot gold"></i>3. ตำแหน่งที่เกิดเหตุ</h2><div class="flex flex-wrap gap-3 mb-3"><button type="button" class="btn b-pri" id="f-gps"><i class="fa-solid fa-location-crosshairs"></i>ใช้ตำแหน่งปัจจุบัน</button><span class="self-center text-base text-slate-600">หรือแตะบนแผนที่เพื่อปักหมุด</span></div>'
+    + '<div id="f-map" style="height:340px" class="rounded-lg border border-slate-300"></div><p id="f-loc" class="text-base text-slate-700 mt-2">ยังไม่ได้ระบุตำแหน่ง</p>'
+    + '<label class="lbl mt-3" for="f-place">จุดสังเกต / ที่อยู่ (ถ้ามี)</label><input id="f-place" class="inp" maxlength="200" placeholder="เช่น หน้าซอย 6 ถนนเลียบชายหาด"></section>'
+    + '<section class="card p-5"><h2><i class="fa-solid fa-address-card gold"></i>4. ข้อมูลติดต่อกลับ (ไม่บังคับ)</h2><div class="grid sm:grid-cols-2 gap-4"><div><label class="lbl" for="f-name">ชื่อ-สกุล</label><input id="f-name" class="inp" maxlength="100" autocomplete="name"></div><div><label class="lbl" for="f-phone">หมายเลขโทรศัพท์</label><input id="f-phone" class="inp" inputmode="tel" maxlength="12" placeholder="0XX-XXX-XXXX"></div></div>'
+    + '<input id="f-web" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true"></section>'
+    + '<section class="card p-5"><h2><i class="fa-solid fa-user-shield gold"></i>5. การคุ้มครองข้อมูลส่วนบุคคล</h2><div class="rounded-lg border border-slate-300 bg-slate-50 p-4 text-base leading-relaxed">เทศกิจเมืองพัทยาเก็บรวบรวมข้อมูลที่ท่านให้ไว้ ได้แก่ ชื่อ หมายเลขโทรศัพท์ ตำแหน่งที่ตั้ง และภาพประกอบ เพื่อใช้ในการตรวจสอบและแก้ไขเรื่องร้องเรียนเท่านั้น จะไม่เปิดเผยข้อมูลของผู้ร้องต่อผู้ถูกร้อง และจัดเก็บตามระยะเวลาที่กฎหมายกำหนด ท่านมีสิทธิขอเข้าถึง แก้ไข หรือลบข้อมูลตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562</div>'
+    + '<label class="flex items-start gap-3 mt-4 text-lg font-semibold cursor-pointer"><input type="checkbox" id="f-pdpa" class="w-7 h-7 mt-0.5 accent-blue-900 flex-none">ข้าพเจ้ารับทราบและยินยอมให้ใช้ข้อมูลเพื่อดำเนินการเรื่องร้องเรียน</label>'
+    + '<div class="mt-4 flex flex-wrap items-center gap-3"><label class="lbl m-0" for="f-q">ยืนยันว่าไม่ใช่โปรแกรมอัตโนมัติ: ' + F.a + ' + ' + F.b + ' = </label><input id="f-q" class="inp" style="width:110px" inputmode="numeric" maxlength="2"></div>'
+    + '<button type="button" id="f-send" class="btn b-pri w-full mt-5 text-xl"><i class="fa-solid fa-paper-plane"></i>ยื่นเรื่องร้องเรียน</button></section></div>'
+    + '<aside class="space-y-6"><section class="card p-5"><h2><i class="fa-solid fa-circle-info gold"></i>ขั้นตอนการดำเนินการ</h2><ol class="tl">' + ['new', 'assigned', 'onsite', 'done'].map(s => '<li><span class="dot s-' + s + '"><i class="' + ST[s].icon + '"></i></span><p class="font-bold">' + ST[s].name + '</p></li>').join('') + '</ol>'
+    + '<p class="text-base text-slate-600">ท่านจะได้รับเลขที่รับเรื่องเพื่อใช้ติดตามสถานะได้ตลอดเวลา</p></section>'
+    + '<section class="card p-5"><h2><i class="fa-solid fa-magnifying-glass gold"></i>ติดตามเรื่องเดิม</h2><a href="?as=track" class="btn b-out w-full"><i class="fa-solid fa-magnifying-glass"></i>ตรวจสอบสถานะ</a></section></aside></div>';
+  $('cats').addEventListener('click', e => { const b = e.target.closest('[data-cat]'); if (!b) return; F.cat = b.dataset.cat; document.querySelectorAll('.catbtn').forEach(x => x.classList.toggle('on', x === b)); });
+  const m = mkMap('f-map', 12.935, 100.883, 14); let mk = null;
+  const setLoc = (lat, lng) => { F.lat = lat; F.lng = lng; if (mk) mk.setLatLng([lat, lng]); else mk = L.marker([lat, lng], { icon: pinIcon('new') }).addTo(m); m.setView([lat, lng], 17); $('f-loc').innerHTML = '<i class="fa-solid fa-circle-check text-green-700"></i> ระบุตำแหน่งแล้ว · พื้นที่ ' + esc(zoneOf(nearestZone(lat, lng)).name) + ' (' + lat.toFixed(5) + ', ' + lng.toFixed(5) + ')'; };
+  m.on('click', e => setLoc(e.latlng.lat, e.latlng.lng));
+  $('f-gps').onclick = () => { if (!navigator.geolocation) return toast('อุปกรณ์ไม่รองรับการระบุตำแหน่ง', false); navigator.geolocation.getCurrentPosition(p => setLoc(p.coords.latitude, p.coords.longitude), () => toast('ไม่สามารถระบุตำแหน่งได้ กรุณาแตะบนแผนที่', false), { enableHighAccuracy: true, timeout: 10000 }); };
+  $('f-photo').onchange = async e => { F.photos = await readPhotos(e.target, 3); $('f-thumbs').innerHTML = F.photos.map(p => '<img class="thumb" src="' + p + '">').join(''); };
+  $('f-send').onclick = submitComplaint;
+}
+function submitComplaint() {
+  const desc = $('f-desc').value.trim(), phone = $('f-phone').value.trim();
+  const err = !F.cat ? 'กรุณาเลือกประเภทเรื่อง' : desc.length < 10 ? 'กรุณากรอกรายละเอียดอย่างน้อย 10 ตัวอักษร' : F.lat == null ? 'กรุณาระบุตำแหน่งที่เกิดเหตุ' : (phone && !/^0\d{1,2}-?\d{3}-?\d{4}$/.test(phone)) ? 'หมายเลขโทรศัพท์ไม่ถูกต้อง' : !$('f-pdpa').checked ? 'กรุณายินยอมการใช้ข้อมูลส่วนบุคคล' : Number($('f-q').value) !== F.a + F.b ? 'คำตอบยืนยันไม่ถูกต้อง' : '';
+  if (err) return toast(err, false);
+  if ($('f-web').value || Date.now() - F.started < 4000) return toast('ระบบตรวจพบการส่งที่ผิดปกติ กรุณาลองใหม่', false);
+  let rate = []; try { rate = JSON.parse(localStorage.getItem('cmp-rate') || '[]').filter(t => Date.now() - t < 3600000); } catch (e) { }
+  if (rate.length >= 3) return toast('ส่งได้ไม่เกิน 3 เรื่องต่อชั่วโมง กรุณาลองใหม่ภายหลัง', false);
+  rate.push(Date.now()); localStorage.setItem('cmp-rate', JSON.stringify(rate));
+  const now = Date.now(), cat = catOf(F.cat), seq = DB.seq++;
+  const c = { seq, ref: refNo(seq, now), created: now, cat: F.cat, desc: desc + ($('f-place').value.trim() ? ' (' + $('f-place').value.trim() + ')' : ''), zone: nearestZone(F.lat, F.lng), lat: F.lat, lng: F.lng, phone, name: $('f-name').value.trim(),
+    photos: F.photos.length ? F.photos : [img(cat.name, '#475569')], status: 'new', pri: 'normal', due: now + cat.sla * DAY, officers: [], hist: [{ s: 'new', ts: now, note: 'รับเรื่องผ่านช่องทางออนไลน์' }], result: null };
+  DB.list.push(c); save(); showReceiptView(c);
+}
+function receiptHtml(c, forPrint) {
+  const cat = catOf(c.cat);
+  return '<div style="max-width:720px;margin:0 auto;font-family:Sarabun,sans-serif;color:#0f1b33;border:1.5px solid #0b2a5b">'
+    + '<div style="background:#0b2a5b;color:#fff;padding:14px 18px;display:flex;gap:14px;align-items:center;border-bottom:4px solid #c9a227"><div style="width:56px;height:56px;border:2px dashed #c9a227;border-radius:50%;color:#e9d48a;font-size:9px;display:flex;align-items:center;justify-content:center;text-align:center">ตรา<br>หน่วยงาน</div><div><div style="font-size:22px;font-weight:800">ใบรับเรื่องร้องเรียน</div><div style="color:#e9d48a">เทศกิจเมืองพัทยา</div></div></div>'
+    + '<div style="padding:18px;display:flex;gap:18px;flex-wrap:wrap"><table style="flex:1;min-width:280px;font-size:17px;border-collapse:collapse">'
+    + [['เลขที่รับเรื่อง', '<b style="font-size:22px">' + esc(c.ref) + '</b>'], ['วันที่รับเรื่อง', esc(fLong(c.created))], ['ประเภท', esc(cat.name)], ['พื้นที่', esc(zoneOf(c.zone).name)], ['รายละเอียด', esc(c.desc)], ['กำหนดแล้วเสร็จ', 'ภายใน ' + cat.sla + ' วัน (' + esc(fDate(c.due)) + ')']]
+      .map(r => '<tr><td style="padding:6px 10px 6px 0;color:#475569;white-space:nowrap;vertical-align:top">' + r[0] + '</td><td style="padding:6px 0;border-bottom:1px solid #e2e8f0">' + r[1] + '</td></tr>').join('')
+    + '</table><div style="text-align:center;width:180px"><div>' + qrSvg(trackUrl(c.ref), 3) + '</div><div style="font-size:14px;color:#475569">สแกนเพื่อติดตามสถานะ</div></div></div>'
+    + '<div style="padding:0 18px 16px;font-size:14px;color:#475569;border-top:1px solid #e2e8f0;padding-top:10px">กรุณาเก็บเลขที่รับเรื่องไว้เพื่อติดตามสถานะ · เอกสารนี้ออกโดยระบบอิเล็กทรอนิกส์ ไม่ต้องลงลายมือชื่อ · ข้อมูลส่วนบุคคลของผู้ร้องได้รับการคุ้มครองตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562</div></div>';
+}
+function printReceipt(ref) { const c = byRef(ref); if (!c) return; $('print-area').innerHTML = '<div style="padding:24px">' + receiptHtml(c, true) + '</div>'; window.print(); }
+function showReceiptView(c) {
+  window.scrollTo(0, 0);
+  $('app').innerHTML = '<section class="card p-6 max-w-3xl mx-auto"><div class="text-center mb-4"><div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center text-3xl s-done border-2"><i class="fa-solid fa-check"></i></div>'
+    + '<p class="text-2xl font-extrabold text-[#0b2a5b] mt-3">ระบบได้รับเรื่องของท่านแล้ว</p><p class="text-lg text-slate-600">เลขที่รับเรื่อง</p><p class="mono text-4xl font-extrabold text-[#0b2a5b]">' + esc(c.ref) + '</p></div>'
+    + receiptHtml(c) + '<div class="grid sm:grid-cols-3 gap-3 mt-5"><button class="btn b-pri" onclick="printReceipt(\'' + esc(c.ref) + '\')"><i class="fa-solid fa-print"></i>พิมพ์ใบรับเรื่อง</button>'
+    + '<a class="btn b-out" href="' + esc(trackUrl(c.ref)) + '"><i class="fa-solid fa-magnifying-glass"></i>ติดตามสถานะ</a><button class="btn b-out" id="cp-link"><i class="fa-regular fa-copy"></i>คัดลอกลิงก์</button></div></section>';
+  $('cp-link').onclick = () => { try { navigator.clipboard.writeText(trackUrl(c.ref)); toast('คัดลอกลิงก์แล้ว'); } catch (e) { } };
+}
+
+function timelineHtml(c, publicView) {
+  const es = effStatus(c), steps = ['new', 'assigned', 'onsite', 'done'];
+  if (c.status === 'rejected') return '<ol class="tl">' + c.hist.map(h => '<li><span class="dot s-' + h.s + '"><i class="' + ST[h.s].icon + '"></i></span><p class="font-bold text-lg">' + ST[h.s].name + '</p><p class="text-base text-slate-600">' + esc(fDT(h.ts)) + '</p><p class="text-base">' + esc(h.note) + '</p></li>').join('') + '</ol>';
+  return '<ol class="tl">' + steps.map(s => { const h = c.hist.find(x => x.s === s), cur = !h && es === 'overdue' && steps.indexOf(s) === steps.indexOf(c.status) + 1;
+    const note = h ? (publicView && s === 'assigned' ? 'มอบหมายเจ้าหน้าที่เทศกิจผู้รับผิดชอบแล้ว' : h.note.replace(/\s*\(.*\)$/, '')) : (cur ? 'เกินกำหนดแล้วเสร็จ (' + esc(fDate(c.due)) + ') อยู่ระหว่างเร่งรัด' : 'รอดำเนินการ');
+    return '<li class="' + (h ? '' : 'todo') + '"' + (cur ? ' style="opacity:1"' : '') + '><span class="dot s-' + (h ? s : cur ? 'overdue' : s) + '"><i class="' + (cur ? ST.overdue.icon : ST[s].icon) + '"></i></span><p class="font-bold text-lg">' + ST[s].name + '</p>' + (h ? '<p class="text-base text-slate-600">' + esc(fDT(h.ts)) + '</p>' : '') + '<p class="text-base">' + note + '</p></li>'; }).join('') + '</ol>';
+}
+function viewTrack() {
+  const r = Q.get('ref') || '';
+  $('app').innerHTML = '<section class="card p-5 max-w-3xl mx-auto"><h2><i class="fa-solid fa-magnifying-glass gold"></i>ติดตามสถานะเรื่องร้องเรียน</h2><label class="lbl" for="t-ref">เลขที่รับเรื่อง</label><div class="flex flex-col sm:flex-row gap-3"><input id="t-ref" class="inp mono text-2xl" placeholder="รอ.2569/000142" value="' + esc(r) + '"><button class="btn b-pri" id="t-go"><i class="fa-solid fa-magnifying-glass"></i>ตรวจสอบ</button></div>'
+    + '<p class="text-base text-slate-600 mt-2">ตัวอย่างเลขที่: ' + trackExamples().map(x => '<button class="underline text-[#0b2a5b] font-bold mr-2" data-ex="' + x + '">' + x + '</button>').join('') + '</p></section><div id="t-out" class="max-w-3xl mx-auto mt-6"></div>';
+  const go = () => { const c = byRef($('t-ref').value); if (!c) { $('t-out').innerHTML = '<section class="card p-5 text-lg"><i class="fa-solid fa-circle-exclamation text-red-700"></i> ไม่พบเลขที่รับเรื่องนี้ กรุณาตรวจสอบอีกครั้ง</section>'; return; }
+    const es = effStatus(c), cat = catOf(c.cat);
+    $('t-out').innerHTML = '<section class="card p-5"><div class="flex flex-wrap items-start gap-4 mb-4"><span class="cat"><i class="' + cat.icon + '"></i></span><div class="flex-1"><p class="mono text-2xl font-extrabold text-[#0b2a5b]">' + esc(c.ref) + '</p><p class="text-lg">' + esc(cat.name) + ' · พื้นที่' + esc(zoneOf(c.zone).name) + '</p><p class="text-base text-slate-600">ยื่นเรื่องเมื่อ ' + esc(fLong(c.created)) + '</p></div><div>' + chip(es) + '</div></div>'
+      + '<p class="text-lg mb-4"><b>รายละเอียด:</b> ' + esc(c.desc) + '</p><h2><i class="fa-solid fa-timeline gold"></i>ลำดับการดำเนินการ</h2>' + timelineHtml(c, true)
+      + (c.status === 'done' && c.result ? '<h2 class="mt-2"><i class="fa-solid fa-clipboard-check gold"></i>ผลการดำเนินการ</h2><p class="text-lg mb-3">' + esc(c.result.note) + '</p><div class="flex flex-wrap gap-3">' + c.result.after.map(p => '<figure><img class="rounded-lg border" style="width:260px;height:195px;object-fit:cover" src="' + p + '"><figcaption class="text-base text-slate-600">ภาพหลังดำเนินการ</figcaption></figure>').join('') + '</div><p class="text-base text-slate-600 mt-3">ดำเนินการโดย เจ้าหน้าที่เทศกิจเมืองพัทยา · ปิดเรื่องเมื่อ ' + esc(fLong(c.closed)) + '</p>' : '')
+      + (c.status === 'rejected' ? '<p class="text-lg mt-2"><b>เหตุผล:</b> ' + esc(c.rejectReason || '') + '</p>' : '')
+      + '<div class="mt-5"><button class="btn b-out" onclick="printReceipt(\'' + esc(c.ref) + '\')"><i class="fa-solid fa-print"></i>พิมพ์ใบรับเรื่อง</button></div></section>'; };
+  $('t-go').onclick = go; $('t-ref').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  document.querySelectorAll('[data-ex]').forEach(b => b.onclick = () => { $('t-ref').value = b.dataset.ex; go(); });
+  if (r) go();
+}
+
+let CF = { st: '', cat: '', zone: '', q: '' };
+function viewCommander() {
+  const opts = (arr, cur) => arr.map(x => '<option value="' + x[0] + '"' + (x[0] === cur ? ' selected' : '') + '>' + x[1] + '</option>').join('');
+  const counts = {}; ST_ORDER.forEach(s => counts[s] = 0); DB.list.forEach(c => counts[effStatus(c)]++);
+  $('app').innerHTML = '<section class="card p-5 mb-6"><h2><i class="fa-solid fa-inbox gold"></i>กล่องรับเรื่องร้องเรียน</h2><div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">'
+    + ST_ORDER.map(s => '<button class="rounded-lg border-2 p-3 text-left ' + (CF.st === s ? 'ring-4 ring-amber-300' : '') + '" style="border-color:' + ST[s].color + '" data-fst="' + s + '"><p class="text-base font-bold" style="color:' + ST[s].color + '"><i class="' + ST[s].icon + '"></i> ' + ST[s].name + '</p><p class="text-3xl font-extrabold">' + counts[s] + '</p></button>').join('') + '</div>'
+    + '<div class="grid sm:grid-cols-4 gap-3"><select id="cf-st" class="inp"><option value="">ทุกสถานะ</option>' + opts(ST_ORDER.map(s => [s, ST[s].name]), CF.st) + '</select><select id="cf-cat" class="inp"><option value="">ทุกประเภท</option>' + opts(CATS.map(c => [c.id, c.name]), CF.cat) + '</select>'
+    + '<select id="cf-zone" class="inp"><option value="">ทุกพื้นที่</option>' + opts(ZONES.map(z => [z.id, z.name]), CF.zone) + '</select><input id="cf-q" class="inp" placeholder="ค้นหาเลขที่ / คำ" value="' + esc(CF.q) + '"></div><div class="mt-4">' + legend() + '</div></section><div id="c-list" class="space-y-2"></div>';
+  const rerender = () => { CF = { st: $('cf-st').value, cat: $('cf-cat').value, zone: $('cf-zone').value, q: $('cf-q').value.trim() }; renderInbox(); };
+  ['cf-st', 'cf-cat', 'cf-zone'].forEach(id => $(id).onchange = rerender); $('cf-q').oninput = rerender;
+  document.querySelectorAll('[data-fst]').forEach(b => b.onclick = () => { $('cf-st').value = CF.st === b.dataset.fst ? '' : b.dataset.fst; rerender(); viewCommander(); });
+  renderInbox();
+}
+function renderInbox() {
+  const L2 = DB.list.filter(c => (!CF.st || effStatus(c) === CF.st) && (!CF.cat || c.cat === CF.cat) && (!CF.zone || c.zone === CF.zone) && (!CF.q || (c.ref + ' ' + c.desc).includes(CF.q)))
+    .sort((a, b) => { const w = s => ({ overdue: 0, new: 1, assigned: 2, onsite: 3, done: 4, rejected: 5 }[s]); return w(effStatus(a)) - w(effStatus(b)) || b.created - a.created; });
+  $('c-list').innerHTML = L2.length ? L2.map(c => { const es = effStatus(c), cat = catOf(c.cat);
+    return '<div class="row" style="border-left-color:' + ST[es].color + '" data-open="' + c.seq + '"><span class="cat"><i class="' + cat.icon + '"></i></span><div class="flex-1 min-w-0"><p class="mono font-bold text-[#0b2a5b] text-lg">' + esc(c.ref) + (c.pri !== 'normal' ? ' <span class="chip s-overdue" style="font-size:.85rem">' + PRI[c.pri].name + '</span>' : '') + '</p><p class="text-lg truncate">' + esc(c.desc) + '</p>'
+      + '<p class="text-base text-slate-600">' + esc(cat.name) + ' · ' + esc(zoneOf(c.zone).name) + ' · รับเรื่อง ' + esc(fDate(c.created)) + (c.officers.length ? ' · ' + esc(c.officers.map(offName).join(', ')) : '') + '</p></div><div class="text-right">' + chip(es) + '<p class="text-sm text-slate-600 mt-1">กำหนด ' + esc(fDate(c.due)) + '</p></div></div>'; }).join('') : '<section class="card p-6 text-center text-lg text-slate-600">ไม่พบรายการ</section>';
+  document.querySelectorAll('[data-open]').forEach(r => r.onclick = () => openCase(+r.dataset.open));
+}
+function openCase(seq) {
+  const c = DB.list.find(x => x.seq === seq), es = effStatus(c), cat = catOf(c.cat);
+  modal('<div class="navy text-white px-5 py-4 flex items-center gap-3 sticky top-0 z-10"><div class="flex-1"><p class="mono text-2xl font-extrabold">' + esc(c.ref) + '</p><p style="color:#e9d48a">' + esc(cat.name) + ' · ' + esc(zoneOf(c.zone).name) + '</p></div>' + chip(es) + '<button data-close class="w-12 h-12 rounded-lg bg-white/10 text-2xl" aria-label="ปิด"><i class="fa-solid fa-xmark"></i></button></div>'
+    + '<div class="p-5 grid md:grid-cols-2 gap-5"><div><p class="text-lg mb-2"><b>รายละเอียด:</b> ' + esc(c.desc) + '</p><p class="text-base text-slate-600">รับเรื่อง ' + esc(fLong(c.created)) + '</p><p class="text-base text-slate-600">ผู้ร้อง: ' + esc(c.name || 'ไม่ประสงค์ออกนาม') + (c.phone ? ' · โทร ' + esc(c.phone) : '') + '</p>'
+    + '<div class="flex flex-wrap gap-2 my-3">' + c.photos.map(p => '<img class="thumb" src="' + p + '">').join('') + '</div><div id="m-map" style="height:220px" class="rounded-lg border"></div></div>'
+    + '<div><h2><i class="fa-solid fa-timeline gold"></i>ลำดับการดำเนินการ</h2>' + timelineHtml(c, false)
+    + (c.result ? '<div class="rounded-lg border border-green-600 bg-green-50 p-3 mb-3"><p class="font-bold text-green-800">รายงานผลจากเจ้าหน้าที่</p><p>' + esc(c.result.note) + '</p><div class="flex gap-2 mt-2">' + c.result.before.concat(c.result.after).map(p => '<img class="thumb" src="' + p + '">').join('') + '</div></div>' : '') + '</div></div>'
+    + (['done', 'rejected'].includes(c.status) ? '' : '<div class="px-5 pb-5"><div class="rounded-lg border border-slate-300 p-4"><p class="lbl">มอบหมาย / กำหนดเวลา</p><div class="grid sm:grid-cols-2 gap-3"><div><label class="text-base text-slate-600">ความเร่งด่วน</label><select id="m-pri" class="inp">' + Object.keys(PRI).map(k => '<option value="' + k + '"' + (k === c.pri ? ' selected' : '') + '>' + PRI[k].name + '</option>').join('') + '</select></div>'
+    + '<div><label class="text-base text-slate-600">กำหนดแล้วเสร็จ</label><input type="date" id="m-due" class="inp"></div></div><p class="text-base mt-3"><b>เจ้าหน้าที่ผู้รับผิดชอบ:</b> <span id="m-offs">' + esc(c.officers.map(offName).join(', ') || 'ยังไม่ได้มอบหมาย') + '</span></p>'
+    + '<div class="grid sm:grid-cols-3 gap-3 mt-4"><button class="btn b-gold" id="m-assign"><i class="fa-solid fa-user-plus"></i>เลือกเจ้าหน้าที่</button>' + (c.result ? '<button class="btn b-ok" id="m-close"><i class="fa-solid fa-check"></i>ปิดเรื่อง</button>' : '<button class="btn b-ok" disabled title="รอรายงานผลจากเจ้าหน้าที่"><i class="fa-solid fa-check"></i>ปิดเรื่อง</button>')
+    + '<button class="btn b-dan" id="m-reject"><i class="fa-solid fa-ban"></i>ไม่รับเรื่อง / ยุติ</button></div></div></div>'));
+  const mm = mkMap('m-map', c.lat, c.lng, 16); L.marker([c.lat, c.lng], { icon: pinIcon(es) }).addTo(mm); setTimeout(() => mm.invalidateSize(), 200);
+  if (!$('m-due')) return;
+  const toISO = ts => { const b = bkk(ts); return b.y + '-' + String(b.m + 1).padStart(2, '0') + '-' + String(b.d).padStart(2, '0'); };
+  $('m-due').value = toISO(c.due);
+  $('m-pri').onchange = () => { c.pri = $('m-pri').value; c.due = c.created + Math.max(0.25, catOf(c.cat).sla * PRI[c.pri].f) * DAY; $('m-due').value = toISO(c.due); save(); };
+  $('m-due').onchange = () => { const d = $('m-due').value; if (d) { c.due = Date.parse(d + 'T23:59:00+07:00'); save(); } };
+  $('m-assign').onclick = () => pickOfficers(c);
+  if ($('m-close')) $('m-close').onclick = () => { c.status = 'done'; c.closed = Date.now(); c.hist.push({ s: 'done', ts: c.closed, note: 'ผู้บังคับบัญชาตรวจสอบและปิดเรื่อง' }); save(); closeModal(); toast('ปิดเรื่อง ' + c.ref + ' แล้ว'); viewCommander(); };
+  $('m-reject').onclick = () => { const why = prompt('ระบุเหตุผลที่ไม่รับเรื่อง / ยุติเรื่อง', 'ไม่อยู่ในอำนาจหน้าที่ ส่งต่อหน่วยงานที่เกี่ยวข้อง'); if (!why) return; c.status = 'rejected'; c.rejectReason = why; c.hist.push({ s: 'rejected', ts: Date.now(), note: why }); save(); closeModal(); toast('บันทึกแล้ว'); viewCommander(); };
+}
+function pickOfficers(c) {
+  const sel = new Set(c.officers), load = no => DB.list.filter(x => x.officers.includes(no) && ['assigned', 'onsite'].includes(x.status)).length;
+  const draw = () => { const q = ($('p-q') || { value: '' }).value.trim();
+    $('p-list').innerHTML = OFFICERS.filter(o => !q || (o.no + o.name).includes(q)).sort((a, b) => load(a.no) - load(b.no)).map(o => '<label class="flex items-center gap-4 rounded-xl border-2 p-4 mb-2 cursor-pointer ' + (sel.has(o.no) ? 'border-[#0b2a5b] bg-[#eaf0fa]' : 'border-slate-200') + '"><input type="checkbox" data-po="' + o.no + '" ' + (sel.has(o.no) ? 'checked' : '') + ' class="w-8 h-8 accent-blue-900"><div class="flex-1"><p class="text-xl font-bold">' + esc(o.name) + '</p><p class="text-base text-slate-600">รหัส ' + o.no + ' · งานค้าง ' + load(o.no) + ' เรื่อง</p></div></label>').join('');
+    $('p-n').textContent = sel.size; };
+  modal('<div class="navy text-white px-5 py-4 flex items-center sticky top-0"><p class="flex-1 text-2xl font-extrabold">เลือกเจ้าหน้าที่ผู้รับผิดชอบ</p><button data-close class="w-12 h-12 rounded-lg bg-white/10 text-2xl"><i class="fa-solid fa-xmark"></i></button></div><div class="p-5"><input id="p-q" class="inp mb-3" placeholder="ค้นหาชื่อ หรือรหัส"><p class="text-base text-slate-600 mb-3">เรียงตามงานค้างน้อยไปมาก · เลือกได้มากกว่า 1 นาย</p><div id="p-list"></div>'
+    + '<div class="grid grid-cols-2 gap-3 mt-4 sticky bottom-0 bg-white py-3"><button data-close class="btn b-out">ยกเลิก</button><button id="p-ok" class="btn b-pri"><i class="fa-solid fa-check"></i>มอบหมาย (<span id="p-n">0</span> นาย)</button></div></div>');
+  draw(); $('p-q').oninput = draw;
+  $('p-list').addEventListener('change', e => { const b = e.target.closest('[data-po]'); if (!b) return; b.checked ? sel.add(b.dataset.po) : sel.delete(b.dataset.po); draw(); });
+  $('p-ok').onclick = () => { if (!sel.size) return toast('กรุณาเลือกอย่างน้อย 1 นาย', false); c.officers = [...sel]; if (c.status === 'new') c.status = 'assigned'; c.hist = c.hist.filter(h => h.s !== 'assigned'); c.hist.splice(1, 0, { s: 'assigned', ts: Date.now(), note: 'มอบหมาย ' + c.officers.map(offName).join(', ') }); save(); closeModal(); toast('มอบหมายแล้ว'); openCase(c.seq); };
+}
+
+let GPS = null;
+function viewOfficer() {
+  document.body.classList.add('dark'); $('hdr').style.display = 'none'; $('ftr').style.display = 'none';
+  const mine = DB.list.filter(c => c.officers.includes(ME) && ['assigned', 'onsite', 'done'].includes(c.status)).sort((a, b) => (a.status === 'done') - (b.status === 'done') || a.due - b.due);
+  $('app').innerHTML = '<div class="max-w-xl mx-auto space-y-5"><nav class="flex flex-wrap gap-1">' + VIEWS.map(v => '<a class="px-3 py-2 rounded-lg text-sm font-bold ' + (v[0] === 'officer' ? 'bg-sky-600 text-white' : 'bg-slate-800 text-slate-300') + '" href="?as=' + v[0] + '">' + v[1] + '</a>').join('') + '</nav>'
+    + '<div class="glass p-5 flex items-center gap-4"><div class="bg-sky-500/20 p-3 rounded-xl"><i class="fa-solid fa-user-shield text-sky-400 text-2xl"></i></div><div><p class="text-xl font-bold">' + esc(offName(ME)) + '</p><p class="text-slate-300">รหัส ' + ME + ' · เรื่องร้องเรียนที่ได้รับมอบหมาย ' + mine.filter(c => c.status !== 'done').length + ' เรื่อง</p></div></div>'
+    + mine.map(c => { const es = effStatus(c), cat = catOf(c.cat), ok = GPS && hav(GPS.lat, GPS.lng, c.lat, c.lng) <= 150, d = GPS ? Math.round(hav(GPS.lat, GPS.lng, c.lat, c.lng)) : null, onsite = c.hist.some(h => h.s === 'onsite');
+      return '<div class="glass p-5" style="border-left:8px solid ' + ST[es].color + '"><div class="flex items-start gap-3"><div class="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center text-2xl"><i class="' + cat.icon + '"></i></div><div class="flex-1"><p class="text-lg font-bold">' + esc(c.ref) + '</p><p class="text-slate-200 text-lg">' + esc(c.desc) + '</p><p class="text-slate-400">' + esc(cat.name) + ' · ' + esc(zoneOf(c.zone).name) + ' · กำหนด ' + esc(fDate(c.due)) + '</p></div></div>'
+        + '<div class="mt-3">' + chip(es) + '</div>'
+        + (c.status === 'done' ? '<p class="text-emerald-300 font-bold mt-3 text-lg"><i class="fa-solid fa-circle-check"></i> ปิดเรื่องแล้ว</p>' : c.result ? '<p class="text-amber-200 font-bold mt-3 text-lg"><i class="fa-solid fa-hourglass-half"></i> ส่งรายงานผลแล้ว รอผู้บังคับบัญชาปิดเรื่อง</p>'
+        : '<div class="grid grid-cols-2 gap-2 mt-4"><a target="_blank" rel="noopener" href="https:\/\/www.google.com\/maps\/dir\/?api=1&destination=' + c.lat + ',' + c.lng + '" class="bg-sky-700 hover:bg-sky-600 text-white py-4 rounded-2xl text-lg font-bold text-center"><i class="fa-solid fa-route mr-1"></i> นำทาง</a>'
+        + (onsite ? '<button data-rep="' + c.seq + '" class="bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-2xl text-lg font-bold"><i class="fa-solid fa-clipboard-check mr-1"></i> รายงานผล</button>'
+        : '<button data-chk="' + c.seq + '" ' + (ok ? '' : 'disabled') + ' class="py-4 rounded-2xl text-lg font-bold text-white ' + (ok ? 'bg-orange-600 hover:bg-orange-500' : 'bg-slate-600 opacity-60') + '"><i class="fa-solid fa-location-arrow mr-1"></i> ถึงจุดแล้ว</button>') + '</div>'
+        + (onsite ? '' : '<p class="text-center text-slate-300 mt-2">' + (d == null ? 'กำลังหาตำแหน่ง GPS…' : 'ห่างจุด ' + d + ' ม. · ต้องอยู่ในรัศมี 150 ม.') + '</p>')) + '</div>'; }).join('') + '</div>';
+  document.querySelectorAll('[data-chk]').forEach(b => b.onclick = () => { const c = DB.list.find(x => x.seq === +b.dataset.chk); c.status = 'onsite'; c.hist.push({ s: 'onsite', ts: Date.now(), note: 'เจ้าหน้าที่ลงพื้นที่ตรวจสอบ', gps: Math.round(hav(GPS.lat, GPS.lng, c.lat, c.lng)) }); save(); toast('บันทึกการลงพื้นที่แล้ว'); viewOfficer(); });
+  document.querySelectorAll('[data-rep]').forEach(b => b.onclick = () => reportForm(DB.list.find(x => x.seq === +b.dataset.rep)));
+}
+function reportForm(c) {
+  const R = { before: [], after: [] };
+  modal('<div class="p-5 bg-slate-900 text-white"><div class="flex items-center mb-3"><p class="flex-1 text-2xl font-bold">รายงานผล ' + esc(c.ref) + '</p><button data-close class="w-12 h-12 rounded-xl bg-slate-700 text-2xl"><i class="fa-solid fa-xmark"></i></button></div>'
+    + '<p class="text-lg font-bold mb-1">ภาพก่อนดำเนินการ</p><label class="block bg-slate-700 rounded-2xl py-4 text-center text-lg font-bold cursor-pointer"><i class="fa-solid fa-camera mr-1"></i> ถ่ายภาพก่อน<input id="r-b" type="file" accept="image\/*" multiple class="hidden"></label><div id="r-bt" class="flex gap-2 my-2"></div>'
+    + '<p class="text-lg font-bold mb-1 mt-3">ภาพหลังดำเนินการ</p><label class="block bg-slate-700 rounded-2xl py-4 text-center text-lg font-bold cursor-pointer"><i class="fa-solid fa-camera mr-1"></i> ถ่ายภาพหลัง<input id="r-a" type="file" accept="image\/*" multiple class="hidden"></label><div id="r-at" class="flex gap-2 my-2"></div>'
+    + '<p class="text-lg font-bold mb-1 mt-3">ผลการดำเนินการ</p><select id="r-res" class="w-full rounded-xl p-4 text-lg bg-slate-800 border border-slate-600"><option>ดำเนินการแก้ไขเรียบร้อยแล้ว</option><option>ตักเตือน / แจ้งให้แก้ไขภายในกำหนด</option><option>ตรวจสอบแล้วไม่พบเหตุตามที่แจ้ง</option><option>ส่งต่อหน่วยงานที่เกี่ยวข้อง</option></select>'
+    + '<textarea id="r-note" rows="3" class="w-full rounded-xl p-4 text-lg bg-slate-800 border border-slate-600 mt-3" placeholder="หมายเหตุเพิ่มเติม"></textarea>'
+    + '<button id="r-send" class="w-full bg-emerald-600 hover:bg-emerald-500 py-5 rounded-2xl text-xl font-bold mt-4"><i class="fa-solid fa-paper-plane mr-1"></i> ส่งรายงานผล</button></div>');
+  $('r-b').onchange = async e => { R.before = await readPhotos(e.target, 3); $('r-bt').innerHTML = R.before.map(p => '<img class="thumb" src="' + p + '">').join(''); };
+  $('r-a').onchange = async e => { R.after = await readPhotos(e.target, 3); $('r-at').innerHTML = R.after.map(p => '<img class="thumb" src="' + p + '">').join(''); };
+  $('r-send').onclick = () => { if (!R.after.length) { R.after = [img('หลังดำเนินการ', '#166534')]; } if (!R.before.length) R.before = [img('ก่อนดำเนินการ', '#7c2d12')];
+    c.result = { note: $('r-res').value + ($('r-note').value.trim() ? ' ' + $('r-note').value.trim() : ''), before: R.before, after: R.after, by: ME, ts: Date.now() }; save(); closeModal(); toast('ส่งรายงานผลแล้ว'); viewOfficer(); };
+}
+
+function accCard(key, title, icon, summary, body) {
+  let open = false; try { open = localStorage.getItem('cmp-acc:' + key) === '1'; } catch (e) { }
+  return '<section class="card p-5 acc ' + (open ? 'open' : '') + '" data-acc="' + key + '"><button class="acc-h" type="button"><span class="cat"><i class="' + icon + '"></i></span><span><span class="block text-xl font-extrabold text-[#0b2a5b]">' + title + '</span><span class="block text-base text-slate-600">' + summary + '</span></span><span class="chev"><i class="fa-solid fa-chevron-down"></i></span></button><div class="acc-b mt-4 border-t-2 pt-4" style="border-color:#c9a227">' + body + '</div></section>';
+}
+function statsFor(list, now) {
+  now = now || Date.now(); const by = (f) => { const o = {}; list.forEach(c => { const k = f(c); o[k] = (o[k] || 0) + 1; }); return o; };
+  const done = list.filter(c => c.status === 'done' && c.closed), avg = done.length ? done.reduce((a, c) => a + (c.closed - c.created), 0) / done.length / DAY : null;
+  const onTime = done.filter(c => c.closed <= c.due).length;
+  const per = OFFICERS.map(o => { const mine = list.filter(c => c.officers.includes(o.no)), d = mine.filter(c => c.status === 'done' && c.closed);
+    return { no: o.no, name: o.name, assigned: mine.length, done: d.length, open: mine.filter(c => ['assigned', 'onsite'].includes(c.status)).length, overdue: mine.filter(c => effStatus(c, now) === 'overdue').length, avg: d.length ? d.reduce((a, c) => a + (c.closed - c.created), 0) / d.length / DAY : null, onTime: d.filter(c => c.closed <= c.due).length }; });
+  return { total: list.length, byStatus: by(c => effStatus(c, now)), byCat: by(c => c.cat), byZone: by(c => c.zone), avg, onTime, doneN: done.length, overdue: list.filter(c => effStatus(c, now) === 'overdue'), per };
+}
+function bars(rows, max) { return rows.map(r => '<div class="flex items-center gap-3 mb-2"><span class="w-48 text-base font-bold flex items-center gap-2"><i class="' + r.icon + '" style="color:' + r.color + '"></i>' + r.name + '</span><div class="flex-1 bg-slate-100 rounded h-9 overflow-hidden"><div class="h-9 flex items-center justify-end pr-2 text-white font-bold" style="width:' + Math.max(r.v ? 6 : 0, r.v / (max || 1) * 100) + '%;background:' + r.color + '">' + (r.v || '') + '</div></div><span class="w-10 text-right font-bold">' + r.v + '</span></div>').join(''); }
+let EXM = null;
+function viewExec() {
+  const months = [...new Set(DB.list.map(c => monthKey(c.created)))].sort().reverse(); if (!EXM) EXM = 'all';
+  const list = DB.list.filter(c => EXM === 'all' || monthKey(c.created) === EXM), S = statsFor(list), fx = v => v == null ? '-' : v.toFixed(1);
+  const mName = k => { if (k === 'all') return 'ช่วง ' + (Math.round((Date.now() - Math.min(...DB.list.map(c => c.created))) / DAY)) + ' วันล่าสุด'; const p = k.split('-'); return TH_ML[+p[1] - 1] + ' ' + (+p[0] + 543); };
+  const kpi = (t, v, sub, color, icon) => '<div class="card p-4" style="border-top:5px solid ' + color + '"><p class="text-base font-bold text-slate-600"><i class="' + icon + '" style="color:' + color + '"></i> ' + t + '</p><p class="text-4xl font-extrabold text-[#0b2a5b] mt-1">' + v + '</p><p class="text-sm text-slate-600">' + sub + '</p></div>';
+  const stRows = ST_ORDER.map(s => ({ name: ST[s].name, icon: ST[s].icon, color: ST[s].color, v: S.byStatus[s] || 0 }));
+  const catRows = CATS.map(c => ({ name: c.name, icon: c.icon, color: '#0b2a5b', v: S.byCat[c.id] || 0 })), zRows = ZONES.map(z => ({ name: z.name, icon: 'fa-solid fa-map-pin', color: '#c9a227', v: S.byZone[z.id] || 0 }));
+  const mx = a => Math.max(1, ...a.map(r => r.v));
+  $('app').innerHTML = '<section class="card p-5 mb-6"><div class="flex flex-col md:flex-row md:items-end gap-4"><div class="flex-1"><p class="text-2xl font-extrabold text-[#0b2a5b]">สรุปผลการดำเนินการเรื่องร้องเรียน</p><p class="text-lg text-slate-600">' + (EXM === 'all' ? '' : 'ประจำเดือน') + mName(EXM) + ' · ข้อมูล ณ ' + esc(fLong(Date.now())) + '</p></div>'
+    + '<select id="x-m" class="inp" style="max-width:260px"><option value="all"' + (EXM === 'all' ? ' selected' : '') + '>ทั้งหมด (ทุกเดือน)</option>' + months.map(m => '<option value="' + m + '"' + (m === EXM ? ' selected' : '') + '>' + mName(m) + '</option>').join('') + '</select><button id="x-xlsx" class="btn b-ok"><i class="fa-solid fa-file-excel"></i>ดาวน์โหลด Excel</button></div></section>'
+    + '<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">' + kpi('เรื่องทั้งหมด', S.total, 'เรื่องที่รับในเดือนนี้', '#0b2a5b', 'fa-solid fa-inbox') + kpi('เสร็จสิ้น', S.byStatus.done || 0, 'ทันกำหนด ' + S.onTime + ' เรื่อง', '#16a34a', 'fa-solid fa-circle-check')
+    + kpi('เกินกำหนด', S.overdue.length, 'ต้องเร่งรัด', '#dc2626', 'fa-solid fa-clock') + kpi('เวลาเฉลี่ยปิดเรื่อง', fx(S.avg), 'วัน', '#c9a227', 'fa-solid fa-stopwatch') + '</div><div class="grid 2xl:grid-cols-2 gap-4 items-start">'
+    + accCard('status', 'จำนวนเรื่องตามสถานะ', 'fa-solid fa-list-check', ST_ORDER.map(s => ST[s].name + ' ' + (S.byStatus[s] || 0)).join(' · '), legend() + '<div class="mt-4">' + bars(stRows, mx(stRows)) + '</div>')
+    + accCard('map', 'แผนที่ตำแหน่งเรื่องร้องเรียน', 'fa-solid fa-map-location-dot', S.total + ' จุด แสดงสีตามสถานะ', '<div id="x-map" style="height:420px" class="rounded-lg border"></div><div class="mt-3">' + legend() + '</div>')
+    + accCard('cat', 'จำนวนเรื่องตามประเภท', 'fa-solid fa-layer-group', CATS.filter(c => S.byCat[c.id]).length + ' ประเภท', bars(catRows, mx(catRows)))
+    + accCard('zone', 'จำนวนเรื่องตามพื้นที่', 'fa-solid fa-map-pin', ZONES.map(z => z.name + ' ' + (S.byZone[z.id] || 0)).join(' · '), bars(zRows, mx(zRows)))
+    + accCard('overdue', 'เรื่องที่เกินกำหนด', 'fa-solid fa-clock', S.overdue.length + ' เรื่อง', S.overdue.length ? S.overdue.map(c => '<div class="row" style="border-left-color:#dc2626;cursor:default"><span class="mono font-bold w-44">' + esc(c.ref) + '</span><span class="flex-1">' + esc(c.desc) + '<br><span class="text-base text-slate-600">' + esc(catOf(c.cat).name) + ' · ' + esc(zoneOf(c.zone).name) + ' · ผู้รับผิดชอบ ' + esc(c.officers.map(offName).join(', ') || '-') + '</span></span>' + chip('overdue', ' ' + Math.ceil((Date.now() - c.due) / DAY) + ' วัน') + '</div>').join('<div class="h-2"></div>') : '<p class="text-lg text-slate-600">ไม่มีเรื่องเกินกำหนด</p>')
+    + accCard('per', 'ผลการปฏิบัติงานรายบุคคล', 'fa-solid fa-users', OFFICERS.length + ' นาย', '<div class="overflow-x-auto"><table class="w-full text-lg border-collapse"><thead><tr class="bg-[#0b2a5b] text-white">' + ['รหัส', 'ชื่อ-สกุล', 'ได้รับมอบหมาย', 'เสร็จสิ้น', 'ค้างดำเนินการ', 'เกินกำหนด', 'เฉลี่ย (วัน)', 'ทันกำหนด'].map(h => '<th class="p-3 border border-slate-300 text-base">' + h + '</th>').join('') + '</tr></thead><tbody>'
+      + S.per.map(p => '<tr class="odd:bg-slate-50"><td class="p-3 border text-center">' + p.no + '</td><td class="p-3 border whitespace-nowrap">' + esc(p.name) + '</td><td class="p-3 border text-center font-bold">' + p.assigned + '</td><td class="p-3 border text-center text-green-700 font-bold">' + p.done + '</td><td class="p-3 border text-center">' + p.open + '</td><td class="p-3 border text-center ' + (p.overdue ? 'text-red-700 font-bold' : '') + '">' + p.overdue + '</td><td class="p-3 border text-center">' + fx(p.avg) + '</td><td class="p-3 border text-center">' + (p.done ? Math.round(p.onTime * 100 / p.done) + '%' : '-') + '</td></tr>').join('') + '</tbody></table></div>')
+    + '</div>';
+  $('x-m').onchange = () => { EXM = $('x-m').value; viewExec(); };
+  $('x-xlsx').onclick = () => exportExec(list, S, mName(EXM), EXM);
+  let map = null; const drawMap = () => { if (map || !$('x-map') || !$('x-map').offsetParent) return; map = mkMap('x-map', 12.93, 100.882, 13); if (list.length) map.fitBounds(L.latLngBounds(list.map(c => [c.lat, c.lng])).pad(0.08)); list.forEach(c => L.marker([c.lat, c.lng], { icon: pinIcon(effStatus(c)) }).addTo(map).bindPopup('<b>' + esc(c.ref) + '</b><br>' + esc(catOf(c.cat).name) + '<br>' + ST[effStatus(c)].name)); };
+  document.querySelectorAll('[data-acc]').forEach(s => s.querySelector('.acc-h').onclick = () => { s.classList.toggle('open'); try { localStorage.setItem('cmp-acc:' + s.dataset.acc, s.classList.contains('open') ? '1' : '0'); } catch (e) { } drawMap(); });
+  const pr = document.querySelector('[data-acc="per"]'); if (pr) pr.classList.add('2xl:col-span-2');
+  drawMap();
+}
+function loadExcelJs() { if (window.ExcelJS) return Promise.resolve(window.ExcelJS); return new Promise((ok, no) => { const s = document.createElement('script'); s.src = EXCELJS_URL; s.onload = () => ok(window.ExcelJS); s.onerror = () => no(new Error('โหลดตัวสร้าง Excel ไม่ได้')); document.head.appendChild(s); }); }
+async function buildExecWorkbook(list, S, mName) {
+  const ExcelJS = await loadExcelJs(), wb = new ExcelJS.Workbook(); wb.creator = 'SMART SAFETY';
+  const ws = wb.addWorksheet('สรุปเรื่องร้องเรียน', { pageSetup: { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0, horizontalCentered: true, margins: { left: 0.5, right: 0.5, top: 0.6, bottom: 0.7, header: 0.3, footer: 0.3 } } });
+  const N = 8, F = b => ({ name: 'TH Sarabun New', size: b ? 18 : 16, bold: !!b }), thin = { style: 'thin', color: { argb: 'FF000000' } }, B = { top: thin, left: thin, bottom: thin, right: thin };
+  const GREY = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBFBFBF' } }, BLUE = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDEBF7' } };
+  ws.columns = [{ width: 7 }, { width: 18 }, { width: 13 }, { width: 22 }, { width: 13 }, { width: 18 }, { width: 22 }, { width: 10 }];
+  const merged = (t, o) => { const r = ws.addRow([t]); ws.mergeCells(r.number, 1, r.number, N); const c = r.getCell(1); c.font = F(o.b); c.alignment = { horizontal: o.h || 'center', vertical: 'middle', indent: o.h ? 1 : 0, wrapText: true }; r.height = o.ht || 30; if (o.fill) for (let i = 1; i <= N; i++) { r.getCell(i).fill = o.fill; r.getCell(i).border = B; } return r; };
+  merged('หน่วยงาน เทศกิจเมืองพัทยา', { b: 1 }); merged('รายงานสรุปผลการดำเนินการเรื่องร้องเรียน ' + (mName.startsWith('ช่วง') ? '' : 'ประจำเดือน') + mName, { b: 1 }); merged('ข้อมูล ณ ' + fLong(Date.now()), {}); ws.addRow([]);
+  const kv = (rows) => rows.forEach(([k, v]) => { const r = ws.addRow([k, '', '', '', v]); ws.mergeCells(r.number, 1, r.number, 4); ws.mergeCells(r.number, 5, r.number, N); r.height = 26; for (let i = 1; i <= N; i++) { const c = r.getCell(i); c.border = B; c.font = F(); c.alignment = { vertical: 'middle', horizontal: i < 5 ? 'left' : 'center', indent: i < 5 ? 1 : 0 }; } });
+  merged('สรุปภาพรวม', { b: 1, h: 'left', fill: BLUE });
+  kv([['เรื่องทั้งหมด', S.total + ' เรื่อง'], ['เสร็จสิ้น', (S.byStatus.done || 0) + ' เรื่อง (ทันกำหนด ' + S.onTime + ' เรื่อง)'], ['เกินกำหนด', S.overdue.length + ' เรื่อง'], ['เวลาเฉลี่ยในการปิดเรื่อง', S.avg == null ? '-' : S.avg.toFixed(1) + ' วัน']]);
+  const table = (title, head, rows, al) => { ws.addRow([]); merged(title, { b: 1, h: 'left', fill: BLUE }); const hr = ws.addRow(head); hr.height = 30; for (let i = 1; i <= N; i++) { const c = hr.getCell(i); c.font = F(1); c.border = B; c.fill = GREY; c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }; }
+    rows.forEach(v => { const r = ws.addRow(v); r.height = 26; for (let i = 1; i <= N; i++) { const c = r.getCell(i); c.font = F(); c.border = B; c.alignment = { vertical: 'middle', horizontal: (al || [])[i - 1] || 'center', indent: (al || [])[i - 1] === 'left' ? 1 : 0, wrapText: true }; } }); return hr; };
+  const pair = (title, h1, rows) => { ws.addRow([]); merged(title, { b: 1, h: 'left', fill: BLUE }); const hr = ws.addRow([h1, '', '', '', 'จำนวน (เรื่อง)']); ws.mergeCells(hr.number, 1, hr.number, 4); ws.mergeCells(hr.number, 5, hr.number, N); hr.height = 30; for (let i = 1; i <= N; i++) { const c = hr.getCell(i); c.font = F(1); c.border = B; c.fill = GREY; c.alignment = { horizontal: 'center', vertical: 'middle' }; }
+    rows.forEach(([k, v]) => { const r = ws.addRow([k, '', '', '', v]); ws.mergeCells(r.number, 1, r.number, 4); ws.mergeCells(r.number, 5, r.number, N); r.height = 26; for (let i = 1; i <= N; i++) { const c = r.getCell(i); c.border = B; c.font = F(); c.alignment = { vertical: 'middle', horizontal: i < 5 ? 'left' : 'center', indent: i < 5 ? 1 : 0 }; } }); };
+  pair('จำแนกตามสถานะ', 'สถานะ', ST_ORDER.map(s => [ST[s].name, S.byStatus[s] || 0])); pair('จำแนกตามประเภท', 'ประเภท', CATS.map(c => [c.name, S.byCat[c.id] || 0])); pair('จำแนกตามพื้นที่', 'พื้นที่', ZONES.map(z => [z.name, S.byZone[z.id] || 0]));
+  table('ผลการปฏิบัติงานรายบุคคล', ['ลำดับ', 'ชื่อ-สกุล', 'มอบหมาย', 'เสร็จสิ้น', 'ค้าง', 'เกินกำหนด', 'เฉลี่ย (วัน)', 'ทันกำหนด'], S.per.map((p, i) => [i + 1, p.name, p.assigned, p.done, p.open, p.overdue, p.avg == null ? '-' : p.avg.toFixed(1), p.done ? Math.round(p.onTime * 100 / p.done) + '%' : '-']), ['center', 'left']);
+  const hr = table('รายละเอียดเรื่องร้องเรียน', ['ลำดับ', 'เลขที่รับเรื่อง', 'วันที่รับ', 'ประเภท', 'พื้นที่', 'สถานะ', 'ผู้รับผิดชอบ', 'ใช้เวลา (วัน)'], list.slice().sort((a, b) => a.created - b.created).map((c, i) => [i + 1, c.ref, fDate(c.created), catOf(c.cat).name, zoneOf(c.zone).name, ST[effStatus(c)].name, c.officers.map(offName).join(', ') || '-', c.closed ? ((c.closed - c.created) / DAY).toFixed(1) : '-']), ['center', 'center', 'center', 'left', 'center', 'center', 'left']);
+  ws.pageSetup.printTitlesRow = hr.number + ':' + hr.number;
+  ws.addRow([]); ws.addRow([]);
+  const sig = t => { const r = ws.addRow(['', '', '', '', t]); ws.mergeCells(r.number, 5, r.number, N); r.getCell(5).font = F(); r.getCell(5).alignment = { horizontal: 'center' }; r.height = 26; };
+  sig('ลงชื่อ ................................................'); sig('( ................................................ )'); sig('ตำแหน่ง ..........................................'); sig('วันที่ ........ / ........ / ........');
+  ws.headerFooter.oddFooter = '&L&"TH Sarabun New"&16รายงานเรื่องร้องเรียน ' + mName + '&R&"TH Sarabun New"&16หน้า &P / &N';
+  return wb;
+}
+async function exportExec(list, S, mName, key) {
+  try { const buf = await (await buildExecWorkbook(list, S, mName)).xlsx.writeBuffer(); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })); a.download = 'รายงานเรื่องร้องเรียน ' + key + '.xlsx'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); toast('สร้างไฟล์ Excel แล้ว'); }
+  catch (e) { toast('สร้างไฟล์ไม่สำเร็จ: ' + (e.message || e), false); }
+}
+
+function trackExamples() { const f = s => { const c = DB.list.slice().reverse().find(x => effStatus(x) === s); return c ? c.ref : null; }; return ['onsite', 'done', 'overdue', 'rejected', 'assigned'].map(f).filter(Boolean); }
+function viewHome() {
+  const S = statsFor(DB.list), days = Math.round((Date.now() - Math.min(...DB.list.map(c => c.created))) / DAY);
+  const card = (as, t, d, icon, color) => '<a href="?as=' + as + '" class="card p-6 flex items-center gap-5 hover:shadow-lg transition" style="border-left:8px solid ' + color + ';min-height:130px"><span class="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl flex-none" style="background:' + color + '1a;color:' + color + '"><i class="' + icon + '"></i></span><span class="flex-1"><span class="block text-2xl font-extrabold text-[#0b2a5b]">' + t + '</span><span class="block text-lg text-slate-600 mt-1">' + d + '</span></span><i class="fa-solid fa-chevron-right text-2xl text-slate-400"></i></a>';
+  const step = (n, t, d, icon, color) => '<div class="flex-1 min-w-[170px] text-center"><div class="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl border-4" style="border-color:' + color + ';color:' + color + ';background:#fff"><i class="' + icon + '"></i></div><p class="mt-3 text-sm font-bold text-slate-500">ขั้นตอนที่ ' + n + '</p><p class="text-xl font-extrabold text-[#0b2a5b]">' + t + '</p><p class="text-base text-slate-600">' + d + '</p></div>';
+  const arrow = '<div class="hidden lg:flex items-center text-3xl gold pt-6"><i class="fa-solid fa-arrow-right-long"></i></div>';
+  $('app').innerHTML = '<section class="rounded-2xl overflow-hidden mb-6 shadow" style="background:linear-gradient(120deg,#0b2a5b,#123a7a)"><div class="p-8 md:p-12 text-white"><span class="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-extrabold text-lg" style="background:#c9a227;color:#0b2a5b"><i class="fa-solid fa-flask"></i>ข้อมูลจำลองเพื่อการนำเสนอ</span>'
+    + '<h1 class="text-3xl md:text-5xl font-extrabold mt-5 leading-tight">ระบบรับเรื่องร้องเรียน<br>เทศกิจเมืองพัทยา <span style="color:#e9d48a">(ฉบับทดลอง)</span></h1>'
+    + '<p class="text-xl md:text-2xl mt-4 max-w-3xl text-slate-100">ช่องทางให้ประชาชนแจ้งเรื่องร้องเรียนและติดตามผลได้ด้วยตนเอง ผู้บังคับบัญชามอบหมายงานได้ทันที เจ้าหน้าที่รายงานผลพร้อมภาพจากจุดเกิดเหตุ และผู้บริหารเห็นภาพรวมการปฏิบัติงานแบบเรียลไทม์</p>'
+    + '<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">' + [['เรื่องในระบบ (จำลอง)', S.total], ['เสร็จสิ้น', S.byStatus.done || 0], ['ปิดเรื่องเฉลี่ย (วัน)', S.avg == null ? '-' : S.avg.toFixed(1)], ['ช่วงข้อมูล (วัน)', days]].map(x => '<div class="rounded-xl p-4" style="background:rgba(255,255,255,.1);border:1px solid rgba(233,212,138,.4)"><p class="text-4xl font-extrabold">' + x[1] + '</p><p class="text-base" style="color:#e9d48a">' + x[0] + '</p></div>').join('') + '</div></div></section>'
+    + '<section class="card p-6 mb-6"><h2><i class="fa-solid fa-diagram-project gold"></i>ขั้นตอนการทำงาน</h2><div class="flex flex-wrap lg:flex-nowrap gap-4 justify-center">'
+    + step(1, 'ประชาชนยื่นเรื่อง', 'ระบุประเภท ภาพ และตำแหน่ง รับเลขที่ทันที', 'fa-solid fa-pen-to-square', '#64748b') + arrow + step(2, 'ผู้บังคับบัญชามอบหมาย', 'เลือกเจ้าหน้าที่ กำหนดความเร่งด่วนและวันแล้วเสร็จ', 'fa-solid fa-user-check', '#7c3aed') + arrow
+    + step(3, 'เจ้าหน้าที่ลงพื้นที่', 'ยืนยันตำแหน่งด้วย GPS ดำเนินการแก้ไข', 'fa-solid fa-person-walking-arrow-right', '#ea580c') + arrow + step(4, 'รายงานผลและปิดเรื่อง', 'ภาพก่อน/หลัง ผู้บังคับบัญชาตรวจและปิดเรื่อง', 'fa-solid fa-circle-check', '#16a34a') + arrow
+    + step(5, 'ผู้บริหารติดตาม', 'สรุปสถิติ แผนที่ และผลงานรายบุคคล', 'fa-solid fa-chart-column', '#0b2a5b') + '</div></section>'
+    + '<h2 class="text-2xl font-extrabold text-[#0b2a5b] mb-4 flex items-center gap-2"><i class="fa-solid fa-hand-pointer gold"></i>เลือกหน้าจอที่ต้องการทดลอง</h2><div class="grid md:grid-cols-2 gap-5 mb-6">'
+    + card('citizen', 'ประชาชนยื่นเรื่อง', 'แบบฟอร์มร้องเรียน 8 ประเภท พร้อมภาพและแผนที่ ได้รับใบรับเรื่อง', 'fa-solid fa-pen-to-square', '#0b2a5b')
+    + card('track', 'ติดตามเรื่อง', 'กรอกเลขที่รับเรื่อง ดูสถานะและผลการดำเนินการ', 'fa-solid fa-magnifying-glass', '#0369a1')
+    + card('commander', 'ผู้บังคับบัญชา', 'กล่องรับเรื่อง กรองข้อมูล มอบหมายเจ้าหน้าที่ ปิดเรื่อง', 'fa-solid fa-inbox', '#7c3aed')
+    + card('officer', 'เจ้าหน้าที่', 'งานที่ได้รับมอบหมาย นำทาง เช็กอินจุดเกิดเหตุ รายงานผล', 'fa-solid fa-user-shield', '#ea580c')
+    + '<div class="md:col-span-2">' + card('exec', 'ผู้บริหาร', 'แดชบอร์ดสรุปผล สถานะ ประเภท พื้นที่ แผนที่ ผลงานรายบุคคล และดาวน์โหลด Excel', 'fa-solid fa-chart-column', '#c9a227') + '</div></div>'
+    + '<section class="card p-5"><h2><i class="fa-solid fa-circle-info gold"></i>หมายเหตุ</h2><div class="mb-3">' + legend() + '</div><p class="text-lg text-slate-700">ข้อมูลทั้งหมดในเว็บนี้เป็นข้อมูลจำลองเพื่อการนำเสนอ ชื่อบุคคลทั้งหมดเป็นชื่อสมมติ ไม่ใช่เจ้าหน้าที่หรือประชาชนจริง สถานที่อ้างอิงพื้นที่สาธารณะในเมืองพัทยาเพื่อความสมจริงเท่านั้น และยังไม่เชื่อมต่อระบบจริง</p></section>';
+}
+function start() {
+  load(); nav();
+  if (VIEW === 'officer') { viewOfficer(); if (navigator.geolocation) navigator.geolocation.watchPosition(p => { GPS = { lat: p.coords.latitude, lng: p.coords.longitude }; if (!$('mdl')) viewOfficer(); }, () => { }, { enableHighAccuracy: true, maximumAge: 10000 }); }
+  else ({ home: viewHome, citizen: viewCitizen, track: viewTrack, commander: viewCommander, exec: viewExec }[VIEW] || viewHome)();
+  if (VIEW === 'exec' || VIEW === 'home') $('app').classList.add('wide');
+}
+start();
+</script></body></html>

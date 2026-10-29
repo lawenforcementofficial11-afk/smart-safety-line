@@ -40,10 +40,11 @@ body{background:#eef2f7;color:#0f1b33;font-family:'Sarabun',sans-serif;font-size
 .glass{background:rgba(15,23,42,.78);border:1px solid rgba(255,255,255,.12);border-radius:22px}
 #print-area{display:none}
 @media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}#print-area{display:block;position:absolute;left:0;top:0;width:100%}}
+#app.wide{max-width:1600px}@media(min-width:1600px){body{font-size:20px}}
 .leaflet-container{font-family:'Sarabun',sans-serif}
 </style></head>
 <body>
-<div style="background:#facc15;color:#111;font-weight:800;text-align:center;padding:6px;font-size:16px">ตัวอย่างระบบ (DEMO) · ข้อมูลสมมติทั้งหมด · ไม่เชื่อมต่อระบบจริง · <button onclick="resetDemo()" style="text-decoration:underline">ล้างข้อมูลตัวอย่าง</button></div>
+<div style="background:#facc15;color:#111;font-weight:800;text-align:center;padding:6px;font-size:16px">ฉบับทดลอง · ข้อมูลจำลองเพื่อการนำเสนอ · ชื่อบุคคลเป็นชื่อสมมติ · ไม่เชื่อมต่อระบบจริง · <button onclick="resetDemo()" style="text-decoration:underline">ล้างข้อมูลตัวอย่าง</button></div>
 <header class="navy text-white" id="hdr"><div class="max-w-6xl mx-auto px-4 pt-4 flex items-center gap-4">
 <div class="w-16 h-16 rounded-full border-2 bd-gold flex flex-col items-center justify-center text-[10px] leading-tight text-center flex-none" style="border-style:dashed;color:#e9d48a">ตรา<br>หน่วยงาน<br>(ใส่โลโก้)</div>
 <div class="flex-1"><p class="text-2xl font-extrabold tracking-wide">เทศกิจเมืองพัทยา</p><p class="text-base" style="color:#e9d48a">ระบบรับเรื่องร้องเรียน / ร้องทุกข์</p></div></div>
@@ -74,9 +75,8 @@ const ST = {
   rejected: { name: 'ยุติ / ไม่รับเรื่อง', icon: 'fa-solid fa-ban', color: '#4b5563' } };
 const ST_ORDER = ['new', 'assigned', 'onsite', 'done', 'overdue', 'rejected'];
 const PRI = { normal: { name: 'ปกติ', f: 1 }, urgent: { name: 'ด่วน', f: 0.5 }, critical: { name: 'ด่วนมาก', f: 0.25 } };
-const ZONES = [{ id: 'z1', name: 'นาเกลือ', lat: 12.9600, lng: 100.8930 }, { id: 'z2', name: 'พัทยาเหนือ', lat: 12.9480, lng: 100.8880 }, { id: 'z3', name: 'พัทยากลาง', lat: 12.9350, lng: 100.8830 },
-  { id: 'z4', name: 'พัทยาใต้', lat: 12.9240, lng: 100.8780 }, { id: 'z5', name: 'จอมเทียน', lat: 12.8900, lng: 100.8710 }];
-const OFFICERS = [['9001', 'นายสมชาย ใจดี'], ['9002', 'นางสาวมาลี ทองคำ'], ['9003', 'นายวิชัย รอบคอบ'], ['9004', 'นายอนันต์ ตั้งใจ'], ['9011', 'นายประเสริฐ มั่นคง'], ['9012', 'นายสุรชัย กล้าหาญ'], ['9013', 'นายธีระ รักงาน'], ['9021', 'นายกิตติ ขยันดี']].map(x => ({ no: x[0], name: x[1] }));
+const ZONES = [{ id: 'z1', name: 'นาเกลือ', lat: 12.9580, lng: 100.8950 }, { id: 'z2', name: 'พัทยาเหนือ-กลาง', lat: 12.9400, lng: 100.8880 }, { id: 'z3', name: 'พัทยาใต้', lat: 12.9230, lng: 100.8760 }, { id: 'z4', name: 'จอมเทียน', lat: 12.8880, lng: 100.8740 }, { id: 'z5', name: 'เกาะล้าน', lat: 12.9150, lng: 100.7800 }];
+const OFFICERS = [['9001', 'นายสมชาย ใจดี'], ['9002', 'นางสาวมาลี ทองคำ'], ['9003', 'นายวิชัย รอบคอบ'], ['9004', 'นายอนันต์ ตั้งใจ'], ['9005', 'นางสาวกานดา เรียบร้อย'], ['9006', 'นายประเสริฐ มั่นคง'], ['9007', 'นายสุรชัย กล้าหาญ'], ['9008', 'นายธีระ รักงาน'], ['9009', 'นายกิตติ ขยันดี'], ['9010', 'นางสาวพิมพ์ใจ ซื่อตรง'], ['9011', 'นายชาตรี พร้อมเพรียง'], ['9012', 'นายวีระ อดทน']].map(x => ({ no: x[0], name: x[1] }));
 const ME = '9001';
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const $ = id => document.getElementById(id);
@@ -101,32 +101,55 @@ function effStatus(c, now) { now = now || Date.now(); if (['new', 'assigned', 'o
 function chip(s, extra) { const t = ST[s]; return '<span class="chip s-' + s + '"><i class="' + t.icon + '"></i>' + t.name + (extra || '') + '</span>'; }
 function refNo(seq, ts) { return 'รอ.' + (bkk(ts).y + 543) + '/' + String(seq).padStart(6, '0'); }
 
-const KEY = 'cmp-demo-v1';
+const KEY = 'cmp-trial-v2';
+const PLACES = {
+  z1: [['ตลาดนาเกลือ', 12.9618, 100.8935], ['ถนนนาเกลือ ซอย 12', 12.9582, 100.8962], ['หาดวงศ์อมาตย์', 12.9570, 100.8872], ['ถนนพัทยา-นาเกลือ', 12.9548, 100.8992]],
+  z2: [['ถนนพัทยาเหนือ', 12.9468, 100.8902], ['ถนนเลียบชายหาด ช่วงพัทยาเหนือ', 12.9450, 100.8853], ['ถนนพัทยาสาย 2 ซอย 6', 12.9424, 100.8881], ['ถนนพัทยากลาง', 12.9336, 100.8852], ['ถนนเลียบชายหาด หน้าซอย 13', 12.9331, 100.8802], ['ถนนพัทยาสาย 3', 12.9330, 100.8962], ['ซอยบัวขาว', 12.9292, 100.8898]],
+  z3: [['วอล์คกิ้งสตรีท', 12.9270, 100.8722], ['ท่าเรือแหลมบาลีฮาย', 12.9206, 100.8683], ['ถนนพัทยาใต้', 12.9256, 100.8792], ['ถนนเทพประสิทธิ์', 12.9150, 100.8802], ['ถนนพัทยาสาย 2 ช่วงพัทยาใต้', 12.9240, 100.8820]],
+  z4: [['หาดจอมเทียน', 12.8852, 100.8692], ['ถนนจอมเทียนสาย 2', 12.8902, 100.8732], ['ถนนเลียบชายหาดจอมเทียน ซอย 5', 12.8952, 100.8702], ['ถนนสุขุมวิท ช่วงจอมเทียน', 12.8802, 100.8902]],
+  z5: [['หาดตาแหวน เกาะล้าน', 12.9196, 100.7792], ['ท่าเรือหน้าบ้าน เกาะล้าน', 12.9181, 100.7882], ['หาดแสม เกาะล้าน', 12.9160, 100.7712], ['หาดนวล เกาะล้าน', 12.9012, 100.7842]] };
+const DESC = {
+  trash: ['ขยะตกค้างไม่มีการจัดเก็บ', 'มีการลักลอบทิ้งขยะริมทาง', 'ถังขยะล้นส่งกลิ่นเหม็น', 'เศษวัสดุก่อสร้างกองบนทางเท้า'],
+  vendor: ['วางแผงค้าบนทางเท้า', 'รถเข็นขายอาหารจอดกีดขวางทางเดิน', 'ตั้งร้านค้านอกจุดผ่อนผัน', 'ขายของบนชายหาดนอกพื้นที่ที่กำหนด'],
+  walk: ['วางสินค้ากีดขวางทางเท้า', 'ตั้งโต๊ะเก้าอี้ร้านอาหารรุกล้ำทางเท้า', 'ทางเท้าชำรุดเป็นหลุม เสี่ยงอันตราย', 'ป้ายตั้งพื้นกีดขวางทางเดิน'],
+  park: ['จอดรถบนทางเท้า', 'จอดรถซ้อนคันกีดขวางการจราจร', 'รถจักรยานยนต์จอดขวางทางเข้าออก', 'จอดรถในจุดห้ามจอดหน้าตลาด'],
+  noise: ['เสียงดนตรีดังจากร้านยามดึก', 'เสียงดังจากงานก่อสร้างนอกเวลา', 'รถแห่โฆษณาเปิดเสียงดัง', 'เสียงดังรบกวนจากสถานบันเทิง'],
+  sign: ['ติดป้ายโฆษณาบนเสาไฟฟ้า', 'ป้ายโฆษณาติดตั้งไม่ได้รับอนุญาต', 'ป้ายชำรุดเสี่ยงหล่นใส่ผู้สัญจร', 'แผ่นป้ายโฆษณาบดบังป้ายจราจร'],
+  light: ['ไฟส่องสว่างดับหลายดวง', 'โคมไฟริมหาดชำรุด', 'ไฟทางเดินดับ ทำให้มืดเปลี่ยว', 'เสาไฟเอียงเสี่ยงล้ม'],
+  other: ['สุนัขจรจัดรวมกลุ่มไล่กัดคน', 'น้ำท่วมขังทางเท้าหลังฝนตก', 'ผู้ขายบริการเร่ขายบนชายหาด', 'มีผู้ใช้ทางเท้าเป็นที่พักอาศัย'] };
+const RESULTS = { done: ['ดำเนินการแก้ไขเรียบร้อยแล้ว', 'ตักเตือนและให้ผู้เกี่ยวข้องแก้ไขเรียบร้อย', 'ประสานเจ้าของพื้นที่เคลื่อนย้ายสิ่งกีดขวางแล้ว', 'ประสานหน่วยงานที่เกี่ยวข้องดำเนินการแก้ไขแล้ว', 'เปรียบเทียบปรับตามระเบียบและแก้ไขเรียบร้อย'] };
+function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function seed() {
-  const now = Date.now(), L = [];
-  const T = [['trash', 'ขยะตกค้างบริเวณตลาด', 'z1', 12.9612, 100.8941], ['vendor', 'วางแผงค้าบนทางเท้า หน้าซอย 6', 'z2', 12.9427, 100.8847], ['walk', 'วางสินค้ากีดขวางทางเท้า', 'z3', 12.9352, 100.8829],
-    ['park', 'จอดรถบนทางเท้า หน้าร้านสะดวกซื้อ', 'z4', 12.9245, 100.8781], ['noise', 'เสียงดังจากร้านอาหารยามดึก', 'z4', 12.9230, 100.8770], ['sign', 'ติดป้ายโฆษณาบนเสาไฟฟ้า', 'z3', 12.9360, 100.8850],
-    ['light', 'ไฟส่องสว่างดับ ทางเดินริมหาด', 'z5', 12.8910, 100.8705], ['other', 'สุนัขจรจัดรวมกลุ่ม', 'z5', 12.8880, 100.8720]];
-  const plan = [['done', 20, 1.5], ['done', 18, 2.2], ['done', 16, 0.8], ['done', 15, 3.1], ['done', 13, 1.1], ['done', 12, 4.5], ['done', 10, 2.0], ['done', 9, 0.6], ['done', 8, 1.9], ['done', 7, 2.7],
-    ['rejected', 11, 0], ['rejected', 6, 0], ['onsite', 3, 0], ['onsite', 2, 0], ['onsite', 6, 0], ['assigned', 1, 0], ['assigned', 5, 0], ['assigned', 7, 0], ['new', 0.2, 0], ['new', 0.1, 0], ['new', 4, 0], ['done', 5, 1.2], ['done', 4, 0.9], ['onsite', 1, 0]];
-  plan.forEach((p, i) => {
-    const t = T[i % T.length], created = now - p[1] * DAY - (i * 37 % 300) * 60000, cat = catOf(t[0]);
-    const pri = i % 7 === 0 ? 'urgent' : 'normal', due = created + Math.max(0.25, cat.sla * PRI[pri].f) * DAY;
-    const offs = [OFFICERS[i % 8].no].concat(i % 5 === 0 ? [OFFICERS[(i + 3) % 8].no] : []);
-    if (i === 12 || i === 15 || i === 23) offs[0] = ME;
-    const c = { seq: 101 + i, created, cat: t[0], desc: t[1] + (i > 7 ? ' (แจ้งซ้ำบริเวณใกล้เคียง)' : ''), zone: t[2], lat: t[3] + ((i * 13) % 9 - 4) * 0.0008, lng: t[4] + ((i * 7) % 9 - 4) * 0.0008,
-      phone: i % 3 ? '08x-xxx-' + String(1000 + i * 37).slice(-4) : '', name: i % 4 ? 'ประชาชน (ตัวอย่าง)' : '', photos: [img(cat.name, '#475569')], status: p[0], pri, due, officers: [], hist: [{ s: 'new', ts: created, note: 'รับเรื่องผ่านช่องทางออนไลน์' }], result: null };
-    c.ref = refNo(c.seq, created);
-    if (p[0] === 'rejected') { c.hist.push({ s: 'rejected', ts: created + 3 * 3600000, note: 'ไม่อยู่ในอำนาจหน้าที่ ส่งต่อหน่วยงานที่เกี่ยวข้อง' }); c.rejectReason = 'ไม่อยู่ในอำนาจหน้าที่ ส่งต่อหน่วยงานที่เกี่ยวข้อง'; }
-    else if (p[0] !== 'new') {
-      c.officers = offs; c.hist.push({ s: 'assigned', ts: created + 40 * 60000, note: 'มอบหมายเจ้าหน้าที่ ' + offs.length + ' นาย' });
-      if (p[0] === 'onsite' || p[0] === 'done') c.hist.push({ s: 'onsite', ts: created + 2 * 3600000, note: 'เจ้าหน้าที่ลงพื้นที่ตรวจสอบ', gps: 25 + i });
-      if (p[0] === 'done') { const cl = created + p[2] * DAY; c.result = { note: ['ดำเนินการแก้ไขเรียบร้อย และแจ้งเตือนผู้เกี่ยวข้องแล้ว', 'ประสานเจ้าของร้านเคลื่อนย้ายสิ่งกีดขวางแล้ว', 'ตรวจสอบแล้ว ได้แก้ไขให้เรียบร้อย'][i % 3], before: [img('ก่อนดำเนินการ', '#7c2d12')], after: [img('หลังดำเนินการ', '#166534')], by: offs[0], ts: cl - 3600000 };
+  const R = rng(20261029), pick = a => a[Math.floor(R() * a.length)], now = Date.now(), L = [];
+  const zW = [['z1', 14], ['z2', 22], ['z3', 18], ['z4', 12], ['z5', 6]], cW = [['trash', 16], ['vendor', 15], ['walk', 13], ['park', 14], ['noise', 10], ['sign', 8], ['light', 9], ['other', 7]];
+  const wpick = w => { let t = w.reduce((a, x) => a + x[1], 0), r = R() * t; for (const x of w) { if ((r -= x[1]) < 0) return x[0]; } return w[0][0]; };
+  const oW = OFFICERS.map((o, i) => [o.no, 14 - i]);
+  const N = 74, cnames = ['ผู้ร้อง (นามสมมติ)', 'ประชาชน (นามสมมติ)', 'ผู้ประกอบการ (นามสมมติ)', 'นักท่องเที่ยว (นามสมมติ)', ''];
+  for (let i = 0; i < N; i++) {
+    const ageDays = i < 6 ? R() * 1.2 : 1 + R() * 59, created = now - ageDays * DAY - R() * 3600000;
+    const cat = wpick(cW), zone = wpick(zW), pl = pick(PLACES[zone]), cc = catOf(cat);
+    let status;
+    if (i < 4) status = 'new'; else if (i < 8) status = 'assigned'; else if (i < 13) status = 'onsite'; else if (i < 17) status = R() < .5 ? 'assigned' : 'onsite'; else if (i < 20) status = 'rejected'; else status = ageDays < 2 && R() < .6 ? 'onsite' : 'done';
+    const pri = R() < .12 ? 'urgent' : R() < .04 ? 'critical' : 'normal', slaD = Math.max(0.25, cc.sla * PRI[pri].f);
+    let createdAdj = created; if (i >= 13 && i < 17) createdAdj = now - (slaD + 1 + R() * 4) * DAY; else if (['new', 'assigned', 'onsite'].includes(status)) createdAdj = now - (0.05 + R() * 0.75) * slaD * DAY;
+    const due = createdAdj + slaD * DAY;
+    const main = wpick(oW), offs = [main].concat(R() < .25 ? [wpick(oW)].filter(x => x !== main) : []);
+    const c = { seq: 101 + i, created: createdAdj, cat, desc: pick(DESC[cat]) + ' บริเวณ' + pl[0], zone, lat: pl[1] + (R() - .5) * 0.0024, lng: pl[2] + (R() - .5) * 0.0024,
+      phone: R() < .6 ? '08x-xxx-' + String(Math.floor(R() * 9000) + 1000) : '', name: pick(cnames), photos: [img(cc.name, '#475569')], status, pri, due, officers: [], hist: [{ s: 'new', ts: createdAdj, note: pick(['รับเรื่องผ่านช่องทางออนไลน์', 'รับเรื่องผ่าน LINE', 'รับเรื่องทางโทรศัพท์']) }], result: null };
+    if (status === 'rejected') { const why = pick(['ไม่อยู่ในอำนาจหน้าที่ ส่งต่อหน่วยงานที่เกี่ยวข้อง', 'เรื่องซ้ำกับเลขที่รับเรื่องเดิม', 'ข้อมูลไม่เพียงพอ ไม่สามารถติดต่อผู้ร้องได้']); c.hist.push({ s: 'rejected', ts: createdAdj + (1 + R() * 5) * 3600000, note: why }); c.rejectReason = why; }
+    else if (status !== 'new') {
+      c.officers = offs; const ta = createdAdj + (10 + R() * 80) * 60000; c.hist.push({ s: 'assigned', ts: ta, note: 'มอบหมาย ' + offs.map(offName).join(', ') });
+      if (status === 'onsite' || status === 'done') c.hist.push({ s: 'onsite', ts: ta + (20 + R() * 150) * 60000, note: 'เจ้าหน้าที่ลงพื้นที่ตรวจสอบ', gps: Math.round(10 + R() * 120) });
+      if (status === 'done') { const late = R() < .14, d = late ? slaD * (1.05 + R() * .8) : Math.max(0.08, slaD * (0.15 + R() * .8)); let cl = createdAdj + d * DAY; if (cl > now - 600000) cl = now - 600000 - R() * 3600000;
+        c.result = { note: pick(RESULTS.done), before: [img('ก่อนดำเนินการ', '#7c2d12')], after: [img('หลังดำเนินการ', '#166534')], by: main, ts: cl - 1800000 };
         c.hist.push({ s: 'done', ts: cl, note: 'ปิดเรื่อง ดำเนินการแล้วเสร็จ' }); c.closed = cl; }
+      else if (status === 'onsite' && R() < .4) c.result = { note: pick(RESULTS.done), before: [img('ก่อนดำเนินการ', '#7c2d12')], after: [img('หลังดำเนินการ', '#166534')], by: main, ts: now - R() * 3 * 3600000 };
     }
-    L.push(c);
-  });
-  return { list: L, seq: 101 + plan.length };
+    c.ref = refNo(c.seq, createdAdj); L.push(c);
+  }
+  L.sort((a, b) => a.created - b.created).forEach((c, k) => { c.seq = 101 + k; c.ref = refNo(c.seq, c.created); });
+  const meCases = L.filter(c => ['assigned', 'onsite'].includes(c.status) && !c.result).slice(0, 3); meCases.forEach(c => { c.officers = [ME].concat(c.officers.filter(x => x !== ME)).slice(0, 2); });
+  return { list: L, seq: 101 + L.length };
 }
 let DB = null;
 function load() { try { DB = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { DB = null; } if (!DB || !DB.list) { DB = seed(); save(); } }
@@ -134,9 +157,9 @@ function save() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (
 function resetDemo() { localStorage.removeItem(KEY); localStorage.removeItem('cmp-rate'); location.reload(); }
 function byRef(r) { r = String(r || '').replace(/\s+/g, '').replace(/^รอ/, 'รอ'); return DB.list.find(c => c.ref === r || c.ref.replace('รอ.', '') === r || String(c.seq) === r.replace(/^0+/, '')); }
 
-const VIEWS = [['citizen', 'ยื่นเรื่องร้องเรียน', 'fa-solid fa-pen-to-square'], ['track', 'ติดตามเรื่อง', 'fa-solid fa-magnifying-glass'], ['commander', 'ผู้บังคับบัญชา', 'fa-solid fa-inbox'], ['officer', 'เจ้าหน้าที่', 'fa-solid fa-user-shield'], ['exec', 'ผู้บริหาร', 'fa-solid fa-chart-column']];
+const VIEWS = [['home', 'หน้าแรก', 'fa-solid fa-house'], ['citizen', 'ยื่นเรื่องร้องเรียน', 'fa-solid fa-pen-to-square'], ['track', 'ติดตามเรื่อง', 'fa-solid fa-magnifying-glass'], ['commander', 'ผู้บังคับบัญชา', 'fa-solid fa-inbox'], ['officer', 'เจ้าหน้าที่', 'fa-solid fa-user-shield'], ['exec', 'ผู้บริหาร', 'fa-solid fa-chart-column']];
 const Q = new URLSearchParams(location.search);
-let VIEW = Q.get('as') || 'citizen';
+let VIEW = Q.get('as') || 'home';
 function nav() { $('nav').innerHTML = VIEWS.map(v => '<a class="tab ' + (v[0] === VIEW ? 'on' : '') + '" href="?as=' + v[0] + '"><i class="' + v[2] + '"></i>' + v[1] + '</a>').join(''); }
 function modal(html) { $('modal-root').innerHTML = '<div class="modal" id="mdl"><div>' + html + '</div></div>'; $('mdl').addEventListener('click', e => { if (e.target.id === 'mdl' || e.target.closest('[data-close]')) closeModal(); }); }
 function closeModal() { $('modal-root').innerHTML = ''; }
@@ -219,7 +242,7 @@ function timelineHtml(c, publicView) {
 function viewTrack() {
   const r = Q.get('ref') || '';
   $('app').innerHTML = '<section class="card p-5 max-w-3xl mx-auto"><h2><i class="fa-solid fa-magnifying-glass gold"></i>ติดตามสถานะเรื่องร้องเรียน</h2><label class="lbl" for="t-ref">เลขที่รับเรื่อง</label><div class="flex flex-col sm:flex-row gap-3"><input id="t-ref" class="inp mono text-2xl" placeholder="รอ.2569/000142" value="' + esc(r) + '"><button class="btn b-pri" id="t-go"><i class="fa-solid fa-magnifying-glass"></i>ตรวจสอบ</button></div>'
-    + '<p class="text-base text-slate-600 mt-2">ตัวอย่างเลขที่: ' + ['000142', '000113', '000116', '000101'].map(x => '<button class="underline text-[#0b2a5b] font-bold mr-2" data-ex="รอ.2569/' + x + '">รอ.2569/' + x + '</button>').join('') + '</p></section><div id="t-out" class="max-w-3xl mx-auto mt-6"></div>';
+    + '<p class="text-base text-slate-600 mt-2">ตัวอย่างเลขที่: ' + trackExamples().map(x => '<button class="underline text-[#0b2a5b] font-bold mr-2" data-ex="' + x + '">' + x + '</button>').join('') + '</p></section><div id="t-out" class="max-w-3xl mx-auto mt-6"></div>';
   const go = () => { const c = byRef($('t-ref').value); if (!c) { $('t-out').innerHTML = '<section class="card p-5 text-lg"><i class="fa-solid fa-circle-exclamation text-red-700"></i> ไม่พบเลขที่รับเรื่องนี้ กรุณาตรวจสอบอีกครั้ง</section>'; return; }
     const es = effStatus(c), cat = catOf(c.cat);
     $('t-out').innerHTML = '<section class="card p-5"><div class="flex flex-wrap items-start gap-4 mb-4"><span class="cat"><i class="' + cat.icon + '"></i></span><div class="flex-1"><p class="mono text-2xl font-extrabold text-[#0b2a5b]">' + esc(c.ref) + '</p><p class="text-lg">' + esc(cat.name) + ' · พื้นที่' + esc(zoneOf(c.zone).name) + '</p><p class="text-base text-slate-600">ยื่นเรื่องเมื่อ ' + esc(fLong(c.created)) + '</p></div><div>' + chip(es) + '</div></div>'
@@ -332,29 +355,30 @@ function statsFor(list, now) {
 function bars(rows, max) { return rows.map(r => '<div class="flex items-center gap-3 mb-2"><span class="w-48 text-base font-bold flex items-center gap-2"><i class="' + r.icon + '" style="color:' + r.color + '"></i>' + r.name + '</span><div class="flex-1 bg-slate-100 rounded h-9 overflow-hidden"><div class="h-9 flex items-center justify-end pr-2 text-white font-bold" style="width:' + Math.max(r.v ? 6 : 0, r.v / (max || 1) * 100) + '%;background:' + r.color + '">' + (r.v || '') + '</div></div><span class="w-10 text-right font-bold">' + r.v + '</span></div>').join(''); }
 let EXM = null;
 function viewExec() {
-  const months = [...new Set(DB.list.map(c => monthKey(c.created)))].sort().reverse(); if (!EXM) EXM = months[0];
-  const list = DB.list.filter(c => monthKey(c.created) === EXM), S = statsFor(list), fx = v => v == null ? '-' : v.toFixed(1);
-  const mName = k => { const p = k.split('-'); return TH_ML[+p[1] - 1] + ' ' + (+p[0] + 543); };
+  const months = [...new Set(DB.list.map(c => monthKey(c.created)))].sort().reverse(); if (!EXM) EXM = 'all';
+  const list = DB.list.filter(c => EXM === 'all' || monthKey(c.created) === EXM), S = statsFor(list), fx = v => v == null ? '-' : v.toFixed(1);
+  const mName = k => { if (k === 'all') return 'ช่วง ' + (Math.round((Date.now() - Math.min(...DB.list.map(c => c.created))) / DAY)) + ' วันล่าสุด'; const p = k.split('-'); return TH_ML[+p[1] - 1] + ' ' + (+p[0] + 543); };
   const kpi = (t, v, sub, color, icon) => '<div class="card p-4" style="border-top:5px solid ' + color + '"><p class="text-base font-bold text-slate-600"><i class="' + icon + '" style="color:' + color + '"></i> ' + t + '</p><p class="text-4xl font-extrabold text-[#0b2a5b] mt-1">' + v + '</p><p class="text-sm text-slate-600">' + sub + '</p></div>';
   const stRows = ST_ORDER.map(s => ({ name: ST[s].name, icon: ST[s].icon, color: ST[s].color, v: S.byStatus[s] || 0 }));
   const catRows = CATS.map(c => ({ name: c.name, icon: c.icon, color: '#0b2a5b', v: S.byCat[c.id] || 0 })), zRows = ZONES.map(z => ({ name: z.name, icon: 'fa-solid fa-map-pin', color: '#c9a227', v: S.byZone[z.id] || 0 }));
   const mx = a => Math.max(1, ...a.map(r => r.v));
-  $('app').innerHTML = '<section class="card p-5 mb-6"><div class="flex flex-col md:flex-row md:items-end gap-4"><div class="flex-1"><p class="text-2xl font-extrabold text-[#0b2a5b]">สรุปผลการดำเนินการเรื่องร้องเรียน</p><p class="text-lg text-slate-600">ประจำเดือน' + mName(EXM) + ' · ข้อมูล ณ ' + esc(fLong(Date.now())) + '</p></div>'
-    + '<select id="x-m" class="inp" style="max-width:260px">' + months.map(m => '<option value="' + m + '"' + (m === EXM ? ' selected' : '') + '>' + mName(m) + '</option>').join('') + '</select><button id="x-xlsx" class="btn b-ok"><i class="fa-solid fa-file-excel"></i>ดาวน์โหลด Excel</button></div></section>'
+  $('app').innerHTML = '<section class="card p-5 mb-6"><div class="flex flex-col md:flex-row md:items-end gap-4"><div class="flex-1"><p class="text-2xl font-extrabold text-[#0b2a5b]">สรุปผลการดำเนินการเรื่องร้องเรียน</p><p class="text-lg text-slate-600">' + (EXM === 'all' ? '' : 'ประจำเดือน') + mName(EXM) + ' · ข้อมูล ณ ' + esc(fLong(Date.now())) + '</p></div>'
+    + '<select id="x-m" class="inp" style="max-width:260px"><option value="all"' + (EXM === 'all' ? ' selected' : '') + '>ทั้งหมด (ทุกเดือน)</option>' + months.map(m => '<option value="' + m + '"' + (m === EXM ? ' selected' : '') + '>' + mName(m) + '</option>').join('') + '</select><button id="x-xlsx" class="btn b-ok"><i class="fa-solid fa-file-excel"></i>ดาวน์โหลด Excel</button></div></section>'
     + '<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">' + kpi('เรื่องทั้งหมด', S.total, 'เรื่องที่รับในเดือนนี้', '#0b2a5b', 'fa-solid fa-inbox') + kpi('เสร็จสิ้น', S.byStatus.done || 0, 'ทันกำหนด ' + S.onTime + ' เรื่อง', '#16a34a', 'fa-solid fa-circle-check')
-    + kpi('เกินกำหนด', S.overdue.length, 'ต้องเร่งรัด', '#dc2626', 'fa-solid fa-clock') + kpi('เวลาเฉลี่ยปิดเรื่อง', fx(S.avg), 'วัน', '#c9a227', 'fa-solid fa-stopwatch') + '</div><div class="space-y-4">'
+    + kpi('เกินกำหนด', S.overdue.length, 'ต้องเร่งรัด', '#dc2626', 'fa-solid fa-clock') + kpi('เวลาเฉลี่ยปิดเรื่อง', fx(S.avg), 'วัน', '#c9a227', 'fa-solid fa-stopwatch') + '</div><div class="grid 2xl:grid-cols-2 gap-4 items-start">'
     + accCard('status', 'จำนวนเรื่องตามสถานะ', 'fa-solid fa-list-check', ST_ORDER.map(s => ST[s].name + ' ' + (S.byStatus[s] || 0)).join(' · '), legend() + '<div class="mt-4">' + bars(stRows, mx(stRows)) + '</div>')
     + accCard('map', 'แผนที่ตำแหน่งเรื่องร้องเรียน', 'fa-solid fa-map-location-dot', S.total + ' จุด แสดงสีตามสถานะ', '<div id="x-map" style="height:420px" class="rounded-lg border"></div><div class="mt-3">' + legend() + '</div>')
     + accCard('cat', 'จำนวนเรื่องตามประเภท', 'fa-solid fa-layer-group', CATS.filter(c => S.byCat[c.id]).length + ' ประเภท', bars(catRows, mx(catRows)))
     + accCard('zone', 'จำนวนเรื่องตามพื้นที่', 'fa-solid fa-map-pin', ZONES.map(z => z.name + ' ' + (S.byZone[z.id] || 0)).join(' · '), bars(zRows, mx(zRows)))
     + accCard('overdue', 'เรื่องที่เกินกำหนด', 'fa-solid fa-clock', S.overdue.length + ' เรื่อง', S.overdue.length ? S.overdue.map(c => '<div class="row" style="border-left-color:#dc2626;cursor:default"><span class="mono font-bold w-44">' + esc(c.ref) + '</span><span class="flex-1">' + esc(c.desc) + '<br><span class="text-base text-slate-600">' + esc(catOf(c.cat).name) + ' · ' + esc(zoneOf(c.zone).name) + ' · ผู้รับผิดชอบ ' + esc(c.officers.map(offName).join(', ') || '-') + '</span></span>' + chip('overdue', ' ' + Math.ceil((Date.now() - c.due) / DAY) + ' วัน') + '</div>').join('<div class="h-2"></div>') : '<p class="text-lg text-slate-600">ไม่มีเรื่องเกินกำหนด</p>')
     + accCard('per', 'ผลการปฏิบัติงานรายบุคคล', 'fa-solid fa-users', OFFICERS.length + ' นาย', '<div class="overflow-x-auto"><table class="w-full text-lg border-collapse"><thead><tr class="bg-[#0b2a5b] text-white">' + ['รหัส', 'ชื่อ-สกุล', 'ได้รับมอบหมาย', 'เสร็จสิ้น', 'ค้างดำเนินการ', 'เกินกำหนด', 'เฉลี่ย (วัน)', 'ทันกำหนด'].map(h => '<th class="p-3 border border-slate-300 text-base">' + h + '</th>').join('') + '</tr></thead><tbody>'
-      + S.per.map(p => '<tr class="odd:bg-slate-50"><td class="p-3 border text-center">' + p.no + '</td><td class="p-3 border">' + esc(p.name) + '</td><td class="p-3 border text-center font-bold">' + p.assigned + '</td><td class="p-3 border text-center text-green-700 font-bold">' + p.done + '</td><td class="p-3 border text-center">' + p.open + '</td><td class="p-3 border text-center ' + (p.overdue ? 'text-red-700 font-bold' : '') + '">' + p.overdue + '</td><td class="p-3 border text-center">' + fx(p.avg) + '</td><td class="p-3 border text-center">' + (p.done ? Math.round(p.onTime * 100 / p.done) + '%' : '-') + '</td></tr>').join('') + '</tbody></table></div>')
+      + S.per.map(p => '<tr class="odd:bg-slate-50"><td class="p-3 border text-center">' + p.no + '</td><td class="p-3 border whitespace-nowrap">' + esc(p.name) + '</td><td class="p-3 border text-center font-bold">' + p.assigned + '</td><td class="p-3 border text-center text-green-700 font-bold">' + p.done + '</td><td class="p-3 border text-center">' + p.open + '</td><td class="p-3 border text-center ' + (p.overdue ? 'text-red-700 font-bold' : '') + '">' + p.overdue + '</td><td class="p-3 border text-center">' + fx(p.avg) + '</td><td class="p-3 border text-center">' + (p.done ? Math.round(p.onTime * 100 / p.done) + '%' : '-') + '</td></tr>').join('') + '</tbody></table></div>')
     + '</div>';
   $('x-m').onchange = () => { EXM = $('x-m').value; viewExec(); };
   $('x-xlsx').onclick = () => exportExec(list, S, mName(EXM), EXM);
-  let map = null; const drawMap = () => { if (map || !$('x-map') || !$('x-map').offsetParent) return; map = mkMap('x-map', 12.93, 100.882, 13); list.forEach(c => L.marker([c.lat, c.lng], { icon: pinIcon(effStatus(c)) }).addTo(map).bindPopup('<b>' + esc(c.ref) + '</b><br>' + esc(catOf(c.cat).name) + '<br>' + ST[effStatus(c)].name)); };
+  let map = null; const drawMap = () => { if (map || !$('x-map') || !$('x-map').offsetParent) return; map = mkMap('x-map', 12.93, 100.882, 13); if (list.length) map.fitBounds(L.latLngBounds(list.map(c => [c.lat, c.lng])).pad(0.08)); list.forEach(c => L.marker([c.lat, c.lng], { icon: pinIcon(effStatus(c)) }).addTo(map).bindPopup('<b>' + esc(c.ref) + '</b><br>' + esc(catOf(c.cat).name) + '<br>' + ST[effStatus(c)].name)); };
   document.querySelectorAll('[data-acc]').forEach(s => s.querySelector('.acc-h').onclick = () => { s.classList.toggle('open'); try { localStorage.setItem('cmp-acc:' + s.dataset.acc, s.classList.contains('open') ? '1' : '0'); } catch (e) { } drawMap(); });
+  const pr = document.querySelector('[data-acc="per"]'); if (pr) pr.classList.add('2xl:col-span-2');
   drawMap();
 }
 function loadExcelJs() { if (window.ExcelJS) return Promise.resolve(window.ExcelJS); return new Promise((ok, no) => { const s = document.createElement('script'); s.src = EXCELJS_URL; s.onload = () => ok(window.ExcelJS); s.onerror = () => no(new Error('โหลดตัวสร้าง Excel ไม่ได้')); document.head.appendChild(s); }); }
@@ -365,7 +389,7 @@ async function buildExecWorkbook(list, S, mName) {
   const GREY = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBFBFBF' } }, BLUE = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDEBF7' } };
   ws.columns = [{ width: 7 }, { width: 18 }, { width: 13 }, { width: 22 }, { width: 13 }, { width: 18 }, { width: 22 }, { width: 10 }];
   const merged = (t, o) => { const r = ws.addRow([t]); ws.mergeCells(r.number, 1, r.number, N); const c = r.getCell(1); c.font = F(o.b); c.alignment = { horizontal: o.h || 'center', vertical: 'middle', indent: o.h ? 1 : 0, wrapText: true }; r.height = o.ht || 30; if (o.fill) for (let i = 1; i <= N; i++) { r.getCell(i).fill = o.fill; r.getCell(i).border = B; } return r; };
-  merged('หน่วยงาน เทศกิจเมืองพัทยา', { b: 1 }); merged('รายงานสรุปผลการดำเนินการเรื่องร้องเรียน ประจำเดือน' + mName, { b: 1 }); merged('ข้อมูล ณ ' + fLong(Date.now()), {}); ws.addRow([]);
+  merged('หน่วยงาน เทศกิจเมืองพัทยา', { b: 1 }); merged('รายงานสรุปผลการดำเนินการเรื่องร้องเรียน ' + (mName.startsWith('ช่วง') ? '' : 'ประจำเดือน') + mName, { b: 1 }); merged('ข้อมูล ณ ' + fLong(Date.now()), {}); ws.addRow([]);
   const kv = (rows) => rows.forEach(([k, v]) => { const r = ws.addRow([k, '', '', '', v]); ws.mergeCells(r.number, 1, r.number, 4); ws.mergeCells(r.number, 5, r.number, N); r.height = 26; for (let i = 1; i <= N; i++) { const c = r.getCell(i); c.border = B; c.font = F(); c.alignment = { vertical: 'middle', horizontal: i < 5 ? 'left' : 'center', indent: i < 5 ? 1 : 0 }; } });
   merged('สรุปภาพรวม', { b: 1, h: 'left', fill: BLUE });
   kv([['เรื่องทั้งหมด', S.total + ' เรื่อง'], ['เสร็จสิ้น', (S.byStatus.done || 0) + ' เรื่อง (ทันกำหนด ' + S.onTime + ' เรื่อง)'], ['เกินกำหนด', S.overdue.length + ' เรื่อง'], ['เวลาเฉลี่ยในการปิดเรื่อง', S.avg == null ? '-' : S.avg.toFixed(1) + ' วัน']]);
@@ -387,10 +411,34 @@ async function exportExec(list, S, mName, key) {
   try { const buf = await (await buildExecWorkbook(list, S, mName)).xlsx.writeBuffer(); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })); a.download = 'รายงานเรื่องร้องเรียน ' + key + '.xlsx'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); toast('สร้างไฟล์ Excel แล้ว'); }
   catch (e) { toast('สร้างไฟล์ไม่สำเร็จ: ' + (e.message || e), false); }
 }
+
+function trackExamples() { const f = s => { const c = DB.list.slice().reverse().find(x => effStatus(x) === s); return c ? c.ref : null; }; return ['onsite', 'done', 'overdue', 'rejected', 'assigned'].map(f).filter(Boolean); }
+function viewHome() {
+  const S = statsFor(DB.list), days = Math.round((Date.now() - Math.min(...DB.list.map(c => c.created))) / DAY);
+  const card = (as, t, d, icon, color) => '<a href="?as=' + as + '" class="card p-6 flex items-center gap-5 hover:shadow-lg transition" style="border-left:8px solid ' + color + ';min-height:130px"><span class="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl flex-none" style="background:' + color + '1a;color:' + color + '"><i class="' + icon + '"></i></span><span class="flex-1"><span class="block text-2xl font-extrabold text-[#0b2a5b]">' + t + '</span><span class="block text-lg text-slate-600 mt-1">' + d + '</span></span><i class="fa-solid fa-chevron-right text-2xl text-slate-400"></i></a>';
+  const step = (n, t, d, icon, color) => '<div class="flex-1 min-w-[170px] text-center"><div class="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl border-4" style="border-color:' + color + ';color:' + color + ';background:#fff"><i class="' + icon + '"></i></div><p class="mt-3 text-sm font-bold text-slate-500">ขั้นตอนที่ ' + n + '</p><p class="text-xl font-extrabold text-[#0b2a5b]">' + t + '</p><p class="text-base text-slate-600">' + d + '</p></div>';
+  const arrow = '<div class="hidden lg:flex items-center text-3xl gold pt-6"><i class="fa-solid fa-arrow-right-long"></i></div>';
+  $('app').innerHTML = '<section class="rounded-2xl overflow-hidden mb-6 shadow" style="background:linear-gradient(120deg,#0b2a5b,#123a7a)"><div class="p-8 md:p-12 text-white"><span class="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-extrabold text-lg" style="background:#c9a227;color:#0b2a5b"><i class="fa-solid fa-flask"></i>ข้อมูลจำลองเพื่อการนำเสนอ</span>'
+    + '<h1 class="text-3xl md:text-5xl font-extrabold mt-5 leading-tight">ระบบรับเรื่องร้องเรียน<br>เทศกิจเมืองพัทยา <span style="color:#e9d48a">(ฉบับทดลอง)</span></h1>'
+    + '<p class="text-xl md:text-2xl mt-4 max-w-3xl text-slate-100">ช่องทางให้ประชาชนแจ้งเรื่องร้องเรียนและติดตามผลได้ด้วยตนเอง ผู้บังคับบัญชามอบหมายงานได้ทันที เจ้าหน้าที่รายงานผลพร้อมภาพจากจุดเกิดเหตุ และผู้บริหารเห็นภาพรวมการปฏิบัติงานแบบเรียลไทม์</p>'
+    + '<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">' + [['เรื่องในระบบ (จำลอง)', S.total], ['เสร็จสิ้น', S.byStatus.done || 0], ['ปิดเรื่องเฉลี่ย (วัน)', S.avg == null ? '-' : S.avg.toFixed(1)], ['ช่วงข้อมูล (วัน)', days]].map(x => '<div class="rounded-xl p-4" style="background:rgba(255,255,255,.1);border:1px solid rgba(233,212,138,.4)"><p class="text-4xl font-extrabold">' + x[1] + '</p><p class="text-base" style="color:#e9d48a">' + x[0] + '</p></div>').join('') + '</div></div></section>'
+    + '<section class="card p-6 mb-6"><h2><i class="fa-solid fa-diagram-project gold"></i>ขั้นตอนการทำงาน</h2><div class="flex flex-wrap lg:flex-nowrap gap-4 justify-center">'
+    + step(1, 'ประชาชนยื่นเรื่อง', 'ระบุประเภท ภาพ และตำแหน่ง รับเลขที่ทันที', 'fa-solid fa-pen-to-square', '#64748b') + arrow + step(2, 'ผู้บังคับบัญชามอบหมาย', 'เลือกเจ้าหน้าที่ กำหนดความเร่งด่วนและวันแล้วเสร็จ', 'fa-solid fa-user-check', '#7c3aed') + arrow
+    + step(3, 'เจ้าหน้าที่ลงพื้นที่', 'ยืนยันตำแหน่งด้วย GPS ดำเนินการแก้ไข', 'fa-solid fa-person-walking-arrow-right', '#ea580c') + arrow + step(4, 'รายงานผลและปิดเรื่อง', 'ภาพก่อน/หลัง ผู้บังคับบัญชาตรวจและปิดเรื่อง', 'fa-solid fa-circle-check', '#16a34a') + arrow
+    + step(5, 'ผู้บริหารติดตาม', 'สรุปสถิติ แผนที่ และผลงานรายบุคคล', 'fa-solid fa-chart-column', '#0b2a5b') + '</div></section>'
+    + '<h2 class="text-2xl font-extrabold text-[#0b2a5b] mb-4 flex items-center gap-2"><i class="fa-solid fa-hand-pointer gold"></i>เลือกหน้าจอที่ต้องการทดลอง</h2><div class="grid md:grid-cols-2 gap-5 mb-6">'
+    + card('citizen', 'ประชาชนยื่นเรื่อง', 'แบบฟอร์มร้องเรียน 8 ประเภท พร้อมภาพและแผนที่ ได้รับใบรับเรื่อง', 'fa-solid fa-pen-to-square', '#0b2a5b')
+    + card('track', 'ติดตามเรื่อง', 'กรอกเลขที่รับเรื่อง ดูสถานะและผลการดำเนินการ', 'fa-solid fa-magnifying-glass', '#0369a1')
+    + card('commander', 'ผู้บังคับบัญชา', 'กล่องรับเรื่อง กรองข้อมูล มอบหมายเจ้าหน้าที่ ปิดเรื่อง', 'fa-solid fa-inbox', '#7c3aed')
+    + card('officer', 'เจ้าหน้าที่', 'งานที่ได้รับมอบหมาย นำทาง เช็กอินจุดเกิดเหตุ รายงานผล', 'fa-solid fa-user-shield', '#ea580c')
+    + '<div class="md:col-span-2">' + card('exec', 'ผู้บริหาร', 'แดชบอร์ดสรุปผล สถานะ ประเภท พื้นที่ แผนที่ ผลงานรายบุคคล และดาวน์โหลด Excel', 'fa-solid fa-chart-column', '#c9a227') + '</div></div>'
+    + '<section class="card p-5"><h2><i class="fa-solid fa-circle-info gold"></i>หมายเหตุ</h2><div class="mb-3">' + legend() + '</div><p class="text-lg text-slate-700">ข้อมูลทั้งหมดในเว็บนี้เป็นข้อมูลจำลองเพื่อการนำเสนอ ชื่อบุคคลทั้งหมดเป็นชื่อสมมติ ไม่ใช่เจ้าหน้าที่หรือประชาชนจริง สถานที่อ้างอิงพื้นที่สาธารณะในเมืองพัทยาเพื่อความสมจริงเท่านั้น และยังไม่เชื่อมต่อระบบจริง</p></section>';
+}
 function start() {
   load(); nav();
   if (VIEW === 'officer') { viewOfficer(); if (navigator.geolocation) navigator.geolocation.watchPosition(p => { GPS = { lat: p.coords.latitude, lng: p.coords.longitude }; if (!$('mdl')) viewOfficer(); }, () => { }, { enableHighAccuracy: true, maximumAge: 10000 }); }
-  else ({ citizen: viewCitizen, track: viewTrack, commander: viewCommander, exec: viewExec }[VIEW] || viewCitizen)();
+  else ({ home: viewHome, citizen: viewCitizen, track: viewTrack, commander: viewCommander, exec: viewExec }[VIEW] || viewHome)();
+  if (VIEW === 'exec' || VIEW === 'home') $('app').classList.add('wide');
 }
 start();
 </script></body></html>
